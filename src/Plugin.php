@@ -36,6 +36,7 @@ final class Plugin {
         add_action('enqueue_block_editor_assets',[self::class,'editor_assets']);
         add_action('admin_menu',[self::class,'admin_menu']);
         add_action('admin_init',[self::class,'admin_settings']);
+        add_filter('views_edit-cb_note',[self::class,'hide_global_status_counts'],50);
         add_filter('plugin_action_links_'.CB_NOTES_BASENAME,[self::class,'action_links']);
         add_action('wp_abilities_api_init',[Abilities::class,'register']);
     }
@@ -165,6 +166,14 @@ final class Plugin {
             esc_html__('Allow read-only Notes abilities in MCP','core-blueprint-notes').'</label>';
         submit_button();
         echo '</form></div>';
+    }
+    /** WordPress core's status counts may include other users' drafts. */
+    public static function hide_global_status_counts(array $views): array {
+        if (current_user_can('cb_notes_manage_all')) return $views;
+        foreach ($views as $key=>$markup) {
+            $views[$key]=preg_replace('/\\s*<span class="count">\\([^)]*\\)<\\/span>/', '', $markup)??$markup;
+        }
+        return $views;
     }
     public static function action_links(array $links): array {
         $links[]='<a href="'.esc_url(admin_url('edit.php?post_type='.self::TYPE)).'">'.
