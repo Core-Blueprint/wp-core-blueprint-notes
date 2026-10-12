@@ -37,6 +37,8 @@ final class Plugin {
         add_action('admin_menu',[self::class,'admin_menu']);
         add_action('admin_init',[self::class,'admin_settings']);
         add_filter('views_edit-cb_note',[self::class,'hide_global_status_counts'],50);
+        add_filter('manage_cb_note_posts_columns',[self::class,'note_columns']);
+        add_action('manage_cb_note_posts_custom_column',[self::class,'notebook_column'],10,2);
         add_filter('plugin_action_links_'.CB_NOTES_BASENAME,[self::class,'action_links']);
         add_action('wp_abilities_api_init',[Abilities::class,'register']);
     }
@@ -166,6 +168,14 @@ final class Plugin {
             esc_html__('Allow read-only Notes abilities in MCP','core-blueprint-notes').'</label>';
         submit_button();
         echo '</form></div>';
+    }
+    public static function note_columns(array $columns): array {
+        $columns['cb_notes_notebook']=__('Notebook','core-blueprint-notes');
+        return $columns;
+    }
+    public static function notebook_column(string $column,int $post_id): void {
+        if($column==='cb_notes_notebook' && current_user_can('read_post',$post_id))
+            echo esc_html((string)get_post_meta($post_id,self::META_NOTEBOOK,true));
     }
     /** WordPress core's status counts may include other users' drafts. */
     public static function hide_global_status_counts(array $views): array {
