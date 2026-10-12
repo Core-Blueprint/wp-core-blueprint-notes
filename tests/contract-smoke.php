@@ -76,6 +76,8 @@ $q=new WP_Query(['post_type'=>'cb_note','author'=>2]);
 Access::scope_query($q);
 expect($q->get('author')===1,'list owner scoped');
 expect(Access::scope_rest(['author'=>2])['author']===1,'REST cannot force alternate author');
+$views=\CB\Notes\Plugin::hide_global_status_counts(['all'=>'All <span class="count">(17)</span>']);
+expect(!str_contains($views['all'],'17'),'editor global status count hidden');
 $GLOBALS['test_uid']=0;
 expect(!Access::can_read($GLOBALS['test_posts'][10]),'anonymous read denied');
 $q=new WP_Query(['post_type'=>'cb_note']);
