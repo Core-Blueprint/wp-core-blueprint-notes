@@ -58,8 +58,8 @@ final class Plugin {
             'supports'=>['title','editor','author','revisions'],
             'map_meta_cap'=>true,'capability_type'=>['cb_note','cb_notes'],
             'capabilities'=>[
-                'edit_post'=>'edit_cb_note','read_post'=>'read_cb_note',
-                'delete_post'=>'delete_cb_note','edit_posts'=>'cb_notes_edit',
+                'edit_post'=>'edit_post','read_post'=>'read_post',
+                'delete_post'=>'delete_post','edit_posts'=>'cb_notes_edit',
                 'edit_others_posts'=>'cb_notes_manage_all','edit_private_posts'=>'cb_notes_edit',
                 'edit_published_posts'=>'cb_notes_edit','publish_posts'=>'cb_notes_edit',
                 'read_private_posts'=>'cb_notes_manage_all','delete_posts'=>'cb_notes_delete',
