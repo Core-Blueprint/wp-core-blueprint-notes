@@ -1,35 +1,40 @@
 # Core Blueprint Notes
 
-A proposed Gutenberg-first, privacy-first Notes extension for the Core Blueprint WordPress Suite.
+**Version:** `0.1.0-alpha1` | **Status:** development test candidate; not Golden or production-ready.
 
-**Status:** architecture RFC only. There is no installable plugin, test suite or release artifact in this repository yet. No runtime implementation has been approved.
+Private, WordPress-native Gutenberg notes for the Core Blueprint WP Suite.
 
-## Product direction
+## What is implemented
 
-- **Notes:** private working knowledge, meeting notes, ideas and research.
-- **Notebooks:** organize notes in WordPress.
-- **Native Gutenberg:** canonical editor, posts, autosaves and revisions.
-- **Independent module:** requires Core Blueprint Base; optional CRM, Work, Helpdesk and Docs links through public contracts.
-- **AI-ready, not AI-dependent:** WordPress Abilities API and an optional MCP Adapter may expose *explicitly approved* read-only actions. No automatic AI access, background transfer or silent write access.
+- Native Gutenberg Notes editing with WordPress autosaves and revisions.
+- Personal ownership: editors can manage only their own notes; administrators have an explicit `cb_notes_manage_all` override. Subscribers have no Notes access by default.
+- Flat personal **Notebook** text labels stored per note in post meta; no site-global term taxonomy and no hierarchy/team sharing yet.
+- Non-public `cb_note` post type, author-scoped lists and REST requests, object-level read/edit/delete checks.
+- Required Core Blueprint Base API 1.2+, ExtensionRegistry and Governance/Audit integration; plugin activation requires active Base.
+- Optional read-only Abilities API (`core-blueprint-notes/list-notes`, `search-notes`, `read-note`). **MCP access is OFF by default**, requires the separate authenticated WordPress MCP Adapter, and may be enabled under **Notes → AI Access**. Only accounts with `cb_notes_use_ai` may invoke read abilities, administrators by default. No external AI requests or AI write operations.
 
-**This is not the separate Core Blueprint webapp Notes extension** (`christiaanbruinsma/core-blueprint-extension-notes`).
+## Security limits
 
-## Architecture documents
+**Alpha staging only. Never use with real confidential notes or attachments until the multi-user WordPress acceptance checks pass.** Gutenberg may embed public Media Library URLs or external embeds: these are not private file storage. This alpha has no private attachment handling, team-sharing ACL, cross-extension relationship UI, importer/exporter or AI write proposals.
 
-1. [WordPress Architecture RFC v1](docs/ARCHITECTURE-V1-RFC.md): domain ownership, Gutenberg data model, privacy, scope, release gates and open decisions.
-2. [Integration & Abilities Contracts RFC v1](docs/INTEGRATION-CONTRACTS-V1-RFC.md): proposed public contracts, cross-module links, AI permissions, MCP exposure and security tests.
+The original planning documents describe a **proposed** `cb_notebook` taxonomy. This alpha intentionally uses private per-note metadata instead to avoid leaking global taxonomy names. We must explicitly design per-user hierarchical notebook ACLs before adding the taxonomy.
 
-Both documents are **proposals**, not confirmed public APIs. Their PHP/ability names are illustrative and must not be treated as implemented.
+## Install, checks and packaging
 
-## Current decisions
+Requirements: WordPress 7.0+, PHP 8.4+, Core Blueprint Base with compatible Core API 1.2.
 
-- Product name: **Core Blueprint Notes**.
-- Editor: **Gutenberg-first**, not a custom editor.
-- Privacy: **private by default**; team-sharing policy requires explicit design acceptance.
-- Plugin prerequisite: **Core Blueprint Base required**; no standalone fallback.
-- Sibling integrations and MCP: **optional and fail-soft**.
-- No merge, runtime implementation, release build, publication or CI/CD is authorized by this documentation branch.
+From the repository root:
 
-## Next gate
+```bash
+bash tools/check
+bash tools/build-release
+sha256sum ../dist/core-blueprint-notes-0.1.0-alpha1.zip
+```
 
-Review the RFCs; confirm personal-only versus shared/team notes for the first release, one-versus-many notebook membership and whether private attachments should be deferred. Then approve a separate implementation plan. 
+Build output: `../dist/core-blueprint-notes-0.1.0-alpha1.zip`, with plugin folder `core-blueprint-notes/`.
+
+The source gate validates PHP/JS syntax, shell syntax and focused mocked permission/Abilities tests. **These tests do not execute WordPress.** Real installation, Gutenberg and REST authorization remain mandatory.
+
+See [tomorrow's manual test batch](docs/TEST-PLAN.md), [Architecture RFC](docs/ARCHITECTURE-V1-RFC.md) and [Integration/Abilities RFC](docs/INTEGRATION-CONTRACTS-V1-RFC.md).
+
+**Governance:** source is on a featurebranch. Do not merge, publish, deploy or trigger CI/CD without explicit GO.
