@@ -28,10 +28,10 @@ From the repository root:
 ```bash
 bash tools/check
 bash tools/build-release
-sha256sum ../dist/core-blueprint-notes-0.1.0-alpha1.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha1.zip
 ```
 
-Build output: `../dist/core-blueprint-notes-0.1.0-alpha1.zip`, with plugin folder `core-blueprint-notes/`.
+Build output: `dist/core-blueprint-notes-0.1.0-alpha1.zip`, with plugin folder `core-blueprint-notes/`.
 
 The source gate validates PHP/JS syntax, shell syntax and focused mocked permission/Abilities tests. **These tests do not execute WordPress.** Real installation, Gutenberg and REST authorization remain mandatory.
 
