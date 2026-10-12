@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+find "$ROOT" -name '*.php' -not -path '*/dist/*' -print0 | while IFS= read -r -d '' file; do
+    php -l "$file" >/dev/null
+    echo "PASS PHP: ${file#"$ROOT/"}"
+done
+node --check "$ROOT/assets/editor.js"
+php "$ROOT/tests/contract-smoke.php"
+bash -n "$ROOT/tools/build-release"
+echo 'Notes source checks: PASS'
