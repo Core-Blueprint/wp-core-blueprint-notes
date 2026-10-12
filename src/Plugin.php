@@ -159,7 +159,7 @@ final class Plugin {
         if(!current_user_can('manage_options'))
             wp_die(esc_html__('Access denied.','core-blueprint-notes'));
         echo '<div class="wrap"><h1>'.esc_html__('Notes AI Access','core-blueprint-notes').'</h1>';
-        echo '<p>'.esc_html__('Read-only Notes abilities are disabled by default. Enabling them makes them discoverable through a separately installed, authenticated MCP Adapter. Only authorized notes can be read.','core-blueprint-notes').'</p>';
+        echo '<p>'.esc_html__('Read-only Notes abilities are disabled by default. Enabling them makes them discoverable through a separately installed, authenticated MCP Adapter. Only Notes authored by the connected user can be read, including when using an administrator account.','core-blueprint-notes').'</p>';
         echo '<p>'.esc_html__('Only users with cb_notes_use_ai (administrators by default) can invoke these abilities. No writing ability is registered.','core-blueprint-notes').'</p>';
         echo '<form action="options.php" method="post">';
         settings_fields('cb_notes_settings');
