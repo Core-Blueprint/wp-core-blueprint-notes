@@ -65,7 +65,7 @@ final class Abilities {
         if(!self::can_execute()) return self::not_found();
         $id=absint($input['id']??0);
         $post=$id>0?get_post($id):null;
-        if(!$post instanceof \WP_Post||!Access::can_read($post)) return self::not_found();
+        if(!$post instanceof \WP_Post || (int)$post->post_author !== get_current_user_id() || !Access::can_read($post)) return self::not_found();
         return [
             'id'=>$post->ID,'title'=>$post->post_title,
             'notebook'=>(string)get_post_meta($id,Plugin::META_NOTEBOOK,true),
@@ -82,7 +82,7 @@ final class Abilities {
             'posts_per_page'=>$limit,'paged'=>$page,
             'orderby'=>'modified','order'=>'DESC','suppress_filters'=>false,
         ];
-        if(!Access::can_manage_all()) $args['author']=get_current_user_id();
+        $args['author']=get_current_user_id();
         if($search!=='') $args['s']=$search;
         $items=[];
         foreach(get_posts($args) as $post) {
