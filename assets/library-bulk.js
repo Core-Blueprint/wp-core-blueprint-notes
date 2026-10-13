@@ -105,11 +105,26 @@
                     outcome.updated + outcome.failed !== ids.length) {
                     throw new Error('Unexpected bulk response. Refresh results before trying again.');
                 }
+                var returnedIds = outcome.updated_ids.concat(outcome.failed_ids).map(String);
+                if (new Set(returnedIds).size !== ids.length ||
+                    !returnedIds.every(function (id) { return ids.indexOf(id) !== -1; })) {
+                    throw new Error('Unexpected note IDs in bulk response. Refresh results before retrying.');
+                }
+                // Use existing, already-visible note labels for per-note failure
+                // feedback; never interpolate untrusted text as HTML.
+                var failedNames = outcome.failed_ids.map(function (id) {
+                    var box = boxes.find(function (item) {
+                        return item.getAttribute('data-cb-notes-select-id') === String(id);
+                    });
+                    return box ? (box.getAttribute('aria-label') || ('Note #' + id))
+                        .replace(/^Select note: /, '') : ('Note #' + id);
+                });
                 // Server already applied authorized operations. Do not invent a
                 // local sort, count, category label or pagination state.
                 clearSelection();
-                showResult(outcome.updated + ' updated; ' + outcome.failed +
-                    ' failed. Refresh results to see the latest Library.');
+                showResult(outcome.updated + ' updated; ' + outcome.failed + ' failed.' +
+                    (failedNames.length ? ' Not updated: ' + failedNames.join(', ') + '.' : '') +
+                    ' Refresh results to see the latest Library.');
             }).catch(function (error) {
                 showError(error && error.message
                     ? error.message : 'Bulk action status unknown. Refresh before retrying.');
