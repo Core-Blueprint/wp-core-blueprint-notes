@@ -40,7 +40,7 @@
         }, [id]);
 
         function requestMode(mode, confirmation) {
-            if (!sharing || busy || editor.dirty || editor.saving) {
+            if (!sharing || busy || (mode !== 'private' && (editor.dirty || editor.saving))) {
                 setError('Save the note first, then review the sharing settings.');
                 return Promise.resolve();
             }
@@ -145,7 +145,7 @@
             }
             if (mode !== 'private') {
                 controls.push(el(wp.components.Button, {
-                    key: 'stop', variant: 'secondary', isBusy: busy, disabled: blocked,
+                    key: 'stop', variant: 'secondary', isBusy: busy, disabled: busy,
                     onClick: stopSharing
                 }, 'Stop sharing'));
             } else {
