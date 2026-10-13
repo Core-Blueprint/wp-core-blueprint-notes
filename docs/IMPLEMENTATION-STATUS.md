@@ -44,7 +44,7 @@
 ## Library Table View P2.7 (Alpha19–20)
 
 - Presents the same private, filtered, paginated `WP_Query` in a semantic table or the original list; no duplicate CPT management screen and no extra query.
-- Optional Table columns: Title, Notebook, Category, Tags, Modified and Actions. Alpha20 corrects Title A–Z/Z–A and Modified oldest/newest clickable headers with `aria-sort` direction and a visual arrow. Explicit Modified sorting is strictly chronological, leaving the pinned-first default intact. Header sort no longer automatically expands More filters. all four icon actions, selection and P2 bulk operations retain the same handlers.
+- Optional Table columns: Title, Notebook, Category, Tags, Modified and Actions. Alpha20 corrects Title A–Z/Z–A and Modified oldest/newest clickable headers with `aria-sort` direction and a visual arrow. Explicit Modified sorting is strictly chronological, leaving the pinned-first default intact. Header sort no longer automatically expands More filters. All four icon actions, selection and P2 bulk operations retain the same handlers.
 - Stores List/Table preference per user via capability-gated, nonce-verified `admin_post` action and canonical, owner-validated filter redirect. The default remains List for new users.
 - Table scrolls within the Library panel on narrow screens and uses shared Base design tokens. New PHP preference/table rendering smoke and JS contract tests are included.
 - Await local full sourcegate/build and real WordPress privacy, Light/Dark, sorting, responsive and multi-user staging acceptance. No Golden claim.
