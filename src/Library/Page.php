@@ -56,6 +56,13 @@ final class Page {
             CB_NOTES_VERSION,
             true
         );
+        wp_enqueue_script(
+            'cb-notes-library-bulk',
+            plugins_url('assets/library-bulk.js', CB_NOTES_FILE),
+            ['cb-notes-library'],
+            CB_NOTES_VERSION,
+            true
+        );
     }
 
     private static function url(array $state, array $changes = []): string {
