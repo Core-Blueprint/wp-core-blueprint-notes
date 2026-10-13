@@ -57,10 +57,39 @@
     outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
     outline-offset: 2px;
 }
-.cb-notes-library__organize {
-    display: inline-block;
+/* Supporting organization action sits in a separate, quiet sidebar footer. */
+.cb-notes-library__sidebar-footer {
     margin-block-start: var(--cb-space-4, 16px);
+    padding-block-start: var(--cb-space-3, 12px);
+    border-block-start: 1px solid var(--cb-border);
+}
+.cb-notes-library__organize-link {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2, 8px);
+    min-width: 0;
+    padding: 9px 12px;
+    border-radius: var(--cb-radius-sm, 6px);
+    color: var(--cb-text-muted);
+    text-decoration: none;
     font-size: 0.875rem;
+    line-height: 1.4;
+}
+.cb-notes-library__organize-link:hover,
+.cb-notes-library__organize-link:focus-visible {
+    background: var(--cb-surface-3);
+    color: var(--cb-text-strong);
+    text-decoration: none;
+}
+.cb-notes-library__organize-icon {
+    display: block;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+}
+.cb-notes-library__organize-link span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 .cb-notes-library__search {
     margin: 0 0 var(--cb-space-5, 24px);
