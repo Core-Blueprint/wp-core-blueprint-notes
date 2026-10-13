@@ -55,6 +55,10 @@ final class Controller {
 
     public static function read(\WP_REST_Request $request): array {
         $post = get_post(absint($request->get_param('id')));
+        if (!$post instanceof \WP_Post || !self::can_manage($request)) {
+            return ['mode' => 'private', 'modified_gmt' => '', 'public_url' => null,
+                'secure_available' => false, 'has_secure_link' => false, 'shared_at' => null];
+        }
         $mode = self::mode($post->ID);
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
         return [
@@ -71,7 +75,7 @@ final class Controller {
 
     public static function change(\WP_REST_Request $request): array|\WP_Error {
         $post = get_post(absint($request->get_param('id')));
-        if (!$post instanceof \WP_Post) {
+        if (!$post instanceof \WP_Post || !self::can_manage($request)) {
             return self::error('Note not found.', 404);
         }
         $expected = (string)$request->get_param('expected_modified_gmt');
@@ -232,7 +236,8 @@ final class Controller {
             self::PUBLIC_KEY, $key
         ));
         $post = $id > 0 ? get_post($id) : null;
-        if (!$post instanceof \WP_Post || self::mode($post->ID) !== 'public') {
+        if (!$post instanceof \WP_Post || in_array($post->post_status, ['trash', 'auto-draft', 'inherit'], true)
+            || self::mode($post->ID) !== 'public') {
             self::not_found();
         }
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
