@@ -172,6 +172,14 @@ final class Page {
             true
         );
         echo '<li class="cb-notes-library__note">';
+        echo '<div class="cb-notes-library__identity"><label class="cb-notes-library__select" hidden>'
+            . '<input type="checkbox" data-cb-notes-select-id="' . esc_attr((string)$post->ID) . '"'
+            . ' aria-label="' . esc_attr(sprintf(
+                /* translators: %s: note title */
+                __('Select note: %s', 'core-blueprint-notes'),
+                $title
+            )) . '"><span class="screen-reader-text">' . esc_html__('Select note', 'core-blueprint-notes')
+            . '</span></label>';
         echo '<div class="cb-notes-library__note-content"><a class="cb-notes-library__note-title" href="'
             . esc_url($link) . '">' . esc_html($title) . '</a>';
         echo '<div class="cb-notes-library__meta">';
@@ -189,7 +197,7 @@ final class Page {
         foreach (array_slice($labels['tags'], 0, 3) as $tag) {
             echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
         }
-        echo '</div></div><div class="cb-notes-library__actions">';
+        echo '</div></div></div><div class="cb-notes-library__actions">';
         $markers = Markers::for_post((int)$post->ID);
         foreach ([
             'favorite' => [
@@ -294,6 +302,35 @@ final class Page {
             . esc_html($action) . '</a></div>';
     }
 
+    /** Contextual toolbar; shown only after a user selects visible notes. */
+    private static function render_bulk_toolbar(array $catalog): void {
+        echo '<section class="cb-notes-library__bulk cb-core-panel" data-cb-notes-bulk-toolbar hidden'
+            . ' aria-label="' . esc_attr__('Selected notes actions', 'core-blueprint-notes') . '">';
+        echo '<div class="cb-notes-library__bulk-top"><strong data-cb-notes-selection-count>'
+            . esc_html__('0 selected', 'core-blueprint-notes') . '</strong>';
+        echo '<button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
+            . ' data-cb-notes-bulk-clear>' . esc_html__('Clear selection', 'core-blueprint-notes') . '</button></div>';
+        echo '<div class="cb-notes-library__bulk-options">';
+        echo '<div><label for="cb-notes-bulk-notebook">' . esc_html__('Notebook', 'core-blueprint-notes') . '</label>';
+        echo '<select id="cb-notes-bulk-notebook" data-cb-notes-bulk-notebook>';
+        self::select_options($catalog['notebook'], '', __('Unfiled (no notebook)', 'core-blueprint-notes'));
+        echo '</select><button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
+            . ' data-cb-notes-bulk-action="notebook">' . esc_html__('Move to notebook', 'core-blueprint-notes') . '</button></div>';
+        echo '<div><label for="cb-notes-bulk-category">' . esc_html__('Category', 'core-blueprint-notes') . '</label>';
+        echo '<select id="cb-notes-bulk-category" data-cb-notes-bulk-category>';
+        self::select_options($catalog['category'], '', __('No category', 'core-blueprint-notes'));
+        echo '</select><button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
+            . ' data-cb-notes-bulk-action="category">' . esc_html__('Set category', 'core-blueprint-notes') . '</button></div>';
+        echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact"'
+            . ' data-cb-notes-bulk-action="trash">' . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
+        echo '</div></section>';
+        echo '<div class="cb-notes-library__bulk-result" data-cb-notes-bulk-result role="status" aria-live="polite" hidden>'
+            . '<span data-cb-notes-bulk-message></span> '
+            . '<button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
+            . ' data-cb-notes-bulk-refresh>' . esc_html__('Refresh results', 'core-blueprint-notes') . '</button>'
+            . '</div>';
+    }
+
     private static function render_pagination(array $state, int $total): void {
         if ($total <= 1) {
             return;
@@ -330,7 +367,8 @@ final class Page {
 
         echo '<div class="wrap cb-core-wrap cb-core-page cb-core-form-scope cb-notes-library"'
             . ' data-cb-notes-ajax-url="' . esc_url(admin_url('admin-ajax.php')) . '"'
-            . ' data-cb-notes-view="' . esc_attr($state['view']) . '">';
+            . ' data-cb-notes-view="' . esc_attr($state['view']) . '"'
+            . ' data-cb-notes-bulk-nonce="' . esc_attr(wp_create_nonce(Bulk::NONCE_ACTION)) . '">';
         echo '<header class="cb-notes-library__heading"><div><h1 class="cb-core-title">'
             . esc_html__('Notes Library', 'core-blueprint-notes') . '</h1>';
         echo '<p class="cb-core-intro">' . esc_html__('Your private space to find, organize and write notes.', 'core-blueprint-notes')
@@ -357,13 +395,19 @@ final class Page {
             'pinned' => __('Pinned notes', 'core-blueprint-notes'),
             default => __('Your notes', 'core-blueprint-notes'),
         };
-        echo '<div class="cb-notes-library__results-heading"><h2>' . esc_html($heading) . '</h2>';
+        echo '<div class="cb-notes-library__results-heading"><div class="cb-notes-library__results-title">'
+            . '<label class="cb-notes-library__select-all" hidden>'
+            . '<input type="checkbox" data-cb-notes-select-all'
+            . ' aria-label="' . esc_attr__('Select all visible notes', 'core-blueprint-notes') . '">'
+            . '<span class="screen-reader-text">' . esc_html__('Select all visible notes', 'core-blueprint-notes')
+            . '</span></label><h2>' . esc_html($heading) . '</h2></div>';
         echo '<span>' . esc_html(sprintf(
             /* translators: %d: number of matching notes */
             _n('%d note', '%d notes', (int)$query->found_posts, 'core-blueprint-notes'),
             (int)$query->found_posts
         )) . '</span></div>';
         if ($query->have_posts()) {
+            self::render_bulk_toolbar($catalog);
             echo '<ul class="cb-notes-library__notes">';
             foreach ($query->posts as $post) {
                 if ($post instanceof \WP_Post) {
