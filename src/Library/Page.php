@@ -324,7 +324,7 @@ final class Page {
             . '</p></div><a class="button button-primary" href="' . esc_url($create_url) . '">'
             . esc_html__('New note', 'core-blueprint-notes') . '</a></header>';
         echo '<div class="cb-notes-library__layout"><aside class="cb-notes-library__sidebar cb-core-panel">';
-        echo '<nav class="cb-notes-library__nav" aria-label="' . esc_attr__('Notebook navigation', 'core-blueprint-notes') . '">';
+        echo '<nav class="cb-notes-library__nav" aria-label="' . esc_attr__('Notes Library navigation', 'core-blueprint-notes') . '">';
         echo '<h2>' . esc_html__('Quick access', 'core-blueprint-notes') . '</h2>';
         self::nav_link(__('All Notes', 'core-blueprint-notes'), $state, '');
         self::view_link(__('Favorites', 'core-blueprint-notes'), $state, 'favorites');
