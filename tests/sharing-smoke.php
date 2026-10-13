@@ -128,6 +128,15 @@ $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify($result['mode']==='private' && get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','private stops public URL authorization');
 verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'private mode invalidates previous share key');
+update_post_meta(42,\CB\Notes\Sharing\Controller::MODE_META,'public');
+update_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META,$snapshot);
+update_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY,$key);
+$note->post_status='trash';
+\CB\Notes\Sharing\Controller::revoke_for_lifecycle(42);
+$note->post_status='private';
+verify(get_post_meta(42,\CB\Notes\Sharing\Controller::MODE_META)==='private','trash revokes share mode permanently');
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'restore does not reactivate old public link');
+verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','trash removes shared URL key');
 $note->post_content='UNSAFE';
 verify(\CB\Notes\Sharing\Snapshot::capture($note) instanceof WP_Error,'dynamic/embedded blocks refused');
 $GLOBALS['current_user']=5;
