@@ -1,6 +1,6 @@
 # Core Blueprint Notes
 
-**Version:** `0.1.0-alpha1` | **Status:** development test candidate; not Golden or production-ready.
+**Version:** `0.1.0-alpha2` | **Status:** development test candidate; not Golden or production-ready.
 
 Private, WordPress-native Gutenberg notes for the Core Blueprint WP Suite.
 
@@ -11,7 +11,7 @@ Private, WordPress-native Gutenberg notes for the Core Blueprint WP Suite.
 - Flat personal **Notebook** text labels stored per note in post meta; no site-global term taxonomy and no hierarchy/team sharing yet.
 - Non-public `cb_note` post type, author-scoped lists and REST requests, object-level read/edit/delete checks.
 - Required Core Blueprint Base API 1.2+, ExtensionRegistry and Governance/Audit integration; plugin activation requires active Base.
-- Optional read-only Abilities API (`core-blueprint-notes/list-notes`, `search-notes`, `read-note`). **MCP access is OFF by default**, requires the separate authenticated WordPress MCP Adapter, and may be enabled under **Notes → AI Access**. Only accounts with `cb_notes_use_ai` may invoke read abilities, administrators by default. AI may read only notes authored by the connected user, even when that user is an administrator. No external AI requests or AI write operations.
+- Optional read-only Abilities API (`core-blueprint-notes/list-notes`, `search-notes`, `read-note`). **MCP access is OFF by default**, requires the separate authenticated WordPress MCP Adapter, and may be enabled under **Core Blueprint → Extensions → Notes → AI Access** (with a shortcut under **Notes → AI Access**). Only accounts with `cb_notes_use_ai` may invoke read abilities, administrators by default. AI may read only notes authored by the connected user, even when that user is an administrator. No external AI requests or AI write operations.
 
 ## Security limits
 
@@ -28,10 +28,10 @@ From the repository root:
 ```bash
 bash tools/check
 bash tools/build-release
-sha256sum dist/core-blueprint-notes-0.1.0-alpha1.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha2.zip
 ```
 
-Build output: `dist/core-blueprint-notes-0.1.0-alpha1.zip`, with plugin folder `core-blueprint-notes/`.
+Build output: `dist/core-blueprint-notes-0.1.0-alpha2.zip`, with plugin folder `core-blueprint-notes/`.
 
 The source gate validates PHP/JS syntax, shell syntax and focused mocked permission/Abilities tests. **These tests do not execute WordPress.** Real installation, Gutenberg and REST authorization remain mandatory.
 
