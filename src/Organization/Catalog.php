@@ -151,14 +151,18 @@ final class Catalog {
         $post = $post_id > 0 ? get_post($post_id) : null;
         $owner_id = $post instanceof \WP_Post ? (int) $post->post_author : get_current_user_id();
         if ($owner_id < 1 || $owner_id !== get_current_user_id()) {
-            // Administrator "manage all" can edit note content without
-            // silently changing another author's personal classifications.
+            // Only a manager with explicit object access may preserve an
+            // owner's unchanged labels while editing that note's body.
+            // Other users must not even replay another owner's metadata.
+            $may_preserve = $post instanceof \WP_Post
+                && current_user_can('cb_notes_manage_all')
+                && current_user_can('edit_post', (int)$post->ID);
             foreach ([self::NOTEBOOK, self::CATEGORY, self::TAGS] as $field) {
                 if (!array_key_exists($field, $meta)) {
                     continue;
                 }
                 $saved = $post instanceof \WP_Post ? get_post_meta((int)$post->ID, $field, true) : null;
-                if ($saved !== $meta[$field]) {
+                if (!$may_preserve || $saved !== $meta[$field]) {
                     return self::error('cb_notes_organization_forbidden',
                         'Personal classifications belong to the note owner.', 403);
                 }
