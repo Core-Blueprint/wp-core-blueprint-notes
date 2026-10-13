@@ -500,12 +500,15 @@ final class Catalog {
             return;
         }
         \CoreBlueprint\Core\UI\Assets::enqueue_modals(\CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_WP_NATIVE);
+        // Dedicated presentation revision invalidates cached alpha4 editor UI
+        // without changing the plugin release version or unrelated assets.
+        $presentation_revision = CB_NOTES_VERSION . '-organize-ui1';
         wp_enqueue_style('cb-notes-organize-layout',
             plugins_url('assets/organization-admin.css', CB_NOTES_FILE),
-            [], CB_NOTES_VERSION);
+            [], $presentation_revision);
         wp_enqueue_script('cb-notes-organize',
             plugins_url('assets/organization-admin.js', CB_NOTES_FILE),
             ['wp-element', 'wp-components', 'wp-api-fetch'],
-            CB_NOTES_VERSION, true);
+            $presentation_revision, true);
     }
 }
