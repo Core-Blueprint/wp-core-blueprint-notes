@@ -15,6 +15,12 @@ namespace CB\Notes\Organization {
         }
     }
 }
+namespace CB\Notes\Library {
+    final class Markers {
+        public const FAVORITE = '_cb_notes_favorite';
+        public const PINNED = '_cb_notes_pinned';
+    }
+}
 namespace {
     define('ABSPATH', __DIR__);
     function sanitize_text_field(string $value): string { return strip_tags($value); }
@@ -72,5 +78,22 @@ namespace {
 
     $clamped = Query::state(['cbn_paged' => '99999999', 'cbn_sort' => 'invalid', 'cbn_search' => str_repeat('a', 200)], $catalog);
     ensure($clamped['paged'] === 9999 && $clamped['sort'] === 'modified' && strlen($clamped['search']) === 120, 'bounded input');
+    $favorite = Query::args(42, Query::state(['cbn_view' => 'favorites'], $catalog));
+    ensure($favorite['author'] === 42 && ($favorite['meta_query'][0]['key'] ?? '') === Markers::FAVORITE,
+        'favorites are filtered by the owner-bound query');
+    $pinned = Query::args(42, Query::state([
+        'cbn_view' => 'pinned', 'cbn_category' => $ownerCategory,
+    ], $catalog));
+    ensure($pinned['author'] === 42 && $pinned['meta_query'][0]['key'] === Markers::PINNED
+        && $pinned['meta_query'][1]['key'] === Catalog::CATEGORY,
+        'pinned view combines safely with classification');
+    ensure($pinned['cb_notes_pinned_first'] === true, 'default view sorts pinned first');
+    $titleSort = Query::args(42, Query::state([
+        'cbn_view' => 'favorites', 'cbn_sort' => 'title',
+    ], $catalog));
+    ensure($titleSort['cb_notes_pinned_first'] === false && isset($titleSort['orderby']['title']),
+        'explicit title sorting overrides pinned priority');
+    ensure(Query::state(['cbn_view' => 'foreign'], $catalog)['view'] === '',
+        'unrecognized view normalizes to default');
     echo "PASS PHP: tests/library-query-smoke.php\n";
 }
