@@ -164,7 +164,7 @@
 .cb-core-wrap .cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link:focus-visible {
     border-width: 1px;
     box-shadow: none !important;
-    outline: 1px solid var(--cb-interactive-focus, var(--cb-accent));
+    outline: 1px solid var(--cb-interactive-focus, var(--cb-accent)) !important;
     outline-offset: 2px;
 }
 /* Table is optional. Use genuine table semantics and contained horizontal
