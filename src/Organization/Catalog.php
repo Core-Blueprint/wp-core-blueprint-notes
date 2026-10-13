@@ -502,7 +502,7 @@ final class Catalog {
         \CoreBlueprint\Core\UI\Assets::enqueue_modals(\CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_WP_NATIVE);
         // Dedicated presentation revision invalidates cached alpha4 editor UI
         // without changing the plugin release version or unrelated assets.
-        $presentation_revision = CB_NOTES_VERSION . '-organize-ui1';
+        $presentation_revision = CB_NOTES_VERSION . '-organize-ui2';
         wp_enqueue_style('cb-notes-organize-layout',
             plugins_url('assets/organization-admin.css', CB_NOTES_FILE),
             [], $presentation_revision);
