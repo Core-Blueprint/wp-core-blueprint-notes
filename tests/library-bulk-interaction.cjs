@@ -38,12 +38,13 @@ function boot(options = {}) {
     });
     const toolbar = control(), all = control(), result = control(), message = control();
     const clear = control(), label = control(), refresh = control(), error = control();
-    const notebook = control(), category = control();
+    const operation = control(), notebook = control(), category = control();
+    const notebookGroup = control(), categoryGroup = control();
+    operation.value = '__choose__';
     notebook.value = '__choose__';
     category.value = '__choose__';
-    const actions = ['notebook', 'category', 'trash'].map(name =>
-        control({ 'data-cb-notes-bulk-action': name })
-    );
+    const apply = control({ 'data-cb-notes-bulk-action': 'apply' });
+    const trash = control({ 'data-cb-notes-bulk-action': 'trash' });
     const map = new Map([
         ['[data-cb-notes-bulk-nonce]', root],
         ['[data-cb-notes-bulk-toolbar]', toolbar],
@@ -53,16 +54,20 @@ function boot(options = {}) {
         ['[data-cb-notes-bulk-clear]', clear],
         ['[data-cb-notes-selection-count]', label],
         ['[data-cb-notes-bulk-refresh]', refresh],
+        ['[data-cb-notes-bulk-operation]', operation],
         ['[data-cb-notes-bulk-notebook]', notebook],
         ['[data-cb-notes-bulk-category]', category],
+        ['[data-cb-notes-bulk-target="notebook"]', notebookGroup],
+        ['[data-cb-notes-bulk-target="category"]', categoryGroup],
+        ['[data-cb-notes-bulk-action="apply"]', apply],
+        ['[data-cb-notes-bulk-action="trash"]', trash],
         ['.cb-notes-library__feedback', error]
     ]);
     const document = {
         readyState: 'complete',
         querySelector(selector) { return map.get(selector) || null; },
         querySelectorAll(selector) {
-            return selector === '[data-cb-notes-select-id]' ? checkboxes
-                : selector === '[data-cb-notes-bulk-action]' ? actions : [];
+            return selector === '[data-cb-notes-select-id]' ? checkboxes : [];
         }
     };
     const requests = [];
@@ -100,7 +105,8 @@ function boot(options = {}) {
 
     return {
         checkboxes, toolbar, all, result, message, label, error,
-        clear, refresh, notebook, category, actions, requests,
+        clear, refresh, operation, notebook, category, notebookGroup, categoryGroup,
+        apply, trash, requests,
         get reloads() { return reloads; },
         get confirmations() { return confirmations; },
         get lastModal() { return lastModal; }
@@ -116,11 +122,18 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
     assert.equal(w.toolbar.hidden, false, 'Toolbar appears after first selection');
     assert.equal(w.label.textContent, '1 selected', 'Accessible count');
     assert.equal(w.all.indeterminate, true, 'Select-all indicates partial selection');
-    assert.equal(w.actions[0].disabled, true, 'Bulk notebook is disabled until a destination is chosen');
+    assert.equal(w.apply.disabled, true, 'Apply requires a chosen operation');
+    assert.equal(w.notebookGroup.hidden, true, 'Notebook target initially hidden');
+    assert.equal(w.categoryGroup.hidden, true, 'Category target initially hidden');
+    w.operation.value = 'notebook';
+    w.operation.listeners.change();
+    assert.equal(w.notebookGroup.hidden, false, 'Only notebook destination shown');
+    assert.equal(w.categoryGroup.hidden, true, 'Unused category destination hidden');
+    assert.equal(w.apply.disabled, true, 'Apply requires an explicit notebook choice');
     w.notebook.value = 'a'.repeat(32);
     w.notebook.listeners.change();
-    assert.equal(w.actions[0].disabled, false, 'Explicit notebook choice enables action');
-    w.actions[0].click();
+    assert.equal(w.apply.disabled, false, 'Explicit notebook selection enables Apply');
+    w.apply.click();
     await flush();
     assert.equal(w.requests.length, 1, 'Notebook operation uses one batched request');
     let params = new URLSearchParams(w.requests[0].body);
@@ -142,10 +155,19 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
     w.all.change(true);
     assert.equal(w.all.checked, true, 'Select-all checks all visible rows');
     assert.equal(w.label.textContent, '2 selected', 'Two-note selection count');
-    assert.equal(w.actions[1].disabled, true, 'Category action requires intentional category choice');
+    w.operation.value = 'notebook';
+    w.operation.listeners.change();
+    w.notebook.value = 'a'.repeat(32);
+    w.notebook.listeners.change();
+    w.operation.value = 'category';
+    w.operation.listeners.change();
+    assert.equal(w.notebook.value, '__choose__', 'Action switching resets old notebook');
+    assert.equal(w.notebookGroup.hidden, true, 'Notebook target hidden for category');
+    assert.equal(w.categoryGroup.hidden, false, 'Category destination shown');
+    assert.equal(w.apply.disabled, true, 'Category requires an explicit destination');
     w.category.value = 'b'.repeat(32);
     w.category.listeners.change();
-    w.actions[1].click();
+    w.apply.click();
     await flush();
     params = new URLSearchParams(w.requests[0].body);
     assert.equal(params.get('operation'), 'category');
@@ -158,7 +180,7 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
 
     w = boot({ confirm: false });
     selectFirst(w);
-    w.actions[2].click();
+    w.trash.click();
     await flush();
     assert.equal(w.confirmations, 1, 'Base confirmation is required');
     assert.equal(w.lastModal.confirmVariant, 'danger');
@@ -167,7 +189,7 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
 
     w = boot({ confirm: true });
     selectFirst(w);
-    w.actions[2].click();
+    w.trash.click();
     await flush();
     assert.equal(w.requests.length, 1, 'Confirm submits exactly one Trash batch');
     params = new URLSearchParams(w.requests[0].body);
@@ -177,20 +199,22 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
 
     w = boot({modal: 'missing'});
     selectFirst(w);
-    w.actions[2].click();
+    w.trash.click();
     await flush();
     assert.equal(w.requests.length, 0, 'Missing Base modal fails closed');
     assert.match(w.error.textContent, /unavailable/, 'Missing modal error announced');
 
     w = boot({fetch: 'reject'});
     selectFirst(w);
+    w.operation.value = 'notebook';
+    w.operation.listeners.change();
     w.notebook.value = 'a'.repeat(32);
     w.notebook.listeners.change();
-    w.actions[0].click();
+    w.apply.click();
     await flush();
     assert.equal(w.checkboxes[0].checked, true, 'Network failure preserves selection');
     assert.match(w.error.textContent, /Network failure/, 'Network error is announced');
-    assert.equal(w.actions[0].disabled, false, 'Controls recover after request failure');
+    assert.equal(w.apply.disabled, false, 'Apply recovers after request failure');
 
     w = boot({fetch: 'missing'});
     assert.equal(w.checkboxes[0].wrapper.hidden, true, 'No fetch leaves all selections hidden');
