@@ -17,6 +17,19 @@ check(page.includes('Display::init()') &&
     page.includes('Display::current($owner)') &&
     page.includes('Display::switch_url($mode, $state)'),
     'One per-user List/Table control on the existing Library page');
+check(page.includes("'icon' => 'dashicons-list-view'") &&
+    page.includes("'icon' => 'dashicons-editor-table'") &&
+    page.includes('cb-core-button--compact cb-core-button--icon-only cb-core-button--') &&
+    page.includes("$variant = $active ? 'primary' : 'secondary'") &&
+    page.includes("' aria-label=\"' . esc_attr($display['name'])") &&
+    page.includes("' title=\"' . esc_attr($display['name'])") &&
+    page.includes('aria-current="page"') &&
+    page.includes('aria-hidden="true"'),
+    'List/Table use Base icon-only toggle with localized tooltip, accessible name and current state');
+check(css.includes('.cb-notes-library__display-toggle .cb-core-button--icon-only > .dashicons {') &&
+    css.includes('align-items: center;') &&
+    css.includes('justify-content: center;'),
+    'View toggle icons are centered within the Base square hit targets');
 check(page.includes('render_table($query->posts, $owner, $state)') &&
     page.includes('self::render_note($post, $owner)') &&
     page.includes('new \\WP_Query(Query::args($owner, $state))'),
@@ -89,6 +102,13 @@ check(css.includes('.cb-notes-library__table-scroll {') &&
     css.includes('min-width: 940px;') &&
     css.includes('var(--cb-border)'),
     'Responsive, contained, token-based Table View');
+check(page.includes('<span class="cb-notes-library__sort-label">') &&
+    css.includes('.cb-notes-library__table thead th a .cb-notes-library__sort-label {') &&
+    css.includes('text-decoration: underline;') &&
+    css.includes('.cb-core-wrap .cb-notes-library__table thead th a {') &&
+    css.includes('text-decoration: none;') &&
+    css.includes('display: inline-block;'),
+    'Only the sortable heading label receives underline, never its ASC/DESC indicator');
 check(css.includes('th[aria-sort="ascending"] a::after') &&
     css.includes('th[aria-sort="descending"] a::after'),
     'Active Title/Modified sort direction is visible without new theme colors');
