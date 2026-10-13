@@ -163,9 +163,9 @@
 .cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__marker[hidden] {
     display: none;
 }
-/* Base defines icon size and button geometry. Flex-center the WordPress
-   Dashicons glyph inside that size, instead of aligning its font baseline. */
-.cb-notes-library__marker > .dashicons {
+/* Base owns size, surface, colors and focus. Flex-center Dashicon glyphs
+   in all four icon-only actions, rather than their font baseline. */
+.cb-notes-library__actions .cb-core-button--icon-only > .dashicons {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -173,7 +173,7 @@
     padding: 0;
     line-height: 1;
 }
-.cb-notes-library__marker > .dashicons::before {
+.cb-notes-library__actions .cb-core-button--icon-only > .dashicons::before {
     display: block;
     line-height: 1;
 }
