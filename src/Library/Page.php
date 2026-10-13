@@ -215,15 +215,28 @@ final class Page {
                 . ' aria-label="' . esc_attr($label) . '" title="' . esc_attr($label) . '">'
                 . '<span class="dashicons ' . esc_attr($config['icon']) . '" aria-hidden="true"></span></button>';
         }
-        echo '<a class="button cb-core-button cb-core-button--secondary cb-core-button--compact" href="' . esc_url($link) . '">'
-            . esc_html__('Edit', 'core-blueprint-notes') . '</a>';
+        $edit_label = sprintf(
+            /* translators: %s: note title */
+            __('Edit note: %s', 'core-blueprint-notes'),
+            $title
+        );
+        echo '<a class="button cb-core-button cb-core-button--secondary cb-core-button--compact cb-core-button--icon-only cb-notes-library__edit"'
+            . ' href="' . esc_url($link) . '"'
+            . ' aria-label="' . esc_attr($edit_label) . '" title="' . esc_attr($edit_label) . '">'
+            . '<span class="dashicons dashicons-edit" aria-hidden="true"></span></a>';
         $trash = get_delete_post_link($post->ID, '', false);
         if (is_string($trash) && $trash !== '' && current_user_can('delete_post', $post->ID)) {
             // Fail closed: the action is hidden until the Base confirmation
             // handler is available. WordPress core still owns the trash URL.
-            echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__trash" hidden'
-                . ' data-cb-notes-trash-url="' . esc_url($trash) . '">'
-                . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
+            $trash_label = sprintf(
+                /* translators: %s: note title */
+                __('Move note to Trash: %s', 'core-blueprint-notes'),
+                $title
+            );
+            echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-core-button--icon-only cb-notes-library__trash" hidden'
+                . ' data-cb-notes-trash-url="' . esc_url($trash) . '"'
+                . ' aria-label="' . esc_attr($trash_label) . '" title="' . esc_attr($trash_label) . '">'
+                . '<span class="dashicons dashicons-trash" aria-hidden="true"></span></button>';
         }
         echo '</div></li>';
     }
