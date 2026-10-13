@@ -31,15 +31,17 @@ Confirm exact branch HEAD against handover; package root must remain \`core-blue
 5. Assign one Notebook, one Category and both Tags, save and reopen. All assignments must persist. A note without Notebook or Category remains valid ("Unfiled"). Twelve is the maximum number of tags assigned to one note.
 6. Verify the editor still supports title, paragraphs, headings, list, table, revisions, autosave and private status. No custom public post permalink should become accessible.
 
-## 2. Personal catalog administration
+## 2. Organize Notes: tabbed UI and personal catalog
 
-1. Visit **Notes → Organize**. See personal Notebooks, Categories and Tags with create, rename and remove actions.
-2. Rename \`Clients\` to \`Clients & Projects\`. Return to the note: the new name appears without losing the assignment because the internal ID is unchanged.
-3. Try to create \`meetings\` when \`Meetings\` already exists. Expect a duplicate error; do not create two case-insensitively identical labels.
-4. Remove an unused test tag: the Base danger modal with required acknowledgement must open. Cancel and verify it remains. Confirm removal and verify it disappears.
-5. Remove a tag used by a note: the note must remain intact but that tag must be removed from its classification. Repeat with an assigned Category and Notebook; contents and revisions remain untouched.
-6. The manager safely rejects deletion of a label used by more than 250 notes rather than performing an unbounded bulk operation. No mass test-data generation is required for normal acceptance.
-7. Test keyboard navigation, narrow width and WordPress light/dark presentation. There must be no extra custom CSS framework.
+1. Open **Notes → Organize**. The page shows direct Base-styled tabs **Notebooks**, **Categories**, **Tags**, and a single management card. There must be no redundant Manage dropdown or separate Create card.
+2. Switch all three tabs. Each tab must show its own labels immediately without page reload. Tab links must remain keyboard-accessible, expose the active section, and preserve the URL (`section=notebook|category|tag`). Open a section URL in a new browser tab: it must select that section.
+3. **Add new** reveals the Name field within the active card. Cancel hides the form without saving. Create Notebook `Clients`, Category `Meetings`, and Tag `follow-up`; they must remain after refresh.
+4. **Rename** opens an inline form on the corresponding row; Cancel changes nothing. Rename `Clients` to `Clients & Projects`. In Gutenberg, the note assignment must remain intact because the ID is unchanged.
+5. Try creating `meetings` again when `Meetings` exists. A case-insensitive duplicate must be rejected with a readable inline error, not silently saved.
+6. **Remove** opens Base's danger modal with acknowledgement. Cancel must leave the label unchanged. Confirm and check that it disappears without deleting any note. A note previously assigned to it becomes unfiled in that field.
+7. Confirm successful actions produce a compact, screenreader-announced status line rather than an oversized WordPress green notice. Errors use Base's themed notice.
+8. Verify Dark/Light, keyboard focus, accessible tablinks, a narrow viewport and live theme switching. The unrelated editor, Settings Hub and Sharing UI must retain their styling.
+9. Removing a label used by more than 250 notes is intentionally rejected rather than starting an unbounded cleanup. No need to generate that many records for basic acceptance.
 
 ## 3. Notes library filters
 
