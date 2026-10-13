@@ -1,9 +1,10 @@
 /* global wp */
 (function () {
     'use strict';
-    if (!wp || !wp.plugins || !wp.editPost || !wp.data || !wp.element || !wp.components || !wp.apiFetch) {
+    if (typeof wp === 'undefined' || !wp.plugins || !wp.editPost || !wp.data || !wp.element || !wp.components || !wp.apiFetch) {
         return;
     }
+
     var el = wp.element.createElement;
     var useState = wp.element.useState;
     var useEffect = wp.element.useEffect;
@@ -15,140 +16,232 @@
         category: 'cb_notes_category_id',
         tag: 'cb_notes_tag_ids'
     };
-    var labels = {
-        notebook: { title: 'Notebook', singular: 'notebook' },
-        category: { title: 'Category', singular: 'category' },
-        tag: { title: 'Tags', singular: 'tag' }
+    var titles = {
+        notebook: 'notebook',
+        category: 'category',
+        tag: 'tag'
     };
     var organizationPath = '/core-blueprint-notes/v1/organization';
 
-    function OrganizationPanel(props) {
-        var kind = props.kind;
-        var spec = labels[kind];
-        var state = wp.data.useSelect(function (select) {
+    function OrganizationPanel() {
+        var meta = wp.data.useSelect(function (select) {
             return select('core/editor').getEditedPostAttribute('meta') || {};
         }, []);
         var dispatch = wp.data.useDispatch('core/editor');
-        var entries = useState(null), catalog = entries[0], setCatalog = entries[1];
-        var newName = useState(''), name = newName[0], setName = newName[1];
-        var newTag = useState(''), tagToAdd = newTag[0], setTagToAdd = newTag[1];
+
+        var catalogState = useState(null), catalog = catalogState[0], setCatalog = catalogState[1];
+        var advancedState = useState(false), advanced = advancedState[0], setAdvanced = advancedState[1];
+        var createState = useState(''), creating = createState[0], setCreating = createState[1];
+        var nameState = useState(''), name = nameState[0], setName = nameState[1];
+        var tagState = useState(''), tagToAdd = tagState[0], setTagToAdd = tagState[1];
         var busyState = useState(false), busy = busyState[0], setBusy = busyState[1];
-        var err = useState(''), error = err[0], setError = err[1];
+        var errorState = useState(''), error = errorState[0], setError = errorState[1];
+
+        var chosenCategory = meta[fields.category] || '';
+        var chosenTags = Array.isArray(meta[fields.tag]) ? meta[fields.tag] : [];
+        var chosenTagIds = chosenTags.join(',');
 
         useEffect(function () {
             var active = true;
             wp.apiFetch({ path: organizationPath }).then(function (response) {
                 if (active) setCatalog(response);
             }).catch(function () {
-                if (active) setError('Personal organization could not be loaded.');
+                if (active) setError('Personal organization could not be loaded. Reload the editor before changing labels.');
             });
             return function () { active = false; };
         }, []);
 
-        function save(value) {
-            dispatch.editPost({ meta: Object.assign({}, state, { [fields[kind]]: value }) });
+        // Do not hide existing classifications when opening an edited note.
+        useEffect(function () {
+            if (chosenCategory || chosenTagIds) setAdvanced(true);
+        }, [chosenCategory, chosenTagIds]);
+
+        function save(kind, value) {
+            dispatch.editPost({ meta: Object.assign({}, meta, { [fields[kind]]: value }) });
         }
-        function addItem() {
-            if (!name.trim() || busy) return;
+
+        function beginCreation(kind) {
+            if (busy) return;
+            setCreating(kind);
+            setName('');
+            setError('');
+            if (kind !== 'notebook') setAdvanced(true);
+        }
+
+        function createItem() {
+            if (!creating || !name.trim() || !catalog || busy) return;
+            var kind = creating;
+            var existing = Array.isArray(catalog[kind]) ? catalog[kind] : [];
+            var inputName = name.trim();
             setBusy(true);
             setError('');
+
             wp.apiFetch({
-                path: organizationPath, method: 'POST',
-                data: { action: 'create', kind: kind, name: name.trim() }
+                path: organizationPath,
+                method: 'POST',
+                data: { action: 'create', kind: kind, name: inputName }
             }).then(function (next) {
-                var before = catalog && catalog[kind] ? catalog[kind] : [];
+                if (!next || !Array.isArray(next[kind])) {
+                    throw new Error('The new label could not be confirmed. Reload the editor.');
+                }
                 var created = next[kind].find(function (item) {
-                    return !before.some(function (previous) { return previous.id === item.id; });
+                    return !existing.some(function (previous) { return previous.id === item.id; });
                 });
                 setCatalog(next);
                 if (created) {
                     if (kind === 'tag') {
-                        var current = Array.isArray(state[fields.tag]) ? state[fields.tag] : [];
-                        if (current.length < 12) save(current.concat([created.id]));
+                        var selected = Array.isArray(meta[fields.tag]) ? meta[fields.tag] : [];
+                        if (selected.length < 12 && !selected.includes(created.id)) {
+                            save('tag', selected.concat([created.id]));
+                        }
                     } else {
-                        save(created.id);
+                        save(kind, created.id);
                     }
                 }
+                setCreating('');
                 setName('');
             }).catch(function (failure) {
                 setError(failure.message || 'Could not create the personal label.');
             }).finally(function () { setBusy(false); });
         }
+
+        function createControls(kind) {
+            if (creating !== kind) {
+                return el(wp.components.Button, {
+                    key: 'new-' + kind,
+                    variant: 'tertiary',
+                    disabled: busy || (kind === 'tag' && chosenTags.length >= 12),
+                    onClick: function () { beginCreation(kind); }
+                }, 'New ' + titles[kind]);
+            }
+            return el('div', { key: 'create-' + kind, className: 'cb-notes-editor__new-label' },
+                el(wp.components.TextControl, {
+                    label: 'New ' + titles[kind] + ' name',
+                    value: name,
+                    onChange: setName,
+                    maxLength: 80,
+                    placeholder: 'Enter a name…',
+                    disabled: busy
+                }),
+                el(wp.components.Button, {
+                    variant: 'secondary',
+                    disabled: busy || !name.trim(),
+                    isBusy: busy,
+                    onClick: createItem
+                }, 'Create ' + titles[kind]),
+                el(wp.components.Button, {
+                    variant: 'tertiary',
+                    disabled: busy,
+                    onClick: function () { setCreating(''); setName(''); }
+                }, 'Cancel')
+            );
+        }
+
         var controls = [];
-        if (error) controls.push(el(wp.components.Notice, {
-            key: 'error', status: 'error', isDismissible: true,
-            onRemove: function () { setError(''); }
-        }, error));
+        controls.push(el('p', { key: 'privacy', className: 'components-base-control__help' },
+            'Your notes stay private when saved. Sharing is a separate action.'));
+
+        if (error) {
+            controls.push(el(wp.components.Notice, {
+                key: 'error', status: 'error', isDismissible: true,
+                onRemove: function () { setError(''); }
+            }, error));
+        }
+
         if (!catalog) {
-            controls.push(el('p', { key: 'loading' }, 'Loading your personal labels…'));
+            controls.push(el('p', { key: 'loading' }, error
+                ? 'Labels are unavailable. Existing note classifications remain unchanged.'
+                : 'Loading your personal organization…'));
         } else {
-            var options = catalog[kind] || [];
-            if (kind !== 'tag') {
-                controls.push(el(wp.components.SelectControl, {
-                    key: 'choice',
-                    label: kind === 'notebook' ? 'Name' : 'Type',
-                    value: state[fields[kind]] || '',
-                    options: [{ label: 'Unfiled', value: '' }].concat(options.map(function (item) {
-                        return { label: item.name, value: item.id };
-                    })),
-                    onChange: save,
-                    help: 'Only you can see your personal organization labels.'
-                }));
-            } else {
-                var selected = Array.isArray(state[fields.tag]) ? state[fields.tag] : [];
-                var available = options.filter(function (item) { return !selected.includes(item.id); });
-                var chosen = options.filter(function (item) { return selected.includes(item.id); });
-                controls.push(el('p', { key: 'selected-title' }, 'Selected tags (' + chosen.length + '/12)'));
-                if (!chosen.length) controls.push(el('p', {
-                    key: 'unfiled', className: 'components-base-control__help'
-                }, 'No tags selected.'));
-                chosen.forEach(function (item) {
-                    controls.push(el('div', { key: 'tag-' + item.id, style: { marginBottom: '8px' } },
-                        el(wp.components.Button, {
-                            variant: 'secondary', size: 'small',
-                            onClick: function () { save(selected.filter(function (id) { return id !== item.id; })); },
+            var notebooks = Array.isArray(catalog.notebook) ? catalog.notebook : [];
+            var categories = Array.isArray(catalog.category) ? catalog.category : [];
+            var tags = Array.isArray(catalog.tag) ? catalog.tag : [];
+            var tagOptions = tags.filter(function (item) { return !chosenTags.includes(item.id); });
+            var selectedTags = tags.filter(function (item) { return chosenTags.includes(item.id); });
+
+            // Notebook is the one primary everyday organization decision.
+            controls.push(el(wp.components.SelectControl, {
+                key: 'notebook',
+                label: 'Notebook',
+                value: meta[fields.notebook] || '',
+                options: [{ label: 'No notebook', value: '' }].concat(notebooks.map(function (item) {
+                    return { label: item.name, value: item.id };
+                })),
+                onChange: function (value) { save('notebook', value); },
+                help: 'Choose where you want to find this note.'
+            }));
+            controls.push(createControls('notebook'));
+
+            var applied = (chosenCategory ? 1 : 0) + selectedTags.length;
+            controls.push(el(wp.components.Button, {
+                key: 'advanced-toggle',
+                variant: 'tertiary',
+                'aria-expanded': advanced,
+                'aria-controls': 'cb-notes-editor-advanced',
+                onClick: function () { setAdvanced(!advanced); }
+            }, (advanced ? 'Hide' : 'Show') + ' categories and tags' +
+                (applied ? ' (' + applied + ' applied)' : '')));
+
+            if (advanced) {
+                controls.push(el('div', { key: 'advanced', id: 'cb-notes-editor-advanced' },
+                    el(wp.components.SelectControl, {
+                        label: 'Category',
+                        value: chosenCategory,
+                        options: [{ label: 'No category', value: '' }].concat(categories.map(function (item) {
+                            return { label: item.name, value: item.id };
+                        })),
+                        onChange: function (value) { save('category', value); }
+                    }),
+                    createControls('category'),
+                    el('p', { className: 'components-base-control__help' },
+                        'Tags (' + chosenTags.length + '/12)'),
+                    selectedTags.length ? selectedTags.map(function (item) {
+                        return el(wp.components.Button, {
+                            key: 'selected-tag-' + item.id,
+                            variant: 'secondary',
+                            size: 'small',
+                            onClick: function () {
+                                save('tag', chosenTags.filter(function (id) { return id !== item.id; }));
+                            },
                             'aria-label': 'Remove tag ' + item.name
-                        }, item.name + ' ×')
-                    ));
-                });
-                if (selected.length < 12 && available.length) {
-                    controls.push(el(wp.components.SelectControl, {
-                        key: 'tag-choice', label: 'Add existing tag', value: tagToAdd,
-                        options: [{ label: 'Select a tag…', value: '' }].concat(available.map(function (item) {
+                        }, item.name + ' ×');
+                    }) : el('p', { className: 'components-base-control__help' }, 'No tags selected.'),
+                    chosenTags.length < 12 && tagOptions.length ? el(wp.components.SelectControl, {
+                        label: 'Add existing tag',
+                        value: tagToAdd,
+                        options: [{ label: 'Select a tag…', value: '' }].concat(tagOptions.map(function (item) {
                             return { label: item.name, value: item.id };
                         })),
                         onChange: setTagToAdd
-                    }));
-                    controls.push(el(wp.components.Button, {
-                        key: 'tag-add', variant: 'secondary', disabled: !tagToAdd,
-                        onClick: function () { save(selected.concat([tagToAdd])); setTagToAdd(''); }
-                    }, 'Add tag'));
-                }
-            }
-            if (kind !== 'tag' || (Array.isArray(state[fields.tag]) ? state[fields.tag].length : 0) < 12) {
-                controls.push(el(wp.components.TextControl, {
-                    key: 'new-name', label: 'New ' + spec.singular,
-                    value: name, onChange: setName, maxLength: 80,
-                    placeholder: 'Enter a name…'
-                }));
-                controls.push(el(wp.components.Button, {
-                    key: 'create', variant: 'secondary', disabled: busy || !name.trim(),
-                    isBusy: busy, onClick: addItem
-                }, 'Create ' + spec.singular));
+                    }) : null,
+                    chosenTags.length < 12 && tagOptions.length ? el(wp.components.Button, {
+                        variant: 'secondary',
+                        disabled: !tagToAdd || chosenTags.includes(tagToAdd),
+                        onClick: function () {
+                            if (tagToAdd && !chosenTags.includes(tagToAdd) && chosenTags.length < 12) {
+                                save('tag', chosenTags.concat([tagToAdd]));
+                                setTagToAdd('');
+                            }
+                        }
+                    }, 'Add tag') : null,
+                    chosenTags.length < 12 ? createControls('tag') : el('p', {
+                        className: 'components-base-control__help'
+                    }, 'Maximum of 12 tags reached.')
+                ));
             }
             controls.push(el('p', { key: 'manage', className: 'components-base-control__help' },
-                'Rename or remove personal labels from Notes → Organize.'));
+                'Rename or remove personal labels in Notes → Organize.'));
         }
+
         return el(Panel, {
-            name: 'cb-notes-' + kind, title: spec.title,
-            className: 'cb-notes-organization-' + kind
+            name: 'cb-notes-organize',
+            title: 'Organize',
+            className: 'cb-notes-editor-organization'
         }, controls);
     }
 
-    ['notebook', 'category', 'tag'].forEach(function (kind) {
-        wp.plugins.registerPlugin('cb-notes-' + kind, {
-            render: function () { return el(OrganizationPanel, { kind: kind }); },
-            icon: kind === 'tag' ? 'tag' : 'category'
-        });
+    wp.plugins.registerPlugin('cb-notes-organize', {
+        render: OrganizationPanel,
+        icon: 'category'
     });
 }());
