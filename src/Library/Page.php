@@ -550,7 +550,7 @@ final class Page {
             . ' fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"'
             . ' stroke-linejoin="round" aria-hidden="true" focusable="false">'
             . '<path d="M3 4h7m4 0h7M3 12h3m4 0h11M3 20h11m4 0h3" />'
-            . '<path d="M10 2v4M6 10v4M14 18v4" />'
+            . '<path d="M12 2v4M8 10v4M16 18v4" />'
             . '</svg><span>' . esc_html__('Organize notes', 'core-blueprint-notes')
             . '</span></a></div></aside>';
         echo '<main class="cb-notes-library__main cb-core-panel" id="cb-notes-library-results">';
