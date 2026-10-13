@@ -12,9 +12,29 @@ trap 'rm -r -- "$STAGE"' EXIT
 mkdir -p "$STAGE/core-blueprint-notes"
 cp "$ROOT/core-blueprint-notes.php" "$ROOT/README.md" "$STAGE/core-blueprint-notes/"
 cp -R "$ROOT/src" "$ROOT/assets" "$ROOT/docs" "$STAGE/core-blueprint-notes/"
+# A release archive is an exact snapshot, not an incremental ZIP update.
+# Reject unexpected files and links before packaging any local workspace data.
+if find "$STAGE/core-blueprint-notes" -type l -print -quit | grep -q .; then
+  echo 'Symlinks are not allowed in the release package' >&2
+  exit 1
+fi
+while IFS= read -r -d '' file; do
+  rel="${file#"$STAGE/core-blueprint-notes/"}"
+  case "$rel" in
+    core-blueprint-notes.php|README.md|src/*.php|assets/*.js|assets/*.css|docs/*.md) ;;
+    *) echo "Unexpected package file: $rel" >&2; exit 1 ;;
+  esac
+done < <(find "$STAGE/core-blueprint-notes" -type f -print0)
+
+# Normalize staged metadata for an identical archive from identical source.
+find "$STAGE/core-blueprint-notes" -type d -exec chmod 0755 {} +
+find "$STAGE/core-blueprint-notes" -type f -exec chmod 0644 {} +
+find "$STAGE/core-blueprint-notes" -exec touch -t 202001010000.00 {} +
+rm -f -- "$ZIP"
 (
   cd "$STAGE"
-  zip -q -X -r "$ZIP" core-blueprint-notes
+  LC_ALL=C find core-blueprint-notes -print | LC_ALL=C sort |
+    zip -q -X "$ZIP" -@
 )
 unzip -t "$ZIP" | tail -n 1
 sha256sum "$ZIP"
