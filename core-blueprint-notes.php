@@ -51,6 +51,7 @@ function cb_notes_requirement_error(): ?string {
         return 'Core Blueprint Base public API 1.2 or newer compatible 1.x is required.';
     }
     if (!class_exists('CoreBlueprint\\Core\\ExtensionRegistry') ||
+        !class_exists('CoreBlueprint\\Core\\Admin\\SettingsRegistry') ||
         !class_exists('CoreBlueprint\\Core\\Governance\\EventRegistry') ||
         !class_exists('CoreBlueprint\\Core\\Governance\\Audit')) {
         return 'Required Core Blueprint Base public services are unavailable.';
