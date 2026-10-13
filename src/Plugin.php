@@ -6,6 +6,7 @@ use CoreBlueprint\Core\Admin\SettingsRegistry;
 use CB\Notes\Admin\SettingsPage;
 use CB\Notes\Sharing\Controller;
 use CB\Notes\Integration\SecureProvider;
+use CB\Notes\Organization\Catalog;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -36,6 +37,7 @@ final class Plugin {
         add_action('init',[self::class,'register_events'],9);
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
         SettingsPage::init();
+        Catalog::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
         add_filter('map_meta_cap',[Access::class,'map_meta_cap'],20,4);
         add_filter('wp_insert_post_data',[Access::class,'force_private_status'],50,2);
@@ -54,7 +56,6 @@ final class Plugin {
         add_action('admin_init',[self::class,'migrate_legacy_published_notes'],21);
         add_filter('views_edit-cb_note',[self::class,'hide_global_status_counts'],50);
         add_filter('manage_cb_note_posts_columns',[self::class,'note_columns']);
-        add_action('manage_cb_note_posts_custom_column',[self::class,'notebook_column'],10,2);
         add_filter('plugin_action_links_'.CB_NOTES_BASENAME,[self::class,'action_links']);
         add_action('wp_abilities_api_init',[Abilities::class,'register']);
     }
@@ -139,7 +140,8 @@ final class Plugin {
                 $value=sanitize_text_field((string)$value);
                 return function_exists('mb_substr')?mb_substr($value,0,80):substr($value,0,80);
             },
-            'auth_callback'=>static function(string $key,int $post_id,int $user_id): bool {
+            'auth_callback'=>static function(bool $allowed,string $key,int $post_id,int $user_id): bool {
+                unset($allowed, $key);
                 $post=get_post($post_id);
                 return $post instanceof \WP_Post && Access::allowed($post,'edit',$user_id);
             },
@@ -210,7 +212,7 @@ final class Plugin {
             CB_NOTES_VERSION,true);
         wp_enqueue_script('cb-notes-editor',
             plugins_url('assets/editor.js',CB_NOTES_FILE),
-            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element'],
+            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch'],
             CB_NOTES_VERSION,true);
     }
     public static function admin_menu(): void {
@@ -232,10 +234,6 @@ final class Plugin {
     public static function note_columns(array $columns): array {
         $columns['cb_notes_notebook']=__('Notebook','core-blueprint-notes');
         return $columns;
-    }
-    public static function notebook_column(string $column,int $post_id): void {
-        if($column==='cb_notes_notebook' && current_user_can('read_post',$post_id))
-            echo esc_html((string)get_post_meta($post_id,self::META_NOTEBOOK,true));
     }
     /** WordPress core's status counts may include other users' drafts. */
     public static function hide_global_status_counts(array $views): array {
