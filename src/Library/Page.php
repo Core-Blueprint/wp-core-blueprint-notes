@@ -7,6 +7,7 @@ use CB\Notes\Access;
 use CB\Notes\Organization\Catalog;
 use CB\Notes\Plugin;
 use CoreBlueprint\Core\UI\AdminTheme;
+use CoreBlueprint\Core\UI\Assets;
 
 defined('ABSPATH') || exit;
 
@@ -40,6 +41,7 @@ final class Page {
         if ($hook !== self::$hook || !current_user_can('cb_notes_edit')) {
             return;
         }
+        Assets::enqueue_modals(Assets::MODAL_PRESENTATION_WP_NATIVE);
         wp_enqueue_style(
             'cb-notes-library',
             plugins_url('assets/library-admin.css', CB_NOTES_FILE),
@@ -180,13 +182,56 @@ final class Page {
             . esc_html__('Edit', 'core-blueprint-notes') . '</a>';
         $trash = get_delete_post_link($post->ID, '', false);
         if (is_string($trash) && $trash !== '' && current_user_can('delete_post', $post->ID)) {
-            // Progressive enhancement: no destructive link without a
-            // deliberate, explicit confirmation from the user.
+            // Fail closed: the action is hidden until the Base confirmation
+            // handler is available. WordPress core still owns the trash URL.
             echo '<button type="button" class="button-link cb-notes-library__trash" hidden'
                 . ' data-cb-notes-trash-url="' . esc_url($trash) . '">'
                 . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
         }
         echo '</div></li>';
+    }
+
+    /** Contextual guidance without revealing catalog labels for invalid filters. */
+    private static function render_empty_state(array $state, int $total, string $create_url): void {
+        $has_secondary_filters = $state['search'] !== '' || $state['category'] !== '' || $state['tag'] !== '';
+        $has_notebook = $state['notebook'] !== '';
+        $reset = self::url($state, [
+            'search' => '', 'notebook' => '', 'category' => '', 'tag' => '',
+            'sort' => 'modified', 'paged' => 1,
+        ]);
+
+        if ($total > 0 && $state['paged'] > 1) {
+            $heading = __('No notes on this page', 'core-blueprint-notes');
+            $hint = __('Try the first page of these results.', 'core-blueprint-notes');
+            $action = __('First page', 'core-blueprint-notes');
+            $href = self::url($state, ['paged' => 1]);
+        } elseif ($state['invalid'] || $has_secondary_filters) {
+            $heading = __('No matching notes', 'core-blueprint-notes');
+            $hint = __('Try a different search or clear your filters.', 'core-blueprint-notes');
+            $action = __('Clear filters', 'core-blueprint-notes');
+            $href = $reset;
+        } elseif ($state['notebook'] === 'unfiled') {
+            $heading = __('No unfiled notes', 'core-blueprint-notes');
+            $hint = __('Your notes are already assigned to notebooks.', 'core-blueprint-notes');
+            $action = __('Show all notes', 'core-blueprint-notes');
+            $href = $reset;
+        } elseif ($has_notebook) {
+            $heading = __('This notebook is empty', 'core-blueprint-notes');
+            $hint = __('Create a note, then select this notebook in the editor.', 'core-blueprint-notes');
+            $action = __('New note', 'core-blueprint-notes');
+            $href = $create_url;
+        } else {
+            $heading = __('Your Library is empty', 'core-blueprint-notes');
+            $hint = __('Create your first private note to get started.', 'core-blueprint-notes');
+            $action = __('New note', 'core-blueprint-notes');
+            $href = $create_url;
+        }
+
+        echo '<div class="cb-notes-library__empty">';
+        echo '<h3 class="cb-notes-library__empty-title">' . esc_html($heading) . '</h3>';
+        echo '<p>' . esc_html($hint) . '</p>';
+        echo '<a class="button button-secondary" href="' . esc_url($href) . '">'
+            . esc_html($action) . '</a></div>';
     }
 
     private static function render_pagination(array $state, int $total): void {
@@ -240,6 +285,7 @@ final class Page {
         echo '</nav><a class="cb-notes-library__organize" href="' . esc_url($organize_url) . '">'
             . esc_html__('Manage notebooks and labels', 'core-blueprint-notes') . '</a></aside>';
         echo '<main class="cb-notes-library__main cb-core-panel" id="cb-notes-library-results">';
+        echo '<p class="cb-notes-library__feedback" role="alert" aria-live="assertive" hidden></p>';
         self::render_filters($state, $catalog);
         echo '<div class="cb-notes-library__results-heading"><h2>' . esc_html__('Your notes', 'core-blueprint-notes') . '</h2>';
         echo '<span>' . esc_html(sprintf(
@@ -256,12 +302,7 @@ final class Page {
             }
             echo '</ul>';
         } else {
-            echo '<div class="cb-notes-library__empty"><p class="cb-core-empty">'
-                . esc_html__('No matching notes found.', 'core-blueprint-notes') . '</p>';
-            echo '<p>' . esc_html__('Try another notebook or clear your filters.', 'core-blueprint-notes') . '</p>';
-            echo '<a class="button button-secondary" href="' . esc_url(self::url($state, [
-                'search' => '', 'notebook' => '', 'category' => '', 'tag' => '', 'sort' => 'modified', 'paged' => 1,
-            ])) . '">' . esc_html__('Show all notes', 'core-blueprint-notes') . '</a></div>';
+            self::render_empty_state($state, (int)$query->found_posts, $create_url);
         }
         self::render_pagination($state, (int)$query->max_num_pages);
         echo '</main></div></div>';
