@@ -132,6 +132,11 @@ final class Controller {
             return self::error('Secure links must expire within 1 to 30 days.', 422);
         }
 
+        // Disarm existing sharing before issuing a replacement grant.
+        update_post_meta($post->ID, self::MODE_META, 'private');
+        self::revoke_old_secure($post->ID);
+        delete_post_meta($post->ID, self::PUBLIC_META);
+        delete_post_meta($post->ID, self::PUBLIC_KEY);
         $snapshotKey = bin2hex(random_bytes(16));
         try {
             $requestClass = \CB\SecureShare\PublicApi\ShareRequest::class;
@@ -219,16 +224,14 @@ final class Controller {
         if (!defined('DONOTCACHEPAGE')) {
             define('DONOTCACHEPAGE', true);
         }
-        $query = new \WP_Query([
-            'post_type' => Plugin::TYPE,
-            'post_status' => ['publish', 'private', 'draft', 'pending', 'future'],
-            'meta_key' => self::PUBLIC_KEY,
-            'meta_value' => $key,
-            'posts_per_page' => 1,
-            'no_found_rows' => true,
-            'suppress_filters' => true,
-        ]);
-        $post = $query->posts[0] ?? null;
+        global $wpdb;
+        // Public routing is an explicit share-grant lookup, not a normal
+        // WordPress post query; private-status posts must remain resolvable.
+        $id = (int)$wpdb->get_var($wpdb->prepare(
+            "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value = %s ORDER BY meta_id DESC LIMIT 1",
+            self::PUBLIC_KEY, $key
+        ));
+        $post = $id > 0 ? get_post($id) : null;
         if (!$post instanceof \WP_Post || self::mode($post->ID) !== 'public') {
             self::not_found();
         }
