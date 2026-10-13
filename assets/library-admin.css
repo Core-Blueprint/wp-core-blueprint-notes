@@ -167,12 +167,29 @@
     justify-content: space-between;
     margin-block-end: var(--cb-space-3, 12px);
 }
-.cb-notes-library__bulk-options { align-items: end; justify-content: space-between; }
+/* One command rail: label belongs to its select, all input/button bottoms align.
+   Canonical Base control token is the baseline; 2.75rem provides a usable
+   hit target without changing global Base sizing or row icon buttons. */
+.cb-notes-library__bulk-options {
+    --cb-notes-bulk-control-height: max(var(--cb-control-height, 32px), 2.75rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: var(--cb-space-4, 16px);
+}
 .cb-notes-library__bulk-edit { align-items: end; flex: 1 1 auto; }
 .cb-notes-library__bulk-field { display: grid; gap: var(--cb-space-2, 8px); min-width: 0; }
 .cb-notes-library__bulk-field label { font-weight: 600; }
 .cb-notes-library__bulk-field select { min-width: 12rem; max-width: 100%; }
 .cb-core-wrap .cb-notes-library__bulk-field[hidden] { display: none; }
+.cb-core-wrap .cb-notes-library__bulk-field select,
+.cb-core-wrap .cb-notes-library__bulk-edit button.cb-notes-library__bulk-apply,
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-notes-library__bulk-trash {
+    box-sizing: border-box;
+    block-size: var(--cb-notes-bulk-control-height);
+    min-block-size: var(--cb-notes-bulk-control-height);
+    margin-block: 0;
+}
 .cb-notes-library__bulk-trash { margin-inline-start: auto; }
 .cb-notes-library__bulk-result {
     display: flex;
@@ -314,10 +331,10 @@
     .cb-notes-library__filter-grid { grid-template-columns: minmax(0, 1fr); }
     .cb-notes-library__note { align-items: flex-start; flex-direction: column; }
     .cb-notes-library__actions { justify-content: flex-start; }
-    .cb-notes-library__bulk-options,
+    .cb-notes-library__bulk-options { grid-template-columns: minmax(0, 1fr); row-gap: var(--cb-space-4, 16px); }
     .cb-notes-library__bulk-edit { flex-direction: column; align-items: stretch; }
     .cb-notes-library__bulk-field select { width: 100%; min-width: 0; }
-    .cb-notes-library__bulk-trash { margin-inline-start: 0; align-self: flex-start; }
+    .cb-notes-library__bulk-trash { margin-inline-start: 0; justify-self: start; }
     .cb-notes-library__identity { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
