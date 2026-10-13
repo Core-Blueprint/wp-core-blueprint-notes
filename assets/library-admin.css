@@ -131,7 +131,12 @@
     align-items: center;
     gap: var(--cb-space-3, 12px);
 }
-.cb-notes-library__results-title h2 { margin-block-end: var(--cb-space-3, 12px); }
+/* The heading used to inherit the sidebar's 12px bottom margin.
+   Remove it only inside the selectable results title so the heading and
+   checkbox share the same vertical centre. Sidebar section spacing stays. */
+.cb-notes-library__results-heading .cb-notes-library__results-title h2 {
+    margin: 0;
+}
 .cb-notes-library__select,
 .cb-notes-library__select-all {
     flex: 0 0 auto;
