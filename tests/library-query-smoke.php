@@ -29,6 +29,7 @@ namespace {
 
     use CB\Notes\Library\Query;
     use CB\Notes\Library\Markers;
+    use CB\Notes\Organization\Catalog;
 
     function ensure(bool $condition, string $name): void {
         if (!$condition) {
