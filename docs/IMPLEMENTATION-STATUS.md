@@ -1,8 +1,8 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha9.
-**Branch:** `feature/notes-gutenberg-ux-g1-v1`.
-**Status:** G1–G2 implemented; local sourcegate/build and new Gutenberg runtime acceptance pending. No Golden or production claim.
+**Current test candidate:** 0.1.0-alpha10.
+**Branch:** `feature/notes-productivity-p1-favorites-pins-v1`.
+**Status:** P1 Favorite/Pin test candidate; local sourcegate and staging acceptance pending. No Golden or production claim.
 
 ## Scope added in alpha4
 
@@ -29,7 +29,8 @@
 - **Alpha5–8 Notes Library**: personal workspace, notebook navigation, search, classification filters, pagination, context-aware empty states, Base danger confirmation and Base compact action buttons. The user reported visual and functional stability before G1 development.
 - **Alpha9 Gutenberg G1**: one Organize document panel; Notebook is immediately visible; Category and Tags behind progressive disclosure, automatically expanded when classifications already exist. Inline personal-label creation and the twelve-tag limit remain.
 - **Alpha9 Gutenberg G2**: an explicit Sharing status; separate Save/Share guidance; explanation that shared snapshots do not change when saving the private original. New sharing is blocked for unsaved edits; revocation remains available.
-- PHP/REST storage, authorization, frozen snapshots, Base and Secure Share code have not been modified in Alpha9.
+- PHP/REST storage, authorization, frozen snapshots, Base and Secure Share code were not modified in Alpha9.
+- **Alpha10 P1**: owner-authorized Favorite and Pinned protected post-meta flags, AJAX marker toggles, separate saved views and pinned-first default ordering. Gutenberg content and frozen public/secure snapshots remain unchanged.
 
 ## Ownership boundaries
 
@@ -40,7 +41,7 @@
 
 ## Validation gates
 
-For alpha9, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Acceptance focuses on the two Gutenberg panel changes, including inline catalog CRUD, owner-bound meta, unsaved edit handling, private sharing and responsive/accessibility behaviors. Earlier Alpha8 was reported stable by the user; the new alpha9 interface still requires its own staging acceptance. Mocked source checks do not replace WordPress runtime proof.
+For alpha10, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Acceptance focuses on independent Favorite/Pin toggling, saved views, pinned-first ordering, nonce and owner authorization, responsiveness and unchanged sharing boundaries. Earlier Alpha9 was reported stable by the user; the new alpha10 interface still requires its own staging acceptance. Mocked source checks do not replace WordPress runtime proof.
 
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
