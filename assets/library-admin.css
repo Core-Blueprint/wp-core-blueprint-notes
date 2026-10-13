@@ -177,6 +177,34 @@
     display: block;
     line-height: 1;
 }
+/*
+ * WordPress admin may apply .button focus/background declarations after the
+ * Base bundle. Reassert Base's public danger tokens with sufficient specificity
+ * only for this destructive action; no independent Notes color system.
+ * The Base danger variant remains the source of semantic styling.
+ */
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash {
+    background: transparent;
+    border: 1px solid var(--cb-danger);
+    color: var(--cb-danger);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:hover,
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:focus {
+    background: var(--cb-danger);
+    border-color: var(--cb-danger);
+    color: var(--cb-surface-1);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:focus-visible {
+    outline: 2px solid var(--cb-danger);
+    outline-offset: 2px;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:disabled {
+    background: transparent;
+    color: var(--cb-danger);
+    opacity: 0.5;
+}
 .cb-notes-library__empty { text-align: center; padding: var(--cb-space-6, 32px) 12px; }
 .cb-notes-library__empty-title { margin: 0; color: var(--cb-text-strong); font-size: 1rem; line-height: 1.4; }
 .cb-notes-library__empty p { color: var(--cb-text-muted); margin-block: var(--cb-space-3, 12px) var(--cb-space-4, 16px); }
