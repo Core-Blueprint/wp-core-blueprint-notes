@@ -31,8 +31,8 @@ Use disposable Notes with at least two separately signed-in Editor accounts, mul
 
 1. **Progressive selection:** with JavaScript active, every visible personal Note has a keyboard-accessible checkbox and the header has Select all visible notes. Without selection, toolbar hidden. After selection, count and toolbar appear. Partial selection sets the indeterminate header state. Clear selection resets all.
 2. **Page-only scope:** select all on a page of 20. Navigate to another page, notebook or search: no selection carries over. Never submit more than 20 IDs.
-3. **Notebook move:** select two Notes, choose an existing personal notebook and Move to notebook. Confirm persistence after Refresh results; clear a notebook with Unfiled. Original note content remains.
-4. **Category:** choose category and Set category, then clear with No category. Check persistence and combined Library filters. Tags unchanged.
+3. **Notebook move:** select two Notes, choose an existing personal notebook and Move to notebook. The Move button stays disabled until Choose notebook is replaced by a deliberate selection. Confirm persistence after Refresh results; clear a notebook by explicitly choosing Unfiled. Original note content remains.
+4. **Category:** choose category and Set category, Set category must stay disabled until a destination is deliberately chosen. Then clear by explicitly selecting No category. Check persistence and combined Library filters. Tags unchanged.
 5. **Bulk Trash:** select Notes and Move to Trash. A Core Blueprint Base danger modal opens. Cancel preserves all Notes, sharing and selection. Confirm invokes WordPress Trash, removes Notes after manual refresh and permanently revokes Public/Secure Share links, including after restore.
 6. **Cross-user authorization:** user B cannot change a Note owned by A. Mixed A/B batches update only authorized Notes and return exact successful/failed counts. No foreign titles or catalog labels disclosed.
 7. **Destination validation:** foreign/malformed catalog ID, invalid nonce, duplicate/malformed IDs, more than 20 IDs or unknown operation fail before mutation. Network request submits only selected IDs.
