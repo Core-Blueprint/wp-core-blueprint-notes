@@ -27,6 +27,7 @@ const checks = [
     ['Semantic Base cards and button variants used', admin.includes('cb-core-card__body') && admin.includes('cb-core-button--primary') && admin.includes('cb-core-button--danger')],
     ['Create action has token spacing', layout.includes('.cb-notes-organize__create') && layout.includes('gap: var(--cb-space-4)')],
     ['Organize layout is bounded and responsive', layout.includes('max-width: 960px') && layout.includes('max-width: 520px') && layout.includes('@media (max-width: 600px)')],
+    ['Picker escapes only its card while other Base cards stay clipped', admin.includes("props.id === 'select' ? ' cb-notes-organize__card--picker'") && layout.includes('.cb-notes-organize__card--picker {') && layout.includes('overflow: visible;') && layout.includes('z-index: 2;')],
     ['No hardcoded colors or inline geometry remain', !admin.includes("style: {") && !layout.includes('#7774') && !layout.includes('!important')],
     ['Organization never falls back if Base modal absent', admin.includes('The Core Blueprint confirmation is unavailable.')],
     ['Persistent catalog uses per-owner user meta', catalog.includes("get_user_meta($user_id, self::USER_META, true)")],
