@@ -72,7 +72,9 @@
 
     function Card(props) {
         return el('section', {
-            className: 'cb-core-card cb-notes-organize__card', key: props.id
+            className: 'cb-core-card cb-notes-organize__card' +
+                (props.id === 'select' ? ' cb-notes-organize__card--picker' : ''),
+            key: props.id
         },
             el('header', { className: 'cb-core-card__header' },
                 el('h2', { className: 'cb-core-card__title' }, props.title)),
