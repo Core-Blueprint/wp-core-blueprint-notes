@@ -3,7 +3,7 @@
  * Plugin Name:       Core Blueprint Notes
  * Plugin URI:        https://coreblueprint.io
  * Description:       Private Gutenberg notes with personal notebooks and optional read-only AI abilities.
- * Version:           0.1.0-alpha2
+ * Version:           0.1.0-alpha3
  * Author:            Core Blueprint
  * Author URI:        https://coreblueprint.io
  * License:           GPL-2.0-or-later
@@ -23,7 +23,7 @@ if (defined('CB_NOTES_FILE')) {
 define('CB_NOTES_FILE', __FILE__);
 define('CB_NOTES_DIR', plugin_dir_path(__FILE__));
 define('CB_NOTES_BASENAME', plugin_basename(__FILE__));
-define('CB_NOTES_VERSION', '0.1.0-alpha2');
+define('CB_NOTES_VERSION', '0.1.0-alpha3');
 define('CB_NOTES_REQUIRED_API', '1.2');
 
 spl_autoload_register(static function (string $class): void {
@@ -69,6 +69,9 @@ function cb_notes_activate(): void {
         wp_die(esc_html($error), esc_html('Core Blueprint Notes requirements not met'));
     }
     \CB\Notes\Plugin::grant_roles();
+    \CB\Notes\Plugin::register_content();
+    \CB\Notes\Sharing\Controller::register();
+    flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'cb_notes_activate');
 
