@@ -15,10 +15,14 @@ namespace {
     }
 
     require_once dirname(__DIR__) . '/src/Library/Menu.php';
+    // Isolated smoke tests do not load the plugin's PSR-style autoloader.
+    // Page::init() now registers the personal display controller as well.
+    require_once dirname(__DIR__) . '/src/Library/Display.php';
     require_once dirname(__DIR__) . '/src/Library/Page.php';
 
     use CB\Notes\Library\Menu;
     use CB\Notes\Library\Page;
+    use CB\Notes\Library\Display;
 
     function assert_menu(bool $condition, string $message): void {
         if (!$condition) {
@@ -80,5 +84,9 @@ namespace {
         $r[0] === 'admin_menu' && $r[2] === 11
         && $r[1] === [Page::class, 'register_menu']
     ), 'Library registration remains prior to ordering');
+    assert_menu((bool) array_filter($hooks, static fn(array $r): bool =>
+        $r[0] === 'admin_post_cb_notes_library_display'
+        && $r[1] === [Display::class, 'save']
+    ), 'List/Table preference handler registered alongside Library menu');
     echo "Notes submenu ordering smoke: PASS\n";
 }
