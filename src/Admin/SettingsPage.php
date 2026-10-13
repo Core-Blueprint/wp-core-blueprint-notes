@@ -110,8 +110,8 @@ final class SettingsPage {
         echo '<p>' . esc_html__('Create and edit your own notes in the native WordPress block editor. Personal notebook labels are stored with each note.', 'core-blueprint-notes') . '</p>';
         echo '<p>' . esc_html__('Notes are private by default. Team sharing and private file attachments are not available in this alpha.', 'core-blueprint-notes') . '</p>';
         echo '<p><a class="button cb-core-button cb-core-button--primary" href="' .
-            esc_url(admin_url('edit.php?post_type=' . Plugin::TYPE)) . '">' .
-            esc_html__('Manage Notes', 'core-blueprint-notes') . '</a></p>';
+            esc_url(admin_url('edit.php?post_type=' . Plugin::TYPE . '&page=cb-notes-library')) . '">' .
+            esc_html__('Open Notes Library', 'core-blueprint-notes') . '</a></p>';
         echo '</section>';
     }
 
