@@ -190,19 +190,42 @@ final class Page {
         echo '<div class="cb-notes-library__note-content"><a class="cb-notes-library__note-title" href="'
             . esc_url($link) . '">' . esc_html($title) . '</a>';
         echo '<div class="cb-notes-library__meta">';
-        echo '<span>' . esc_html($modified) . '</span>';
+        echo '<span class="cb-notes-library__modified">' . esc_html($modified) . '</span>';
         if ($post->post_status === 'draft') {
             echo '<span class="cb-notes-library__status">' . esc_html__('Draft', 'core-blueprint-notes') . '</span>';
         } else {
             echo '<span class="cb-notes-library__status">' . esc_html__('Private', 'core-blueprint-notes') . '</span>';
         }
-        foreach (['notebook', 'category'] as $field) {
-            if ($labels[$field] !== '') {
-                echo '<span class="cb-notes-library__label">' . esc_html($labels[$field]) . '</span>';
-            }
+        echo '</div>';
+        // Labels come exclusively from the owner's private Catalog::labels_for_post.
+        // The fallback makes genuinely unfiled notes visually distinguishable;
+        // categories and tags stay absent if they are not assigned.
+        echo '<div class="cb-notes-library__classification">';
+        echo '<span class="cb-notes-library__label"><span class="cb-notes-library__meta-kind">'
+            . esc_html__('Notebook:', 'core-blueprint-notes') . '</span> '
+            . esc_html($labels['notebook'] !== ''
+                ? $labels['notebook'] : __('Unfiled', 'core-blueprint-notes')) . '</span>';
+        if ($labels['category'] !== '') {
+            echo '<span class="cb-notes-library__label"><span class="cb-notes-library__meta-kind">'
+                . esc_html__('Category:', 'core-blueprint-notes') . '</span> '
+                . esc_html($labels['category']) . '</span>';
         }
-        foreach (array_slice($labels['tags'], 0, 3) as $tag) {
-            echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
+        if ($labels['tags'] !== []) {
+            echo '<span class="cb-notes-library__meta-kind">' . esc_html__('Tags:', 'core-blueprint-notes') . '</span>';
+            foreach (array_slice($labels['tags'], 0, 3) as $tag) {
+                echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
+            }
+            $extra = array_slice($labels['tags'], 3);
+            if ($extra !== []) {
+                $extra_title = sprintf(
+                    /* translators: %s: comma-separated list of additional private tag names */
+                    __('Additional tags: %s', 'core-blueprint-notes'),
+                    implode(', ', $extra)
+                );
+                echo '<span class="cb-notes-library__tag-more" title="' . esc_attr($extra_title) . '"'
+                    . ' aria-label="' . esc_attr($extra_title) . '">+'
+                    . esc_html((string)count($extra)) . '</span>';
+            }
         }
         echo '</div></div></div><div class="cb-notes-library__actions">';
         $markers = Markers::for_post((int)$post->ID);
