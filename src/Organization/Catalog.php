@@ -255,6 +255,9 @@ final class Catalog {
             }
             $items[$kind][] = ['id' => bin2hex(random_bytes(16)), 'name' => $name];
         } elseif ($action === 'rename') {
+            if ($items[$kind][$index]['name'] === $name) {
+                return $items;
+            }
             $items[$kind][$index]['name'] = $name;
         } else {
             $cleaned = self::clear_references($owner, $kind, $id);
@@ -306,11 +309,14 @@ final class Catalog {
                     continue;
                 }
                 $next = array_values(array_filter($old, static fn($value) => $value !== $id));
-                if ($next !== $old) {
-                    update_post_meta((int)$post_id, self::TAGS, $next);
+                if ($next !== $old && !update_post_meta((int)$post_id, self::TAGS, $next)) {
+                    return self::error('cb_notes_organization_storage', 'Could not update a note tag assignment.', 500);
                 }
             } else {
-                update_post_meta((int)$post_id, $key, '');
+                $before = get_post_meta((int)$post_id, $key, true);
+                if ($before === $id && !update_post_meta((int)$post_id, $key, '')) {
+                    return self::error('cb_notes_organization_storage', 'Could not clear a note assignment.', 500);
+                }
             }
         }
         return true;
