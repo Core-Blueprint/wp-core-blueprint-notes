@@ -35,11 +35,25 @@ check(page.includes("esc_html__('Title'") &&
     page.includes("esc_html__('Modified'") &&
     page.includes("esc_html__('Actions'"),
     'All six requested columns');
-check(page.includes("['sort' => 'title', 'paged' => 1]") &&
-    page.includes("['sort' => $modified_sort, 'paged' => 1]") &&
-    page.includes('aria-sort="ascending"') &&
-    page.includes("$modified_dir = $state['sort'] === 'oldest' ? 'ascending' : 'descending'"),
-    'Title and Modified sorted with the existing supported query options');
+check(page.includes("$title_next = $state['sort'] === 'title' ? 'title_desc' : 'title'") &&
+    page.includes("$modified_next = $state['sort'] === 'newest' ? 'oldest' : 'newest'") &&
+    page.includes("['sort' => $title_next, 'paged' => 1]") &&
+    page.includes("['sort' => $modified_next, 'paged' => 1]"),
+    'Title and Modified header clicks reverse ASC/DESC and reset to page one');
+check(page.includes("$title_direction = $state['sort'] === 'title' ? 'ascending' : 'descending'") &&
+    page.includes("$modified_direction = $state['sort'] === 'oldest' ? 'ascending' : 'descending'") &&
+    page.includes(' aria-sort="' ) &&
+    page.includes("$modified_active ?"),
+    'aria-sort advertises only an actual column direction');
+check(page.includes("$expanded = $state['category'] !== '' || $state['tag'] !== '';") &&
+    !page.includes("$state['sort'] !== 'modified'"),
+    'Header sorting does not automatically expand More filters');
+check(query.includes("'title_desc' => ['title' => 'DESC'") &&
+    query.includes("'newest' => ['modified' => 'DESC'") &&
+    query.includes("'title' => ['title' => 'ASC'") &&
+    query.includes("'oldest' => ['modified' => 'ASC'") &&
+    query.includes("'cb_notes_pinned_first' => $state['sort'] === 'modified'"),
+    'Query supports four deterministic explicit sort orders and the pinned default');
 const tableRow = page.slice(
     page.indexOf('private static function render_table_row('),
     page.indexOf('private static function render_empty_state(')
@@ -75,6 +89,9 @@ check(css.includes('.cb-notes-library__table-scroll {') &&
     css.includes('min-width: 940px;') &&
     css.includes('var(--cb-border)'),
     'Responsive, contained, token-based Table View');
+check(css.includes('th[aria-sort="ascending"] a::after') &&
+    css.includes('th[aria-sort="descending"] a::after'),
+    'Active Title/Modified sort direction is visible without new theme colors');
 check(css.includes('.cb-notes-library__display-link.is-active') &&
     css.includes('.cb-notes-library__display-link:focus-visible'),
     'Keyboard-visible selected view toggle with accessible current-page state');
