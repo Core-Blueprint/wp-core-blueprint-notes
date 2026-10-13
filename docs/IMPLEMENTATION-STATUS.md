@@ -1,6 +1,6 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha19.
+**Current test candidate:** 0.1.0-alpha20.
 **Branch:** `feature/notes-library-table-view-p27-v1`.
 **Status:** Alpha18 Library Overview staging candidate. Isolated JS contracts passed; full local sourcegate, build and WordPress Light/Dark/owner runtime acceptance outstanding. Not Golden or production-ready.
 
@@ -41,10 +41,10 @@
 - Response returns exact updated/failed IDs and counts, including partial failures; client identifies failed visible note names with safe text content and offers manual refresh to maintain correct server-side filters.
 - No changes to Secure Share, frozen snapshots, Gutenberg storage or Base design foundations.
 
-## Library Table View P2.7 (Alpha19)
+## Library Table View P2.7 (Alpha19–20)
 
 - Presents the same private, filtered, paginated `WP_Query` in a semantic table or the original list; no duplicate CPT management screen and no extra query.
-- Optional Table columns: Title, Notebook, Category, Tags, Modified and Actions. Title and Modified reuse existing server sorting; all four icon actions, selection and P2 bulk operations retain the same handlers.
+- Optional Table columns: Title, Notebook, Category, Tags, Modified and Actions. Alpha20 corrects Title A–Z/Z–A and Modified oldest/newest clickable headers with `aria-sort` direction and a visual arrow. Explicit Modified sorting is strictly chronological, leaving the pinned-first default intact. Header sort no longer automatically expands More filters. all four icon actions, selection and P2 bulk operations retain the same handlers.
 - Stores List/Table preference per user via capability-gated, nonce-verified `admin_post` action and canonical, owner-validated filter redirect. The default remains List for new users.
 - Table scrolls within the Library panel on narrow screens and uses shared Base design tokens. New PHP preference/table rendering smoke and JS contract tests are included.
 - Await local full sourcegate/build and real WordPress privacy, Light/Dark, sorting, responsive and multi-user staging acceptance. No Golden claim.
