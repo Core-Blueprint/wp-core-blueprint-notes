@@ -252,14 +252,63 @@ final class Catalog {
         } elseif ($action === 'rename') {
             $items[$kind][$index]['name'] = $name;
         } else {
-            // Unrecognized IDs cease to resolve immediately. Former references
-            // remain inert until that note is edited, without touching revisions.
+            $cleaned = self::clear_references($owner, $kind, $id);
+            if (is_wp_error($cleaned)) {
+                return $cleaned;
+            }
             array_splice($items[$kind], $index, 1);
         }
         if (!update_user_meta($owner, self::USER_META, $items)) {
             return self::error('cb_notes_organization_storage', 'Could not save organization changes.', 500);
         }
         return $items;
+    }
+
+    /**
+     * Before catalog deletion, remove exact references in a bounded owner-only
+     * batch. Refuse a large operation rather than leaving a partial unknown scope.
+     */
+    private static function clear_references(int $owner, string $kind, string $id): true|\WP_Error {
+        $key = self::META[$kind];
+        $ids = get_posts([
+            'post_type' => Plugin::TYPE, 'post_status' => [
+                'private', 'publish', 'draft', 'pending', 'future', 'trash',
+            ],
+            'author' => $owner, 'fields' => 'ids', 'posts_per_page' => 251,
+            'suppress_filters' => true,
+            'meta_query' => [[
+                'key' => $key,
+                'value' => $kind === 'tag' ? 's:32:"' . $id . '";' : $id,
+                'compare' => $kind === 'tag' ? 'LIKE' : '=',
+            ]],
+        ]);
+        if (!is_array($ids)) {
+            return self::error('cb_notes_organization_query', 'Could not verify affected notes.', 500);
+        }
+        if (count($ids) > 250) {
+            return self::error('cb_notes_organization_limit',
+                'This label belongs to more than 250 notes. Bulk removal needs an operator-reviewed batch.', 409);
+        }
+        foreach ($ids as $post_id) {
+            $post = get_post((int)$post_id);
+            if (!$post instanceof \WP_Post || $post->post_type !== Plugin::TYPE
+                || (int)$post->post_author !== $owner) {
+                return self::error('cb_notes_organization_scope', 'Could not verify note ownership.', 403);
+            }
+            if ($kind === 'tag') {
+                $old = get_post_meta((int)$post_id, self::TAGS, true);
+                if (!is_array($old)) {
+                    continue;
+                }
+                $next = array_values(array_filter($old, static fn($value) => $value !== $id));
+                if ($next !== $old) {
+                    update_post_meta((int)$post_id, self::TAGS, $next);
+                }
+            } else {
+                update_post_meta((int)$post_id, $key, '');
+            }
+        }
+        return true;
     }
 
     /** Alpha1/2 text-only notebooks are imported for their owner in bounded batches. */
