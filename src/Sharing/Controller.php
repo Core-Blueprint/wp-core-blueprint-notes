@@ -215,6 +215,20 @@ final class Controller {
         return new \WP_Error('cb_notes_sharing_unavailable', __($message, 'core-blueprint-notes'), ['status' => $status]);
     }
 
+    /** Authorization invariant shared by the public route and regression tests. */
+    public static function public_snapshot_allowed(\WP_Post $post, string $key, mixed $snapshot): bool {
+        if ($post->post_type !== Plugin::TYPE
+            || in_array($post->post_status, ['trash', 'auto-draft', 'inherit'], true)
+            || self::mode((int)$post->ID) !== 'public'
+            || !is_array($snapshot)
+            || preg_match('/^[a-f0-9]{32}$/D', $key) !== 1) {
+            return false;
+        }
+        $stored = $snapshot['key'] ?? null;
+        return is_string($stored) && strlen($stored) === 32
+            && hash_equals($stored, $key);
+    }
+
     /** Only the explicitly shared frozen copy is delivered to anonymous visitors. */
     public static function deliver_public(): void {
         $key = (string)get_query_var('cb_notes_public', '');
@@ -235,12 +249,11 @@ final class Controller {
             self::PUBLIC_KEY, $key
         ));
         $post = $id > 0 ? get_post($id) : null;
-        if (!$post instanceof \WP_Post || in_array($post->post_status, ['trash', 'auto-draft', 'inherit'], true)
-            || self::mode($post->ID) !== 'public') {
+        if (!$post instanceof \WP_Post) {
             self::not_found();
         }
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
-        if (!is_array($snapshot) || !hash_equals((string)($snapshot['key'] ?? ''), $key)) {
+        if (!self::public_snapshot_allowed($post, $key, $snapshot)) {
             self::not_found();
         }
         self::response_headers();
