@@ -41,6 +41,8 @@ final class Query {
         $notebook = self::text($input, 'cbn_notebook', 80);
         $category = self::text($input, 'cbn_category', 80);
         $tag = self::text($input, 'cbn_tag', 80);
+        $view = self::text($input, 'cbn_view', 16);
+        $view = in_array($view, ['favorites', 'pinned'], true) ? $view : '';
         $sort = self::text($input, 'cbn_sort', 16);
         $sort = in_array($sort, ['modified', 'oldest', 'title'], true) ? $sort : 'modified';
         $page = $input['cbn_paged'] ?? 1;
@@ -50,6 +52,7 @@ final class Query {
             || ($tag !== '' && !self::catalog_has($catalog, 'tag', $tag));
         return [
             'search' => self::text($input, 'cbn_search'),
+            'view' => $view,
             'notebook' => $notebook,
             'category' => $category,
             'tag' => $tag,
@@ -69,6 +72,7 @@ final class Query {
             'paged' => (int)$state['paged'],
             'no_found_rows' => false,
             'ignore_sticky_posts' => true,
+            'cb_notes_pinned_first' => $state['sort'] === 'modified',
             's' => (string)$state['search'],
             'orderby' => match ($state['sort']) {
                 'oldest' => ['modified' => 'ASC', 'ID' => 'ASC'],
@@ -82,6 +86,11 @@ final class Query {
         }
 
         $clauses = [];
+        if ($state['view'] === 'favorites') {
+            $clauses[] = ['key' => Markers::FAVORITE, 'value' => '1', 'compare' => '='];
+        } elseif ($state['view'] === 'pinned') {
+            $clauses[] = ['key' => Markers::PINNED, 'value' => '1', 'compare' => '='];
+        }
         if ($state['notebook'] === 'unfiled') {
             $clauses[] = [
                 'relation' => 'OR',
