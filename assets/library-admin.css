@@ -175,6 +175,14 @@
     text-underline-offset: 3px;
 }
 .cb-notes-library__table thead th a:hover { color: var(--cb-accent); }
+.cb-notes-library__table thead th[aria-sort="ascending"] a::after {
+    content: "↑";
+    margin-inline-start: var(--cb-space-2, 8px);
+}
+.cb-notes-library__table thead th[aria-sort="descending"] a::after {
+    content: "↓";
+    margin-inline-start: var(--cb-space-2, 8px);
+}
 .cb-notes-library__table th:nth-child(1) { width: 23%; }
 .cb-notes-library__table th:nth-child(2) { width: 13%; }
 .cb-notes-library__table th:nth-child(3) { width: 12%; }
