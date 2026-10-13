@@ -39,8 +39,8 @@ function boot(options = {}) {
     const toolbar = control(), all = control(), result = control(), message = control();
     const clear = control(), label = control(), refresh = control(), error = control();
     const notebook = control(), category = control();
-    notebook.value = 'a'.repeat(32);
-    category.value = 'b'.repeat(32);
+    notebook.value = '__choose__';
+    category.value = '__choose__';
     const actions = ['notebook', 'category', 'trash'].map(name =>
         control({ 'data-cb-notes-bulk-action': name })
     );
@@ -116,6 +116,10 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
     assert.equal(w.toolbar.hidden, false, 'Toolbar appears after first selection');
     assert.equal(w.label.textContent, '1 selected', 'Accessible count');
     assert.equal(w.all.indeterminate, true, 'Select-all indicates partial selection');
+    assert.equal(w.actions[0].disabled, true, 'Bulk notebook is disabled until a destination is chosen');
+    w.notebook.value = 'a'.repeat(32);
+    w.notebook.listeners.change();
+    assert.equal(w.actions[0].disabled, false, 'Explicit notebook choice enables action');
     w.actions[0].click();
     await flush();
     assert.equal(w.requests.length, 1, 'Notebook operation uses one batched request');
@@ -138,6 +142,9 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
     w.all.change(true);
     assert.equal(w.all.checked, true, 'Select-all checks all visible rows');
     assert.equal(w.label.textContent, '2 selected', 'Two-note selection count');
+    assert.equal(w.actions[1].disabled, true, 'Category action requires intentional category choice');
+    w.category.value = 'b'.repeat(32);
+    w.category.listeners.change();
     w.actions[1].click();
     await flush();
     params = new URLSearchParams(w.requests[0].body);
@@ -177,6 +184,8 @@ function selectFirst(widget) { widget.checkboxes[0].toggle(true); }
 
     w = boot({fetch: 'reject'});
     selectFirst(w);
+    w.notebook.value = 'a'.repeat(32);
+    w.notebook.listeners.change();
     w.actions[0].click();
     await flush();
     assert.equal(w.checkboxes[0].checked, true, 'Network failure preserves selection');
