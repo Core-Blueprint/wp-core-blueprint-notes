@@ -217,16 +217,32 @@
     font-size: 0.8125rem;
     color: var(--cb-text-muted);
 }
+/* Keep timestamps quiet and expose classification on one scannable,
+   wrapping metadata rail. No additional layout columns or card heights. */
+.cb-notes-library__classification {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cb-space-1, 4px) var(--cb-space-2, 8px);
+    margin-block-start: var(--cb-space-1, 4px);
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--cb-text-muted);
+}
 .cb-notes-library__status,
 .cb-notes-library__label,
-.cb-notes-library__tag {
+.cb-notes-library__tag,
+.cb-notes-library__tag-more {
     border-radius: var(--cb-radius-sm, 6px);
     padding: 2px 6px;
     background: var(--cb-surface-2);
+    overflow-wrap: anywhere;
 }
 .cb-notes-library__status { color: var(--cb-text-muted); }
 .cb-notes-library__label { color: var(--cb-text); }
+.cb-notes-library__meta-kind { font-weight: 600; color: var(--cb-text-muted); }
 .cb-notes-library__tag { color: var(--cb-text-muted); }
+.cb-notes-library__tag-more { color: var(--cb-text-strong); cursor: help; }
 .cb-notes-library__actions {
     display: flex;
     flex-wrap: wrap;
