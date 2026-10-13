@@ -171,9 +171,6 @@
                         key: 'secure', variant: 'secondary', disabled: blocked,
                         onClick: function () { requestMode('secure'); }
                     }, 'Create secure link'));
-                } else {
-                    controls.push(el('p', { key: 'unavailable', className: 'components-base-control__help' },
-                        'Secure Share is optional and currently unavailable.'));
                 }
             }
         }
