@@ -63,7 +63,7 @@
     padding-block-start: var(--cb-space-3, 12px);
     border-block-start: 1px solid var(--cb-border);
 }
-.cb-notes-library__organize-link {
+.cb-core-wrap .cb-notes-library__organize-link {
     display: flex;
     align-items: center;
     gap: var(--cb-space-2, 8px);
@@ -75,8 +75,8 @@
     font-size: 0.875rem;
     line-height: 1.4;
 }
-.cb-notes-library__organize-link:hover,
-.cb-notes-library__organize-link:focus-visible {
+.cb-core-wrap .cb-notes-library__organize-link:hover,
+.cb-core-wrap .cb-notes-library__organize-link:focus-visible {
     background: var(--cb-surface-3);
     color: var(--cb-text-strong);
     text-decoration: none;
