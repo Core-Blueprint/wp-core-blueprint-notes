@@ -126,7 +126,7 @@ const displayFocus = css.slice(
 );
 check(displayFocus.includes('.cb-notes-library__display-link:focus {') &&
     displayFocus.includes('.cb-notes-library__display-link:focus-visible {') &&
-    displayFocus.includes('outline: 1px solid var(--cb-interactive-focus, var(--cb-accent));') &&
+    displayFocus.includes('outline: 1px solid var(--cb-interactive-focus, var(--cb-accent)) !important;') &&
     !displayFocus.includes('outline: 2px') &&
     displayFocus.includes('box-shadow: none !important;'),
     'Focus only retains a 1px accessible keyboard outline and no thick hover/focus halo');
