@@ -1,6 +1,6 @@
 # Core Blueprint Notes — Productivity P2 Bulk Actions acceptance
 
-**Version:** 0.1.0-alpha15
+**Version:** 0.1.0-alpha16
 **Branch:** feature/notes-productivity-p2-bulk-actions-v1
 **Base:** Accepted alpha13, commit aa4a07e9f87db5bdfdbaf377ec9b30c4615654f5
 **Status:** source candidate; no Golden, staging-security, deployment or merge claim.
@@ -19,11 +19,18 @@
     node tests/library-bulk-interaction.cjs
     bash tools/check
     bash tools/build-release
-    unzip -t dist/core-blueprint-notes-0.1.0-alpha15.zip
-    sha256sum dist/core-blueprint-notes-0.1.0-alpha15.zip
+    unzip -t dist/core-blueprint-notes-0.1.0-alpha16.zip
+    sha256sum dist/core-blueprint-notes-0.1.0-alpha16.zip
     git status --short
 
-Do not upload an alpha15 ZIP until all sourcegate, build and ZIP integrity checks pass.
+Do not upload an alpha16 ZIP until all sourcegate, build and ZIP integrity checks pass.
+
+## Alpha16 Notes navigation acceptance
+
+1. In WordPress Admin, the Notes menu shows **Library**, **Add Note**, **Organize**, and authorized **AI Access**, but no redundant **All Notes** submenu. Unrelated or third-party submenus remain intact.
+2. Click the parent **Notes** menu: it should open Library, not the native WordPress notes table.
+3. Manually visit `/wp-admin/edit.php?post_type=cb_note` using an appropriately authorized account. The native WP list screen must remain functional and preserve its permission and ownership protections, without reappearing in the menu.
+4. Direct editor URLs, Gutenberg create/edit, revisions, private notes and existing bookmarks must still work. Check Administrator and Editor roles; no permission expansion.
 
 ## Focused WordPress staging acceptance
 
