@@ -73,10 +73,12 @@ namespace {
     function wp_trash_post(int $id): WP_Post|false {
         if ($id === $GLOBALS['failure'] || !isset($GLOBALS['posts'][$id])) return false;
         $post = $GLOBALS['posts'][$id];
+        $previous = clone $post;
         $post->post_status = 'trash';
+        // WP core returns the pre-trash object; persisted status is authoritative.
         // Real WordPress fires trashed_post and Notes revokes links.
         $GLOBALS['revoked'][] = $id;
-        return $post;
+        return $previous;
     }
     function wp_verify_nonce(string $nonce, string $action): bool { return $nonce === 'valid:' . $action; }
     function __(string $s, string $domain): string { return $s; }
