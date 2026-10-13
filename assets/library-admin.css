@@ -106,6 +106,102 @@
     color: var(--cb-text-muted);
     white-space: nowrap;
 }
+/* List and Table share one server-rendered result set, not duplicate controls. */
+.cb-notes-library__results-heading {
+    align-items: center;
+    flex-wrap: wrap;
+    padding-block-end: var(--cb-space-2, 8px);
+}
+.cb-notes-library__results-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--cb-space-3, 12px);
+}
+.cb-notes-library__results-tools > span { color: var(--cb-text-muted); white-space: nowrap; }
+.cb-notes-library__display-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--cb-space-1, 4px);
+}
+.cb-notes-library__display-toggle .cb-notes-library__display-link {
+    text-decoration: none;
+}
+.cb-notes-library__display-toggle .cb-notes-library__display-link.is-active {
+    background: var(--cb-tint-accent);
+    color: var(--cb-text-strong);
+    border-color: var(--cb-accent);
+    font-weight: 600;
+}
+.cb-notes-library__display-toggle .cb-notes-library__display-link:focus-visible {
+    outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
+    outline-offset: 2px;
+}
+/* Table is optional. Use genuine table semantics and contained horizontal
+   scrolling on compact admin widths; never expand the Library/page width. */
+.cb-notes-library__table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+}
+.cb-notes-library__table-scroll:focus-visible {
+    outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
+    outline-offset: -2px;
+}
+.cb-notes-library__table {
+    width: 100%;
+    min-width: 740px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    color: var(--cb-text);
+}
+.cb-notes-library__table th,
+.cb-notes-library__table td {
+    padding: var(--cb-space-3, 12px) var(--cb-space-2, 8px);
+    text-align: start;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--cb-border);
+    overflow-wrap: anywhere;
+}
+.cb-notes-library__table thead th {
+    font-weight: 600;
+    color: var(--cb-text-muted);
+    background: var(--cb-surface-2);
+}
+.cb-notes-library__table thead th a {
+    color: var(--cb-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.cb-notes-library__table thead th a:hover { color: var(--cb-accent); }
+.cb-notes-library__table th:nth-child(1) { width: 24%; }
+.cb-notes-library__table th:nth-child(2) { width: 14%; }
+.cb-notes-library__table th:nth-child(3) { width: 12%; }
+.cb-notes-library__table th:nth-child(4) { width: 18%; }
+.cb-notes-library__table th:nth-child(5) { width: 15%; }
+.cb-notes-library__table th:nth-child(6) { width: 17%; }
+.cb-notes-library__table-title .cb-notes-library__identity { align-items: center; }
+.cb-notes-library__table-status {
+    display: block;
+    margin-block-start: var(--cb-space-1, 4px);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--cb-text-muted);
+}
+.cb-notes-library__table-date, .cb-notes-library__blank { color: var(--cb-text-muted); }
+.cb-notes-library__table-tags .cb-notes-library__tag,
+.cb-notes-library__table-tags .cb-notes-library__tag-more {
+    display: inline-block;
+    margin: 2px 4px 2px 0;
+    font-size: 0.8125rem;
+}
+.cb-notes-library__table-actions .cb-notes-library__actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: var(--cb-space-1, 4px);
+}
+
 .cb-notes-library__notes {
     margin: 0;
     padding: 0;
@@ -351,6 +447,8 @@
     .cb-notes-library__nav-link.is-active { box-shadow: inset 0 -3px var(--cb-accent); }
 }
 @media (max-width: 680px) {
+    .cb-notes-library__results-tools { width: 100%; justify-content: space-between; }
+    .cb-notes-library__table-scroll { max-width: 100%; }
     .cb-notes-library__heading { align-items: stretch; flex-direction: column; }
     .cb-notes-library__heading > .button { width: fit-content; }
     .cb-notes-library__filter-grid { grid-template-columns: minmax(0, 1fr); }
