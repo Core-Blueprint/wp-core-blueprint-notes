@@ -65,9 +65,9 @@ final class Bulk {
         if ($operation === 'trash') {
             // Fires trashed_post, including Notes public/secure revocation.
             $result = wp_trash_post($id);
-            return $result instanceof \WP_Post
-                && $result->post_status === 'trash'
-                && get_post_status($id) === 'trash';
+            // wp_trash_post() returns the pre-trash WP_Post on WordPress core.
+            // Verify the persisted status instead of relying on that object.
+            return $result instanceof \WP_Post && get_post_status($id) === 'trash';
         }
 
         $key = $operation === 'notebook' ? Catalog::NOTEBOOK : Catalog::CATEGORY;
