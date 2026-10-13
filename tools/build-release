@@ -5,7 +5,7 @@ OUT="$ROOT/dist"
 mkdir -p "$OUT"
 bash "$ROOT/tools/check"
 VERSION="$(php -r '$p=file_get_contents($argv[1]); preg_match("/Version:\\s*(\\S+)/", $p, $m); echo $m[1] ?? "";' "$ROOT/core-blueprint-notes.php")"
-[[ "$VERSION" == '0.1.0-alpha18' ]] || { echo 'Unexpected plugin version' >&2; exit 1; }
+[[ "$VERSION" == '0.1.0-alpha19' ]] || { echo 'Unexpected plugin version' >&2; exit 1; }
 ZIP="$OUT/core-blueprint-notes-${VERSION}.zip"
 STAGE="$(mktemp -d "$OUT/.notes-package-XXXXXX")"
 trap 'rm -r -- "$STAGE"' EXIT
