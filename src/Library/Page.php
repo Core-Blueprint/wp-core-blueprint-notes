@@ -306,7 +306,8 @@ final class Page {
         echo '<th scope="col" class="cb-notes-library__col-title"'
             . ($title_sort ? ' aria-sort="' . $title_direction . '"' : '') . '><a href="'
             . esc_url(self::url($state, ['sort' => $title_next, 'paged' => 1])) . '">'
-            . esc_html__('Title', 'core-blueprint-notes') . '</a></th>';
+            . '<span class="cb-notes-library__sort-label">'
+            . esc_html__('Title', 'core-blueprint-notes') . '</span></a></th>';
         echo '<th scope="col">' . esc_html__('Notebook', 'core-blueprint-notes') . '</th>';
         echo '<th scope="col">' . esc_html__('Category', 'core-blueprint-notes') . '</th>';
         echo '<th scope="col">' . esc_html__('Tags', 'core-blueprint-notes') . '</th>';
@@ -318,7 +319,8 @@ final class Page {
         echo '<th scope="col"'
             . ($modified_active ? ' aria-sort="' . $modified_direction . '"' : '') . '><a href="'
             . esc_url(self::url($state, ['sort' => $modified_next, 'paged' => 1])) . '">'
-            . esc_html__('Modified', 'core-blueprint-notes') . '</a></th>';
+            . '<span class="cb-notes-library__sort-label">'
+            . esc_html__('Modified', 'core-blueprint-notes') . '</span></a></th>';
         echo '<th scope="col">' . esc_html__('Actions', 'core-blueprint-notes') . '</th>';
         echo '</tr></thead><tbody>';
         foreach ($posts as $post) {
@@ -566,15 +568,26 @@ final class Page {
         echo '<nav class="cb-notes-library__display-toggle" aria-label="'
             . esc_attr__('Notes display', 'core-blueprint-notes') . '">';
         foreach ([
-            'list' => __('List', 'core-blueprint-notes'),
-            'table' => __('Table', 'core-blueprint-notes'),
-        ] as $mode => $name) {
+            'list' => [
+                'name' => __('List view', 'core-blueprint-notes'),
+                'icon' => 'dashicons-list-view',
+            ],
+            'table' => [
+                'name' => __('Table view', 'core-blueprint-notes'),
+                'icon' => 'dashicons-editor-table',
+            ],
+        ] as $mode => $display) {
             $active = $layout === $mode;
-            echo '<a class="button cb-core-button cb-core-button--compact cb-notes-library__display-link'
+            $variant = $active ? 'primary' : 'secondary';
+            echo '<a class="button cb-core-button cb-core-button--compact cb-core-button--icon-only cb-core-button--'
+                . esc_attr($variant) . ' cb-notes-library__display-link'
                 . ($active ? ' is-active' : '') . '" href="'
                 . esc_url(Display::switch_url($mode, $state)) . '"'
+                . ' aria-label="' . esc_attr($display['name']) . '"'
+                . ' title="' . esc_attr($display['name']) . '"'
                 . ($active ? ' aria-current="page"' : '') . '>'
-                . esc_html($name) . '</a>';
+                . '<span class="dashicons ' . esc_attr($display['icon'])
+                . '" aria-hidden="true"></span></a>';
         }
         echo '</nav></div></div>';
         if ($query->have_posts()) {
