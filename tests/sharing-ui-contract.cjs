@@ -18,6 +18,8 @@ const checks = [
     ['Content digest required in requests', sharing.includes('expected_content_version: sharing.content_version')],
     ['Emergency revocation not blocked by unsaved edits', sharing.includes("mode !== 'private'") && sharing.includes('disabled: busy')],
     ['Secure Share feature detected', sharing.includes('sharing.secure_available')],
+    ['Optional Secure Share controls appear only when available', sharing.includes('if (sharing.secure_available) {')],
+    ['Missing Secure Share has no placeholder or upsell', !sharing.includes('Secure Share is optional and currently unavailable.') && !sharing.includes("key: 'unavailable'")],
     ['Notebook panel label no longer duplicate', notebook.includes("title: 'Notebook'") && notebook.includes("label: 'Name'")],
     ['Public mode requires server confirmation', controller.includes("get_param('confirmation') !== 'PUBLIC'")],
     ['Public shares fail closed on trash', controller.includes("'trash', 'auto-draft', 'inherit'")],
