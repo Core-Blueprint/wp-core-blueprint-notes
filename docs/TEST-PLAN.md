@@ -1,11 +1,11 @@
-# Notes 0.1.0-alpha1 — One-batch acceptance plan
+# Notes 0.1.0-alpha2 — One-batch acceptance plan
 
 **Environment:** disposable staging, backed up, WordPress 7.0+, PHP 8.4+, Core Blueprint Base with Core API 1.2. **No production use or sensitive attachments yet.**
 
 ## 1. Installation and dependency
 
 1. Check out the feature branch and run `bash tools/check`, then `bash tools/build-release`.
-2. Install `dist/core-blueprint-notes-0.1.0-alpha1.zip` in **Plugins → Add New → Upload Plugin**, with compatible Base active.
+2. Install `dist/core-blueprint-notes-0.1.0-alpha2.zip` in **Plugins → Add New → Upload Plugin**, with compatible Base active.
 3. Verify **Core Blueprint Notes** appears with required Base dependency and shows a new **Notes** menu.
 4. In a separate disposable instance, test missing/inactive/incompatible Base; expect activation refusal or inert plugin and clear required notice. Do not disable Base on shared test sites.
 
