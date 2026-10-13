@@ -59,6 +59,9 @@ final class Plugin {
     public static function upgrade_capabilities(): void {
         if (get_option('cb_notes_caps_migration', '') === 'alpha3') return;
         self::grant_roles();
+        // Alpha2 -> alpha3 updates do not call the activation hook.
+        // Flush the newly registered public-share rewrite exactly once.
+        flush_rewrite_rules(false);
         update_option('cb_notes_caps_migration', 'alpha3', false);
     }
     public static function register_content(): void {
