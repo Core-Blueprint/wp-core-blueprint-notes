@@ -44,6 +44,9 @@ namespace {
     function __(string $text, string $domain): string { return $text; }
     function esc_html__(string $text, string $domain): string { return esc_html(__($text, $domain)); }
     function esc_attr__(string $text, string $domain): string { return esc_attr(__($text, $domain)); }
+    function selected(string $stored, string $value, bool $echo = true): string {
+        return $stored === $value ? 'selected="selected"' : '';
+    }
     function admin_url(string $path): string { return '/wp-admin/' . $path; }
     function add_query_arg(array $args, string $url): string { return $url . '?' . http_build_query($args); }
     function esc_html(string $text): string { return htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); }
@@ -138,9 +141,50 @@ namespace {
         !str_contains($table, '<unsafe>') && str_contains($table, '>+2</span>'),
         'Table metadata escaped; only 3 tags visible with correct overflow');
     check_view(str_contains($table, 'cbn_sort=title') &&
-        str_contains($table, 'cbn_sort=oldest') &&
-        str_contains($table, 'aria-sort="descending"'),
-        'Title/Modified headers reuse existing server sort modes');
+        str_contains($table, 'cbn_sort=newest') &&
+        !str_contains($table, 'aria-sort='),
+        'Pinned-first default shows available sorts without claiming strict date order');
+
+    $directions = [
+        'title' => ['title_desc', 'ascending', 'Title'],
+        'title_desc' => ['title', 'descending', 'Title'],
+        'newest' => ['oldest', 'descending', 'Modified'],
+        'oldest' => ['newest', 'ascending', 'Modified'],
+    ];
+    foreach ($directions as $sort => [$next, $direction, $column]) {
+        ob_start();
+        (new \ReflectionMethod(Page::class, 'render_table'))->invoke(null,
+            [new WP_Post(1, 42)], 42,
+            ['search' => '', 'view' => '', 'notebook' => '', 'category' => '',
+                'tag' => '', 'sort' => $sort, 'paged' => 4]
+        );
+        $sorted = (string)ob_get_clean();
+        $header_pattern = '/<th scope="col"[^>]*aria-sort="' . $direction . '"[^>]*>'
+            . '<a href="[^"]*cbn_sort=' . $next . '[^"]*">' . $column . '<\/a><\/th>/';
+        check_view(preg_match($header_pattern, $sorted) === 1 &&
+            !str_contains($sorted, 'cbn_paged=4'),
+            'Active ' . $column . ' ' . $sort . ' sorts next in opposite direction on first page');
+    }
+
+    ob_start();
+    (new \ReflectionMethod(Page::class, 'render_filters'))->invoke(null,
+        ['search' => '', 'view' => '', 'notebook' => '', 'category' => '',
+            'tag' => '', 'sort' => 'title_desc', 'paged' => 1],
+        ['category' => [], 'tag' => []]
+    );
+    $sort_only_filters = (string)ob_get_clean();
+    check_view(str_contains($sort_only_filters, '<details class="cb-notes-library__advanced">') &&
+        !str_contains($sort_only_filters, '<details class="cb-notes-library__advanced" open>'),
+        'Explicit table sorting does not automatically expand More filters');
+    ob_start();
+    (new \ReflectionMethod(Page::class, 'render_filters'))->invoke(null,
+        ['search' => '', 'view' => '', 'notebook' => '', 'category' => 'active',
+            'tag' => '', 'sort' => 'newest', 'paged' => 1],
+        ['category' => [], 'tag' => []]
+    );
+    $category_filters = (string)ob_get_clean();
+    check_view(str_contains($category_filters, '<details class="cb-notes-library__advanced" open>'),
+        'Active category filters remain discoverable');
 
     echo "PASS PHP: tests/library-overview-smoke.php\n";
 }
