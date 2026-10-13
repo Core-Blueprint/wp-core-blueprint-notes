@@ -42,6 +42,7 @@ namespace {
     function get_option(string $key): string { return $key === 'date_format' ? 'M j, Y' : 'g:i a'; }
     function mysql2date(string $format, string $date, bool $translate = true): string { return 'Oct 13, 2026 10:00 am'; }
     function __(string $text, string $domain): string { return $text; }
+    function esc_html__(string $text, string $domain): string { return esc_html(__($text, $domain)); }
     function esc_html(string $text): string { return htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); }
     function esc_attr(string $text): string { return htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); }
     function esc_url(string $text): string { return htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); }
