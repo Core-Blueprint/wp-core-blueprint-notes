@@ -87,17 +87,23 @@ $GLOBALS['current_user']=0;
 verify(\CB\Notes\Access::before_rest(null,null,new WP_REST_Request('/wp/v2/cb-notes/42/autosaves')) instanceof WP_Error,'anonymous autosaves refused');
 $GLOBALS['current_user']=4;
 verify(!\CB\Notes\Integration\SecureProvider::available(),'missing Secure Share fails soft');
+$version=\CB\Notes\Sharing\Controller::read(new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',['id'=>42]))['content_version'];
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
-    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>$note->post_modified_gmt, 'confirmation'=>''
+    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>$note->post_modified_gmt, 'expected_mode'=>'private', 'expected_content_version'=>$version, 'confirmation'=>''
 ]);
 verify(\CB\Notes\Sharing\Controller::can_manage($payload),'author may manage own note');
 verify(\CB\Notes\Sharing\Controller::change($payload) instanceof WP_Error,'public without explicit acknowledgement denied');
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
-    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>'stale', 'confirmation'=>'PUBLIC'
+    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>'stale', 'expected_mode'=>'private', 'expected_content_version'=>$version, 'confirmation'=>'PUBLIC'
 ]);
 verify(\CB\Notes\Sharing\Controller::change($payload) instanceof WP_Error,'stale revision denied');
+$staleContent=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
+    'id'=>42,'mode'=>'public','expected_modified_gmt'=>$note->post_modified_gmt,
+    'expected_mode'=>'private','expected_content_version'=>'outdated','confirmation'=>'PUBLIC'
+]);
+verify(\CB\Notes\Sharing\Controller::change($staleContent) instanceof WP_Error,'stale content digest denied');
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
-    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>$note->post_modified_gmt, 'confirmation'=>'PUBLIC'
+    'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>$note->post_modified_gmt, 'expected_mode'=>'private', 'expected_content_version'=>$version, 'confirmation'=>'PUBLIC'
 ]);
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify(!($result instanceof WP_Error) && $result['mode']==='public','confirmed public frozen snapshot created');
@@ -112,9 +118,12 @@ $note->post_status='private';
 verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,'deadbeefdeadbeefdeadbeefdeadbeef',$snapshot),'invalid public key denied');
 
 $note->post_content='<p>New private content</p>';
+$latestVersion=\CB\Notes\Sharing\Controller::read(new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',['id'=>42]))['content_version'];
+verify($latestVersion!==$version,'content digest changes for same-timestamp note edit');
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META)['html']==='<p>Not for everyone</p>','private edits do not change public copy');
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
-    'id'=>42, 'mode'=>'private', 'expected_modified_gmt'=>$note->post_modified_gmt
+    'id'=>42, 'mode'=>'private', 'expected_modified_gmt'=>$note->post_modified_gmt,
+    'expected_mode'=>'public', 'expected_content_version'=>$latestVersion
 ]);
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify($result['mode']==='private' && get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','private stops public URL authorization');
