@@ -115,11 +115,15 @@
         }
 
         var mode = sharing && sharing.mode ? sharing.mode : 'private';
+        var status = !sharing ? 'Checking…' :
+            mode === 'public' ? 'Public copy active' :
+            mode === 'secure' ? 'Secure copy active' : 'Private';
+        var guidance = mode === 'private'
+            ? 'Saving or publishing in Gutenberg keeps the note private. Sharing requires a separate action below.'
+            : 'The original note stays private. Saving changes will not update the frozen shared copy. Use Stop sharing to revoke access.';
         var controls = [
-            el('p', { key: 'info', className: 'components-base-control__help' },
-                'Notes stay private when you use the WordPress Publish button. Sharing requires a separate explicit action here.'),
-            el('p', { key: 'status' }, el('strong', null, 'Access: '),
-                mode === 'public' ? 'Public link' : mode === 'secure' ? 'Secure link' : 'Private')
+            el('p', { key: 'status' }, el('strong', null, 'Sharing status: '), status),
+            el('p', { key: 'info', className: 'components-base-control__help' }, guidance)
         ];
         if (error) controls.push(el(wp.components.Notice, {
             key: 'error', status: 'error', isDismissible: true, onRemove: function () { setError(''); }
@@ -128,7 +132,8 @@
             controls.push(el('p', { key: 'loading' }, 'Loading sharing settings…'));
         } else {
             var blocked = busy || editor.dirty || editor.saving;
-            if (editor.dirty) controls.push(el('p', { key: 'save' }, 'Save your changes before sharing.'));
+            if (editor.dirty && mode === 'private') controls.push(el('p', { key: 'save' }, 'Save your changes before creating a shared copy.'));
+            if (editor.dirty && mode !== 'private') controls.push(el('p', { key: 'save' }, 'Unsaved edits are not visible to recipients. You can still stop sharing.'));
             if (mode === 'public' && sharing.public_url) {
                 controls.push(el(wp.components.TextControl, {
                     key: 'public-link', label: 'Public URL', value: sharing.public_url,
