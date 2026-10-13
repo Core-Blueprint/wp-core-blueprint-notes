@@ -103,6 +103,14 @@ $result=\CB\Notes\Sharing\Controller::change($payload);
 verify(!($result instanceof WP_Error) && $result['mode']==='public','confirmed public frozen snapshot created');
 verify(str_contains((string)$result['public_url'],'/cb-notes/shared/'),'public URL uses isolated route');
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META)['html']==='<p>Not for everyone</p>','frozen content stored separately');
+$key=(string)get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY);
+$snapshot=get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META);
+verify(\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'explicit active public snapshot permitted');
+$note->post_status='trash';
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'trashed notes cannot remain public');
+$note->post_status='private';
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,'deadbeefdeadbeefdeadbeefdeadbeef',$snapshot),'invalid public key denied');
+
 $note->post_content='<p>New private content</p>';
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META)['html']==='<p>Not for everyone</p>','private edits do not change public copy');
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
@@ -114,4 +122,7 @@ $note->post_content='UNSAFE';
 verify(\CB\Notes\Sharing\Snapshot::capture($note) instanceof WP_Error,'dynamic/embedded blocks refused');
 $GLOBALS['current_user']=5;
 verify(!\CB\Notes\Sharing\Controller::can_manage($payload),'non-author cannot change sharing');
+verify(\CB\Notes\Sharing\Controller::read($payload) instanceof WP_Error,'non-author cannot read sharing metadata');
+verify(\CB\Notes\Sharing\Controller::change($payload) instanceof WP_Error,'non-author cannot mutate sharing directly');
+
 echo "Notes alpha3 sharing smoke: PASS\n";
