@@ -1,6 +1,6 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha15.
+**Current test candidate:** 0.1.0-alpha16.
 **Branch:** `feature/notes-productivity-p2-bulk-actions-v1`.
 **Status:** Alpha14 P2 staging candidate; full local sourcegate and WordPress runtime acceptance outstanding. Not Golden or production-ready.
 
@@ -34,6 +34,7 @@
 
 ## P2 Professional Productivity (Alpha14–15)
 
+- **Alpha16 menu consolidation:** hide only the duplicate All Notes submenu entry when Library is present; preserve the underlying native WordPress list endpoint, Gutenberg/CPT registration, role capabilities, and unfamiliar third-party submenu entries. Restore the native menu fallback if Library is absent. The Notes parent targets the first visible Library entry.
 - Adds checkbox selection of the visible Library page (maximum 20 rows) and a Base-themed contextual toolbar. Alpha15 replaces two simultaneous forms with one Action selector, conditional destination field and Apply; the independent red Trash action remains Base-confirmed. Selection never crosses search, notebook, or pagination boundaries.
 - Owner-only AJAX action `cb_notes_bulk`: per-note ownership and edit/delete permissions, per-user catalog destination validation, explicit nonce, strict bounded distinct note IDs.
 - Independently apply notebook moves, category changes, or `wp_trash_post`. No bulk tags or irreversible deletion. Trash invokes existing Notes share-link revocation lifecycle hooks.
