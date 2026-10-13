@@ -18,6 +18,13 @@
     min-width: 0;
 }
 
+/* Only the selector card may let Base's absolutely positioned popup escape. */
+.cb-notes-organize-page .cb-notes-organize__card--picker {
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+}
+
 .cb-notes-organize-page .cb-notes-organize__selector {
     max-width: 400px;
     margin-bottom: 0;
