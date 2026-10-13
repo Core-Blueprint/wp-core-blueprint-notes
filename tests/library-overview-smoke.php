@@ -160,7 +160,8 @@ namespace {
         );
         $sorted = (string)ob_get_clean();
         $header_pattern = '/<th scope="col"[^>]*aria-sort="' . $direction . '"[^>]*>'
-            . '<a href="[^"]*cbn_sort=' . $next . '[^"]*">' . $column . '<\/a><\/th>/';
+            . '<a href="[^"]*cbn_sort=' . $next . '[^"]*">'
+            . '<span class="cb-notes-library__sort-label">' . $column . '<\/span><\/a><\/th>/';
         check_view(preg_match($header_pattern, $sorted) === 1 &&
             !str_contains($sorted, 'cbn_paged=4'),
             'Active ' . $column . ' ' . $sort . ' sorts next in opposite direction on first page');
@@ -185,6 +186,10 @@ namespace {
     $category_filters = (string)ob_get_clean();
     check_view(str_contains($category_filters, '<details class="cb-notes-library__advanced" open>'),
         'Active category filters remain discoverable');
+
+    check_view(str_contains($table, '<span class="cb-notes-library__sort-label">Title</span>') &&
+        str_contains($table, '<span class="cb-notes-library__sort-label">Modified</span>'),
+        'Only sort labels carry the underline, separate from sort direction glyphs');
 
     echo "PASS PHP: tests/library-overview-smoke.php\n";
 }
