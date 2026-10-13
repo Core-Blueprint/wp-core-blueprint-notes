@@ -50,6 +50,7 @@ final class Plugin {
         add_action('enqueue_block_editor_assets',[self::class,'editor_assets']);
         add_action('admin_menu',[self::class,'admin_menu']);
         add_action('admin_init',[self::class,'admin_settings']);
+        add_action('admin_init',[self::class,'ensure_share_routes'],20);
         add_filter('views_edit-cb_note',[self::class,'hide_global_status_counts'],50);
         add_filter('manage_cb_note_posts_columns',[self::class,'note_columns']);
         add_action('manage_cb_note_posts_custom_column',[self::class,'notebook_column'],10,2);
@@ -63,6 +64,15 @@ final class Plugin {
         // Flush the newly registered public-share rewrite exactly once.
         flush_rewrite_rules(false);
         update_option('cb_notes_caps_migration', 'alpha3', false);
+    }
+    /** Plugin updates do not rerun activation hooks; reconcile rewrite once. */
+    public static function ensure_share_routes(): void {
+        if (!current_user_can('manage_options') ||
+            get_option('cb_notes_share_rewrite_v1', '') === '1') {
+            return;
+        }
+        flush_rewrite_rules(false);
+        update_option('cb_notes_share_rewrite_v1', '1', false);
     }
     public static function register_content(): void {
         register_post_type(self::TYPE,[
