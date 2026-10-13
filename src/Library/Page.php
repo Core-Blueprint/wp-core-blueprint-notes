@@ -338,10 +338,10 @@ final class Page {
         echo '<option value="__choose__" selected disabled>' . esc_html__('Choose category…', 'core-blueprint-notes') . '</option>';
         self::select_options($catalog['category'], '__choose__', __('No category', 'core-blueprint-notes'));
         echo '</select></div>';
-        echo '<button type="button" class="button cb-core-button cb-core-button--primary cb-core-button--compact"'
+        echo '<button type="button" class="button cb-core-button cb-core-button--primary cb-notes-library__bulk-apply"'
             . ' data-cb-notes-bulk-action="apply">' . esc_html__('Apply', 'core-blueprint-notes') . '</button>';
         echo '</div>';
-        echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__bulk-trash"'
+        echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-notes-library__bulk-trash"'
             . ' data-cb-notes-bulk-action="trash">' . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
         echo '</div></section>';
         echo '<div class="cb-notes-library__bulk-result" data-cb-notes-bulk-result role="status" aria-live="polite" hidden>'
