@@ -1,6 +1,6 @@
 # Core Blueprint Notes Library — Golden batch staging acceptance
 
-**Candidate:** 0.1.0-alpha5  
+**Candidate:** 0.1.0-alpha6  
 **Branch:** feature/notes-library-golden-batch-v1  
 **Scope:** Library B1–B5 combined; no Base or Secure Share patch.  
 **Status:** ready for LOCAL sourcegate and STAGING runtime testing. Do not label Golden or production-ready until test evidence and user acceptance are complete.
@@ -17,16 +17,16 @@ Run after checking out the feature branch:
     git rev-parse HEAD
     bash tools/check
     bash tools/build-release
-    unzip -t dist/core-blueprint-notes-0.1.0-alpha5.zip
-    sha256sum dist/core-blueprint-notes-0.1.0-alpha5.zip
+    unzip -t dist/core-blueprint-notes-0.1.0-alpha6.zip
+    sha256sum dist/core-blueprint-notes-0.1.0-alpha6.zip
 
 If the branch already exists locally, use git switch feature/notes-library-golden-batch-v1 instead of git switch --track. Stop if any command fails. The archive must contain core-blueprint-notes/ as its single plugin root. The sourcegate exercises isolated PHP/JS checks; it does not start WordPress or prove runtime security.
 
 ## B. Installation
 
 1. Back up disposable staging and use no real confidential content.
-2. Install the rebuilt alpha5 ZIP as a replacement for alpha4 (not on production). Core Blueprint Base API 1.2+ must remain active.
-3. Open Notes → Library. Confirm the traditional Notes → All Notes page and Notes → Organize remain accessible.
+2. Install the rebuilt alpha6 ZIP as a replacement for alpha5 (or an earlier alpha) (not on production). Core Blueprint Base API 1.2+ must remain active.
+3. Open Notes → Library. Confirm it is the first Notes submenu entry, followed by All Notes, Add Note and Organize, with AI Access last for administrators. Confirm Notes → All Notes remains available as the native fallback. The Settings Hub workspace button must open Library.
 
 ## C. Library UX (B1–B4)
 
