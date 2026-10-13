@@ -82,6 +82,10 @@ final class Controller {
         if (!$post instanceof \WP_Post || !self::can_manage($request)) {
             return self::error('Note not found.', 404);
         }
+        $mode = (string)$request->get_param('mode');
+        if (!in_array($mode, ['private', 'public', 'secure'], true)) {
+            return self::error('Invalid sharing mode.', 422);
+        }
         if ($mode === 'private') {
             // Revocation must remain available regardless of unsaved/stale edits.
             update_post_meta($post->ID, self::MODE_META, 'private');
@@ -103,10 +107,6 @@ final class Controller {
         $expected = (string)$request->get_param('expected_modified_gmt');
         if ($expected === '' || $expected !== (string)$post->post_modified_gmt) {
             return self::error('This note has changed. Reload and review the latest version before sharing.', 409);
-        }
-        $mode = (string)$request->get_param('mode');
-        if (!in_array($mode, ['private', 'public', 'secure'], true)) {
-            return self::error('Invalid sharing mode.', 422);
         }
         if ($mode === 'public' && (
             !current_user_can('cb_notes_share_public') ||
