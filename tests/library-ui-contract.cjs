@@ -30,7 +30,11 @@ verify(page.includes('data-cb-notes-trash-url') && page.includes(' hidden'), 'tr
 verify(query.includes("'author' => $owner > 0 ? $owner : -1"), 'SQL owner bound');
 verify(query.includes("'post__in'] = [0]"), 'fail-closed invalid filters');
 verify(plugin.includes('LibraryPage::init()'), 'library registered in plugin');
-verify(js.includes('window.confirm(') && js.includes('window.location.assign(url)'), 'explicit destructive confirmation');
+verify(js.includes('confirmation.show({') && js.includes("confirmVariant: 'danger'") && js.includes('window.location.assign(url)'), 'Base danger modal before destructive navigation');
+verify(!js.includes('window.confirm('), 'no browser confirm fallback');
+verify(page.includes('Assets::enqueue_modals('), 'Base Modal Foundation enqueued for Library');
+verify(page.includes('render_empty_state($state'), 'contextual empty-state renderer');
+verify(page.includes('This notebook is empty') && page.includes('Your Library is empty') && page.includes('No unfiled notes'), 'distinct empty states');
 verify(!/\bjQuery\b|\$\(/.test(js), 'no jQuery');
 verify(css.includes('var(--cb-surface-') && css.includes('var(--cb-border)'), 'semantic design tokens');
 verify(css.includes('@media (max-width: 680px)') && css.includes(':focus-visible'), 'responsive and keyboard focus');
