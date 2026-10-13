@@ -2,6 +2,8 @@
 declare(strict_types=1);
 namespace CB\Notes;
 use CoreBlueprint\Core\ExtensionRegistry;
+use CoreBlueprint\Core\Admin\SettingsRegistry;
+use CB\Notes\Admin\SettingsPage;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
 defined('ABSPATH') || exit;
@@ -24,6 +26,7 @@ final class Plugin {
         add_action('init',[self::class,'register_content'],6);
         add_action('init',[self::class,'register_events'],9);
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
+        SettingsPage::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
         add_filter('map_meta_cap',[Access::class,'map_meta_cap'],20,4);
         add_action('pre_get_posts',[Access::class,'scope_query']);
@@ -143,10 +146,13 @@ final class Plugin {
             CB_NOTES_VERSION,true);
     }
     public static function admin_menu(): void {
-        add_submenu_page('edit.php?post_type='.self::TYPE,
+        $hook=add_submenu_page('edit.php?post_type='.self::TYPE,
             __('Notes AI Access','core-blueprint-notes'),
             __('AI Access','core-blueprint-notes'),
-            'manage_options','cb-notes-ai',[self::class,'settings_page']);
+            'manage_options','cb-notes-ai',[SettingsPage::class,'legacy_link']);
+        if (is_string($hook) && '' !== $hook) {
+            add_action('load-'.$hook,[SettingsPage::class,'redirect_legacy']);
+        }
     }
     public static function admin_settings(): void {
         register_setting('cb_notes_settings',self::AI_OPTION,[
@@ -154,20 +160,6 @@ final class Plugin {
             'sanitize_callback'=>static fn(mixed $v): bool =>
                 current_user_can('manage_options')&&(bool)$v,
         ]);
-    }
-    public static function settings_page(): void {
-        if(!current_user_can('manage_options'))
-            wp_die(esc_html__('Access denied.','core-blueprint-notes'));
-        echo '<div class="wrap"><h1>'.esc_html__('Notes AI Access','core-blueprint-notes').'</h1>';
-        echo '<p>'.esc_html__('Read-only Notes abilities are disabled by default. Enabling them makes them discoverable through a separately installed, authenticated MCP Adapter. Only Notes authored by the connected user can be read, including when using an administrator account.','core-blueprint-notes').'</p>';
-        echo '<p>'.esc_html__('Only users with cb_notes_use_ai (administrators by default) can invoke these abilities. No writing ability is registered.','core-blueprint-notes').'</p>';
-        echo '<form action="options.php" method="post">';
-        settings_fields('cb_notes_settings');
-        echo '<label><input type="checkbox" name="'.esc_attr(self::AI_OPTION).'" value="1" '.
-            checked((bool)get_option(self::AI_OPTION,false),true,false).'> '.
-            esc_html__('Allow read-only Notes abilities in MCP','core-blueprint-notes').'</label>';
-        submit_button();
-        echo '</form></div>';
     }
     public static function note_columns(array $columns): array {
         $columns['cb_notes_notebook']=__('Notebook','core-blueprint-notes');
@@ -188,6 +180,10 @@ final class Plugin {
     public static function action_links(array $links): array {
         $links[]='<a href="'.esc_url(admin_url('edit.php?post_type='.self::TYPE)).'">'.
             esc_html__('Notes','core-blueprint-notes').'</a>';
+        if (current_user_can('manage_options')) {
+            $links[]='<a href="'.esc_url(SettingsRegistry::url(SettingsPage::EXTENSION_ID)).'">'.
+                esc_html__('Settings','core-blueprint-notes').'</a>';
+        }
         return $links;
     }
 }
