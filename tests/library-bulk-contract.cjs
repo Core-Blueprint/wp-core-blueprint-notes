@@ -19,6 +19,10 @@ check(page.includes('data-cb-notes-bulk-toolbar hidden') &&
     page.includes('data-cb-notes-bulk-nonce'), 'JS-only bulk toolbar with scoped nonce');
 check(page.includes("self::select_options($catalog['notebook']") &&
     page.includes("self::select_options($catalog['category']"), 'Owner catalog drives destination controls');
+check(page.includes('value="__choose__" selected disabled') &&
+    script.includes("field.value === '__choose__'") &&
+    script.includes("target === '__choose__'"),
+    'No implicit Unfiled/No-category bulk change without explicit destination');
 check(page.includes('data-cb-notes-bulk-action="notebook"') &&
     page.includes('data-cb-notes-bulk-action="category"') &&
     page.includes('data-cb-notes-bulk-action="trash"'), 'Three explicit bulk actions');
