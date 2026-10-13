@@ -39,8 +39,17 @@ verify(page.includes('aria-label="' + "' . esc_attr($edit_label)" )
 verify(page.includes('title="' + "' . esc_attr($edit_label)" )
     && page.includes('title="' + "' . esc_attr($trash_label)" ),
     'Both icon-only actions show accessible native tooltips');
-verify(!page.includes("esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>'"),
-    'Trash action no longer renders a text label');
+// Scope the historical P1 assertion to a *single note row*. P2 intentionally
+// uses a visible text label on the contextual bulk Trash button.
+const noteRowStart = page.indexOf('private static function render_note(');
+const noteRowEnd = page.indexOf('private static function render_empty_state(', noteRowStart);
+verify(noteRowStart >= 0 && noteRowEnd > noteRowStart, 'individual Note renderer remains available');
+const noteRow = page.slice(noteRowStart, noteRowEnd);
+verify(!noteRow.includes("esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>'"),
+    'Individual Trash action remains icon-only, without visible text');
+verify(page.includes('data-cb-notes-bulk-action="trash"') &&
+    page.includes("esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>'"),
+    'P2 bulk Trash button retains a clear visible label');
 verify(css.includes('.cb-core-button.cb-notes-library__trash[hidden]') && css.includes('display: none;'), 'hidden trash remains hidden against Base inline-flex display');
 verify(css.includes('button.cb-core-button.cb-core-button--danger.cb-notes-library__trash {')
     && css.includes('border: 1px solid var(--cb-danger);')
