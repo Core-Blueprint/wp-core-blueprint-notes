@@ -16,7 +16,8 @@
         var dispatch = wp.data.useDispatch('core/editor');
         return el(Panel, { name: 'cb-notes-notebook', title: 'Notebook', className: 'cb-notes-notebook' },
             el(wp.components.TextControl, {
-                label: 'Notebook',
+                label: 'Name',
+                placeholder: 'e.g. Projects or Meetings',
                 help: 'Personal notebook label. Notes stay private to their owner.',
                 value: meta.cb_notes_notebook || '',
                 onChange: function (value) {
