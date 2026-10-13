@@ -1,8 +1,8 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha13.
-**Branch:** `feature/notes-productivity-p1-favorites-pins-v1`.
-**Status:** P1 Favorite/Pin test candidate; local sourcegate and staging acceptance pending. No Golden or production claim.
+**Current test candidate:** 0.1.0-alpha14.
+**Branch:** `feature/notes-productivity-p2-bulk-actions-v1`.
+**Status:** Alpha14 P2 staging candidate; full local sourcegate and WordPress runtime acceptance outstanding. Not Golden or production-ready.
 
 ## Scope added in alpha4
 
@@ -31,6 +31,14 @@
 - **Alpha9 Gutenberg G2**: an explicit Sharing status; separate Save/Share guidance; explanation that shared snapshots do not change when saving the private original. New sharing is blocked for unsaved edits; revocation remains available.
 - PHP/REST storage, authorization, frozen snapshots, Base and Secure Share code were not modified in Alpha9.
 - **Alpha10–13 P1**: owner-authorized Favorite and Pinned protected post-meta flags, AJAX marker toggles, separate saved views and pinned-first default ordering. Alpha11 centers the Star/Pin glyphs without overriding Base sizes. Alpha12 makes Edit and Trash icon-only buttons with localized per-note tooltips and accessible labels, while preserving the Base confirmation requirement and native WordPress trash route. Alpha13 ensures the Base danger color/focus semantics survive WordPress admin button cascade in the Library; no local color palette introduced. Gutenberg content and frozen public/secure snapshots remain unchanged.
+
+## P2 Professional Productivity (Alpha14)
+
+- Adds checkbox selection of the visible Library page (maximum 20 rows) and a Base-themed contextual toolbar. Selection never crosses search, notebook, or pagination boundaries.
+- Owner-only AJAX action `cb_notes_bulk`: per-note ownership and edit/delete permissions, per-user catalog destination validation, explicit nonce, strict bounded distinct note IDs.
+- Independently apply notebook moves, category changes, or `wp_trash_post`. No bulk tags or irreversible deletion. Trash invokes existing Notes share-link revocation lifecycle hooks.
+- Response returns exact updated/failed IDs and counts, including partial failures; client identifies failed visible note names with safe text content and offers manual refresh to maintain correct server-side filters.
+- No changes to Secure Share, frozen snapshots, Gutenberg storage or Base design foundations.
 
 ## Ownership boundaries
 
