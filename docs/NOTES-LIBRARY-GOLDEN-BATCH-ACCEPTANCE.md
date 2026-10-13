@@ -1,6 +1,6 @@
 # Core Blueprint Notes Library — Golden batch staging acceptance
 
-**Candidate:** 0.1.0-alpha6  
+**Candidate:** 0.1.0-alpha7  
 **Branch:** feature/notes-library-golden-batch-v1  
 **Scope:** Library B1–B5 combined; no Base or Secure Share patch.  
 **Status:** ready for LOCAL sourcegate and STAGING runtime testing. Do not label Golden or production-ready until test evidence and user acceptance are complete.
@@ -17,15 +17,15 @@ Run after checking out the feature branch:
     git rev-parse HEAD
     bash tools/check
     bash tools/build-release
-    unzip -t dist/core-blueprint-notes-0.1.0-alpha6.zip
-    sha256sum dist/core-blueprint-notes-0.1.0-alpha6.zip
+    unzip -t dist/core-blueprint-notes-0.1.0-alpha7.zip
+    sha256sum dist/core-blueprint-notes-0.1.0-alpha7.zip
 
 If the branch already exists locally, use git switch feature/notes-library-golden-batch-v1 instead of git switch --track. Stop if any command fails. The archive must contain core-blueprint-notes/ as its single plugin root. The sourcegate exercises isolated PHP/JS checks; it does not start WordPress or prove runtime security.
 
 ## B. Installation
 
 1. Back up disposable staging and use no real confidential content.
-2. Install the rebuilt alpha6 ZIP as a replacement for alpha5 or an earlier alpha, on disposable staging only. Core Blueprint Base API 1.2+ must remain active.
+2. Install the rebuilt alpha7 ZIP as a replacement for alpha6 or an earlier alpha, on disposable staging only. Core Blueprint Base API 1.2+ must remain active.
 3. Open Notes → Library. Confirm it is the first Notes submenu entry, followed by All Notes, Add Note and Organize, with AI Access last for administrators. Confirm Notes → All Notes remains available as the native fallback. The Settings Hub workspace button must open Library.
 
 ## C. Library UX (B1–B4)
@@ -37,9 +37,10 @@ If the branch already exists locally, use git switch feature/notes-library-golde
 5. Under More filters, combine Category, Tag and notebook. Test sorting by title and oldest first. Refresh and copy a filtered URL into a second browser tab. Verify it reproduces the same result for the SAME logged-in owner.
 6. Produce at least 25 test notes. Page forward/back, filter and sort across pages. Verify no duplicates or missing rows.
 7. Use Edit on one note. Confirm Gutenberg opens with original blocks, autosaves and revisions intact.
-8. Use Move to Trash. Cancel the browser confirmation and verify the note is unchanged. Confirm a second attempt and verify the note disappears; restore through Notes → All Notes → Trash. If JavaScript is disabled, the quick-trash control must not be actionable.
-9. Test keyboard focus, labels, search form, advanced-filter disclosure, navigation aria-current and screen reader announcements.
-10. Inspect wide desktop, approximately 1000px, 680px and narrow mobile widths, plus Base Light/Dark Mode including live switching. No horizontal overflow, unreadable controls or styling regressions.
+8. Use Move to Trash. Cancel the Base danger modal and verify the note is unchanged. Confirm a second attempt and verify the note disappears; restore through Notes → All Notes → Trash. If JavaScript is disabled, the quick-trash control must not be actionable.
+9. Verify empty-state messages for a truly empty Library, an empty Notebook, Unfiled, an unsuccessful search/filter and an out-of-range page. Base modal unavailable must not offer an unconfirmed Trash path.
+10. Test keyboard focus, labels, search form, advanced-filter disclosure, navigation aria-current and screen reader announcements.
+11. Inspect wide desktop, approximately 1000px, 680px and narrow mobile widths, plus Base Light/Dark Mode including live switching. No horizontal overflow, unreadable controls or styling regressions.
 
 ## D. Mandatory privacy and security
 
@@ -59,7 +60,7 @@ Use two independent Editor accounts, A and B, with distinct private notes and eq
 
 - Try 100–300 disposable notes divided across notebooks. Evaluate query timings and rendered page size using available profiler/browser tools. No objective performance limit is claimed until measured.
 - Record exact HEAD, output of tools/check, ZIP integrity/checksum, desktop/mobile and both theme screenshots, navigation/search/filter results, two-user authorization evidence (sanitized), share-revocation HTTP behavior and any JS/PHP errors.
-- B1–B5 is a single staging acceptance batch. No additional intermediate build is required.
+- Alpha7 adds one integrated Notes Library UX-polish acceptance: Base danger modal, compact list, contextual empty states. No intermediate build required. The WordPress CPT parent route remains native for compatibility; the Library is the first submenu entry.
 - Open follow-ups: full alpha4 two-user REST and sharing closure where not yet proven. These remain release blockers even if the Library looks stable.
 
 **Governance:** no merge, deploy, CI/CD or publication without an explicit separate GO.
