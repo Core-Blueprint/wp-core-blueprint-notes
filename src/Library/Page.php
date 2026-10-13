@@ -121,7 +121,8 @@ final class Page {
     }
 
     private static function render_filters(array $state, array $catalog): void {
-        $expanded = $state['category'] !== '' || $state['tag'] !== '' || $state['sort'] !== 'modified';
+        // Sorting via a table heading must not unexpectedly disclose More filters.
+        $expanded = $state['category'] !== '' || $state['tag'] !== '';
         echo '<form class="cb-notes-library__search" method="get" action="' . esc_url(admin_url('edit.php')) . '">';
         echo '<input type="hidden" name="post_type" value="' . esc_attr(Plugin::TYPE) . '">';
         echo '<input type="hidden" name="page" value="cb-notes-library">';
@@ -152,9 +153,11 @@ final class Page {
         echo '<div><label for="cbn-sort">' . esc_html__('Sort by', 'core-blueprint-notes') . '</label>';
         echo '<select name="cbn_sort" id="cbn-sort">';
         foreach ([
-            'modified' => __('Recently modified', 'core-blueprint-notes'),
-            'oldest' => __('Least recently modified', 'core-blueprint-notes'),
+            'modified' => __('Pinned first (default)', 'core-blueprint-notes'),
+            'newest' => __('Modified: newest first', 'core-blueprint-notes'),
+            'oldest' => __('Modified: oldest first', 'core-blueprint-notes'),
             'title' => __('Title A to Z', 'core-blueprint-notes'),
+            'title_desc' => __('Title Z to A', 'core-blueprint-notes'),
         ] as $value => $label) {
             echo '<option value="' . esc_attr($value) . '" ' . selected($state['sort'], $value, false) . '>'
                 . esc_html($label) . '</option>';
@@ -297,18 +300,24 @@ final class Page {
         echo '<div class="cb-notes-library__table-scroll" role="region" tabindex="0"'
             . ' aria-label="' . esc_attr__('Notes table, scroll horizontally if needed', 'core-blueprint-notes') . '">';
         echo '<table class="cb-notes-library__table"><thead><tr>';
-        $title_sort = $state['sort'] === 'title';
+        $title_sort = in_array($state['sort'], ['title', 'title_desc'], true);
+        $title_next = $state['sort'] === 'title' ? 'title_desc' : 'title';
+        $title_direction = $state['sort'] === 'title' ? 'ascending' : 'descending';
         echo '<th scope="col" class="cb-notes-library__col-title"'
-            . ($title_sort ? ' aria-sort="ascending"' : '') . '><a href="'
-            . esc_url(self::url($state, ['sort' => 'title', 'paged' => 1])) . '">'
+            . ($title_sort ? ' aria-sort="' . $title_direction . '"' : '') . '><a href="'
+            . esc_url(self::url($state, ['sort' => $title_next, 'paged' => 1])) . '">'
             . esc_html__('Title', 'core-blueprint-notes') . '</a></th>';
         echo '<th scope="col">' . esc_html__('Notebook', 'core-blueprint-notes') . '</th>';
         echo '<th scope="col">' . esc_html__('Category', 'core-blueprint-notes') . '</th>';
         echo '<th scope="col">' . esc_html__('Tags', 'core-blueprint-notes') . '</th>';
-        $modified_sort = $state['sort'] === 'oldest' ? 'modified' : 'oldest';
-        $modified_dir = $state['sort'] === 'oldest' ? 'ascending' : 'descending';
-        echo '<th scope="col"' . (!$title_sort ? ' aria-sort="' . $modified_dir . '"' : '') . '><a href="'
-            . esc_url(self::url($state, ['sort' => $modified_sort, 'paged' => 1])) . '">'
+        // Default pinned-first is not a strict date sort. A user-initiated
+        // Modified sort bypasses pin priority and toggles chronologically.
+        $modified_active = in_array($state['sort'], ['newest', 'oldest'], true);
+        $modified_next = $state['sort'] === 'newest' ? 'oldest' : 'newest';
+        $modified_direction = $state['sort'] === 'oldest' ? 'ascending' : 'descending';
+        echo '<th scope="col"'
+            . ($modified_active ? ' aria-sort="' . $modified_direction . '"' : '') . '><a href="'
+            . esc_url(self::url($state, ['sort' => $modified_next, 'paged' => 1])) . '">'
             . esc_html__('Modified', 'core-blueprint-notes') . '</a></th>';
         echo '<th scope="col">' . esc_html__('Actions', 'core-blueprint-notes') . '</th>';
         echo '</tr></thead><tbody>';
