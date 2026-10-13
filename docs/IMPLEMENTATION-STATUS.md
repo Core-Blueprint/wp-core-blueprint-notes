@@ -1,8 +1,8 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha16.
-**Branch:** `feature/notes-productivity-p2-bulk-actions-v1`.
-**Status:** Alpha14 P2 staging candidate; full local sourcegate and WordPress runtime acceptance outstanding. Not Golden or production-ready.
+**Current test candidate:** 0.1.0-alpha17.
+**Branch:** `feature/notes-library-overview-golden-v1`.
+**Status:** Alpha17 Library Overview staging candidate. Isolated JS contracts passed; full local sourcegate, build and WordPress Light/Dark/owner runtime acceptance outstanding. Not Golden or production-ready.
 
 ## Scope added in alpha4
 
@@ -41,6 +41,13 @@
 - Response returns exact updated/failed IDs and counts, including partial failures; client identifies failed visible note names with safe text content and offers manual refresh to maintain correct server-side filters.
 - No changes to Secure Share, frozen snapshots, Gutenberg storage or Base design foundations.
 
+## Library Overview & P2 Toolbar Alignment (Alpha17)
+
+- Retains the single owner-scoped Library, sidebar, saved views, filters, 20-per-page query, native Gutenberg editing and four compact row actions.
+- Separates timestamp/status from classification metadata; displays an explicit Notebook label with Unfiled fallback, Category only when assigned, and at most three personal tags plus an accessible +N tooltip for remaining tags. Values resolve exclusively through the owner's existing private catalog and are escaped; no taxonomy, REST or public-share changes.
+- The contextual bulk toolbar uses one Base-derived sizing token across Action/destination selects, standard-density Apply and red Trash, inside a responsive one-rail grid. The row-level Favorite/Pin/Edit/Trash buttons remain compact.
+- New Library Overview JS contract is included in tools/check. Full local sourcegate and WordPress staging acceptance remain required before Golden.
+
 ## Ownership boundaries
 
 - Base (mandatory) continues to own Settings Hub, UI Modal Foundation, capabilities/governance infrastructure; this branch does not modify Base.
@@ -50,7 +57,7 @@
 
 ## Validation gates
 
-For alpha14, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Confirm at least one WordPress runtime test for selecting visible Notes only, author/capability isolation, correct notebook/category destinations, partial failures, Base-confirmed Trash, share revocation and Light/Dark accessibility. Alpha13 P1 was visually and functionally accepted by the user. New P2 code remains a staging candidate until accepted. Mocked source checks do not replace WordPress runtime proof.
+For alpha17, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Confirm at least one WordPress runtime test for selecting visible Notes only, author/capability isolation, correct notebook/category destinations, partial failures, Base-confirmed Trash, share revocation and Light/Dark accessibility. Alpha13 P1 was visually and functionally accepted by the user. New P2 code remains a staging candidate until accepted. Mocked source checks do not replace WordPress runtime proof.
 
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
