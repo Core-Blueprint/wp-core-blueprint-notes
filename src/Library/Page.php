@@ -65,6 +65,7 @@ final class Page {
         ];
         foreach ([
             'search' => 'cbn_search',
+            'view' => 'cbn_view',
             'notebook' => 'cbn_notebook',
             'category' => 'cbn_category',
             'tag' => 'cbn_tag',
@@ -81,8 +82,15 @@ final class Page {
     }
 
     private static function nav_link(string $label, array $state, string $notebook): void {
-        $active = $state['notebook'] === $notebook;
-        $href = self::url($state, ['notebook' => $notebook, 'paged' => 1]);
+        $active = $state['view'] === '' && $state['notebook'] === $notebook;
+        $href = self::url($state, ['view' => '', 'notebook' => $notebook, 'paged' => 1]);
+        echo '<a class="cb-notes-library__nav-link' . ($active ? ' is-active' : '') . '" href="' . esc_url($href) . '"'
+            . ($active ? ' aria-current="page"' : '') . '>' . esc_html($label) . '</a>';
+    }
+
+    private static function view_link(string $label, array $state, string $view): void {
+        $active = $state['view'] === $view;
+        $href = self::url($state, ['view' => $view, 'notebook' => '', 'paged' => 1]);
         echo '<a class="cb-notes-library__nav-link' . ($active ? ' is-active' : '') . '" href="' . esc_url($href) . '"'
             . ($active ? ' aria-current="page"' : '') . '>' . esc_html($label) . '</a>';
     }
@@ -107,6 +115,9 @@ final class Page {
         echo '<input type="hidden" name="page" value="cb-notes-library">';
         if ($state['notebook'] !== '') {
             echo '<input type="hidden" name="cbn_notebook" value="' . esc_attr($state['notebook']) . '">';
+        }
+        if ($state['view'] !== '') {
+            echo '<input type="hidden" name="cbn_view" value="' . esc_attr($state['view']) . '">';
         }
         echo '<div class="cb-notes-library__search-row">';
         echo '<div class="cb-notes-library__search-field"><label for="cbn-search">'
@@ -178,6 +189,31 @@ final class Page {
             echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
         }
         echo '</div></div><div class="cb-notes-library__actions">';
+        $markers = Markers::for_post((int)$post->ID);
+        foreach ([
+            'favorite' => [
+                'set' => __('Remove from favorites', 'core-blueprint-notes'),
+                'unset' => __('Add to favorites', 'core-blueprint-notes'),
+                'icon' => 'dashicons-star-filled',
+            ],
+            'pinned' => [
+                'set' => __('Unpin note', 'core-blueprint-notes'),
+                'unset' => __('Pin note', 'core-blueprint-notes'),
+                'icon' => 'dashicons-admin-post',
+            ],
+        ] as $kind => $config) {
+            $marked = $markers[$kind];
+            $label = $marked ? $config['set'] : $config['unset'];
+            $variant = $marked ? 'primary' : 'secondary';
+            echo '<button type="button" hidden class="button cb-core-button cb-core-button--compact cb-core-button--icon-only cb-core-button--'
+                . esc_attr($variant) . ' cb-notes-library__marker"'
+                . ' data-cb-notes-marker="' . esc_attr($kind) . '"'
+                . ' data-cb-notes-id="' . esc_attr((string)$post->ID) . '"'
+                . ' data-cb-notes-nonce="' . esc_attr(wp_create_nonce('cb_notes_mark_' . $post->ID)) . '"'
+                . ' aria-pressed="' . ($marked ? 'true' : 'false') . '"'
+                . ' aria-label="' . esc_attr($label) . '" title="' . esc_attr($label) . '">'
+                . '<span class="dashicons ' . esc_attr($config['icon']) . '" aria-hidden="true"></span></button>';
+        }
         echo '<a class="button cb-core-button cb-core-button--secondary cb-core-button--compact" href="' . esc_url($link) . '">'
             . esc_html__('Edit', 'core-blueprint-notes') . '</a>';
         $trash = get_delete_post_link($post->ID, '', false);
@@ -196,7 +232,7 @@ final class Page {
         $has_secondary_filters = $state['search'] !== '' || $state['category'] !== '' || $state['tag'] !== '';
         $has_notebook = $state['notebook'] !== '';
         $reset = self::url($state, [
-            'search' => '', 'notebook' => '', 'category' => '', 'tag' => '',
+            'search' => '', 'view' => '', 'notebook' => '', 'category' => '', 'tag' => '',
             'sort' => 'modified', 'paged' => 1,
         ]);
 
@@ -209,6 +245,16 @@ final class Page {
             $heading = __('No matching notes', 'core-blueprint-notes');
             $hint = __('Try a different search or clear your filters.', 'core-blueprint-notes');
             $action = __('Clear filters', 'core-blueprint-notes');
+            $href = $reset;
+        } elseif ($state['view'] === 'favorites') {
+            $heading = __('No favorites yet', 'core-blueprint-notes');
+            $hint = __('Use the star next to a note to save it here.', 'core-blueprint-notes');
+            $action = __('Show all notes', 'core-blueprint-notes');
+            $href = $reset;
+        } elseif ($state['view'] === 'pinned') {
+            $heading = __('No pinned notes yet', 'core-blueprint-notes');
+            $hint = __('Pin important notes to keep them at the top of your Library.', 'core-blueprint-notes');
+            $action = __('Show all notes', 'core-blueprint-notes');
             $href = $reset;
         } elseif ($state['notebook'] === 'unfiled') {
             $heading = __('No unfiled notes', 'core-blueprint-notes');
@@ -268,7 +314,9 @@ final class Page {
         $create_url = admin_url('post-new.php?post_type=' . Plugin::TYPE);
         $organize_url = admin_url('edit.php?post_type=' . Plugin::TYPE . '&page=cb-notes-organize');
 
-        echo '<div class="wrap cb-core-wrap cb-core-page cb-core-form-scope cb-notes-library">';
+        echo '<div class="wrap cb-core-wrap cb-core-page cb-core-form-scope cb-notes-library"'
+            . ' data-cb-notes-ajax-url="' . esc_url(admin_url('admin-ajax.php')) . '"'
+            . ' data-cb-notes-view="' . esc_attr($state['view']) . '">';
         echo '<header class="cb-notes-library__heading"><div><h1 class="cb-core-title">'
             . esc_html__('Notes Library', 'core-blueprint-notes') . '</h1>';
         echo '<p class="cb-core-intro">' . esc_html__('Your private space to find, organize and write notes.', 'core-blueprint-notes')
@@ -276,8 +324,11 @@ final class Page {
             . esc_html__('New note', 'core-blueprint-notes') . '</a></header>';
         echo '<div class="cb-notes-library__layout"><aside class="cb-notes-library__sidebar cb-core-panel">';
         echo '<nav class="cb-notes-library__nav" aria-label="' . esc_attr__('Notebook navigation', 'core-blueprint-notes') . '">';
-        echo '<h2>' . esc_html__('Notebooks', 'core-blueprint-notes') . '</h2>';
+        echo '<h2>' . esc_html__('Quick access', 'core-blueprint-notes') . '</h2>';
         self::nav_link(__('All Notes', 'core-blueprint-notes'), $state, '');
+        self::view_link(__('Favorites', 'core-blueprint-notes'), $state, 'favorites');
+        self::view_link(__('Pinned', 'core-blueprint-notes'), $state, 'pinned');
+        echo '<h2>' . esc_html__('Notebooks', 'core-blueprint-notes') . '</h2>';
         self::nav_link(__('Unfiled', 'core-blueprint-notes'), $state, 'unfiled');
         foreach ($catalog['notebook'] as $notebook) {
             self::nav_link((string)$notebook['name'], $state, (string)$notebook['id']);
@@ -287,7 +338,12 @@ final class Page {
         echo '<main class="cb-notes-library__main cb-core-panel" id="cb-notes-library-results">';
         echo '<p class="cb-notes-library__feedback" role="alert" aria-live="assertive" hidden></p>';
         self::render_filters($state, $catalog);
-        echo '<div class="cb-notes-library__results-heading"><h2>' . esc_html__('Your notes', 'core-blueprint-notes') . '</h2>';
+        $heading = match ($state['view']) {
+            'favorites' => __('Your favorites', 'core-blueprint-notes'),
+            'pinned' => __('Pinned notes', 'core-blueprint-notes'),
+            default => __('Your notes', 'core-blueprint-notes'),
+        };
+        echo '<div class="cb-notes-library__results-heading"><h2>' . esc_html($heading) . '</h2>';
         echo '<span>' . esc_html(sprintf(
             /* translators: %d: number of matching notes */
             _n('%d note', '%d notes', (int)$query->found_posts, 'core-blueprint-notes'),
