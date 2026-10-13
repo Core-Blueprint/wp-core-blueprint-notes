@@ -20,7 +20,7 @@ const checks = [
     ['Secure Share feature detected', sharing.includes('sharing.secure_available')],
     ['Optional Secure Share controls appear only when available', sharing.includes('if (sharing.secure_available) {')],
     ['Missing Secure Share has no placeholder or upsell', !sharing.includes('Secure Share is optional and currently unavailable.') && !sharing.includes("key: 'unavailable'")],
-    ['Notebook panel label no longer duplicate', notebook.includes("title: 'Notebook'") && notebook.includes("label: 'Name'")],
+    ['Notebook panel label no longer duplicate', notebook.includes("notebook: { title: 'Notebook', singular: 'notebook' }") && notebook.includes('title: spec.title') && notebook.includes("label: kind === 'notebook' ? 'Name' : 'Type'")],
     ['Public mode requires server confirmation', controller.includes("get_param('confirmation') !== 'PUBLIC'")],
     ['Public shares fail closed on trash', controller.includes("'trash', 'auto-draft', 'inherit'")],
     ['Notes publish status downgraded to private', access.includes("$data['post_status'] = 'private'")],
