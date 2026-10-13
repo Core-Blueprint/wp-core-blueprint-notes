@@ -51,6 +51,7 @@ final class Plugin {
         add_action('admin_menu',[self::class,'admin_menu']);
         add_action('admin_init',[self::class,'admin_settings']);
         add_action('admin_init',[self::class,'ensure_share_routes'],20);
+        add_action('admin_init',[self::class,'migrate_legacy_published_notes'],21);
         add_filter('views_edit-cb_note',[self::class,'hide_global_status_counts'],50);
         add_filter('manage_cb_note_posts_columns',[self::class,'note_columns']);
         add_action('manage_cb_note_posts_custom_column',[self::class,'notebook_column'],10,2);
@@ -74,6 +75,33 @@ final class Plugin {
         flush_rewrite_rules(false);
         update_option('cb_notes_share_rewrite_v1', '1', false);
     }
+    /** Reclassify alpha1/2 legacy "publish" Notes as private in bounded batches. */
+    public static function migrate_legacy_published_notes(): void {
+        if (!current_user_can('manage_options')
+            || get_option('cb_notes_alpha3_private_migration', '') === 'complete') {
+            return;
+        }
+        $ids = get_posts([
+            'post_type' => self::TYPE, 'post_status' => 'publish',
+            'fields' => 'ids', 'posts_per_page' => 25, 'orderby' => 'ID',
+            'order' => 'ASC', 'suppress_filters' => true,
+        ]);
+        if (!is_array($ids) || $ids === []) {
+            if ($ids === []) {
+                update_option('cb_notes_alpha3_private_migration', 'complete', false);
+            }
+            return;
+        }
+        foreach ($ids as $id) {
+            $result = wp_update_post(['ID' => (int)$id, 'post_status' => 'private'], true);
+            if (is_wp_error($result) || (int)$result < 1) {
+                error_log('[Core Blueprint Notes] Legacy private-status migration needs operator review.');
+                return;
+            }
+        }
+        // Continue next administrator page load if another batch remains.
+    }
+
     public static function register_content(): void {
         register_post_type(self::TYPE,[
             'labels'=>[
