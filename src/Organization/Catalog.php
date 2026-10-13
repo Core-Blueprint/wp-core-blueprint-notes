@@ -479,8 +479,7 @@ final class Catalog {
 
         if (self::$admin_hook !== '') {
             \CoreBlueprint\Core\UI\AdminTheme::register_screen(self::$admin_hook, [
-                'foundations' => ['select-picker'],
-                'components' => ['buttons', 'cards', 'fields', 'form-controls', 'panels'],
+                'components' => ['buttons', 'cards', 'fields', 'form-controls', 'nav-tabs', 'notices', 'panels'],
             ]);
         }
     }
@@ -502,7 +501,7 @@ final class Catalog {
         \CoreBlueprint\Core\UI\Assets::enqueue_modals(\CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_WP_NATIVE);
         // Dedicated presentation revision invalidates cached alpha4 editor UI
         // without changing the plugin release version or unrelated assets.
-        $presentation_revision = CB_NOTES_VERSION . '-organize-ui3';
+        $presentation_revision = CB_NOTES_VERSION . '-organize-ui4';
         wp_enqueue_style('cb-notes-organize-layout',
             plugins_url('assets/organization-admin.css', CB_NOTES_FILE),
             [], $presentation_revision);
