@@ -13,11 +13,19 @@
         var clear = document.querySelector('[data-cb-notes-bulk-clear]');
         var countLabel = document.querySelector('[data-cb-notes-selection-count]');
         var refresh = document.querySelector('[data-cb-notes-bulk-refresh]');
-        var actions = Array.from(document.querySelectorAll('[data-cb-notes-bulk-action]'));
+        var operationSelect = document.querySelector('[data-cb-notes-bulk-operation]');
+        var notebook = document.querySelector('[data-cb-notes-bulk-notebook]');
+        var category = document.querySelector('[data-cb-notes-bulk-category]');
+        var notebookGroup = document.querySelector('[data-cb-notes-bulk-target="notebook"]');
+        var categoryGroup = document.querySelector('[data-cb-notes-bulk-target="category"]');
+        var apply = document.querySelector('[data-cb-notes-bulk-action="apply"]');
+        var trash = document.querySelector('[data-cb-notes-bulk-action="trash"]');
         var endpoint = root && root.getAttribute('data-cb-notes-ajax-url');
         var nonce = root && root.getAttribute('data-cb-notes-bulk-nonce');
         if (!root || !toolbar || !selectAll || !resultBox || !resultMessage ||
-            !clear || !countLabel || !refresh || boxes.length < 1 || boxes.length > 20 ||
+            !clear || !countLabel || !refresh || !operationSelect || !notebook ||
+            !category || !notebookGroup || !categoryGroup || !apply || !trash ||
+            boxes.length < 1 || boxes.length > 20 ||
             !endpoint || !nonce || typeof window.fetch !== 'function' ||
             typeof URLSearchParams === 'undefined') {
             return;
@@ -38,15 +46,16 @@
             boxes.forEach(function (box) { box.disabled = busy; });
             selectAll.disabled = busy;
             clear.disabled = busy;
-            actions.forEach(function (button) {
-                var operation = button.getAttribute('data-cb-notes-bulk-action');
-                var field = operation === 'notebook'
-                    ? document.querySelector('[data-cb-notes-bulk-notebook]')
-                    : operation === 'category'
-                    ? document.querySelector('[data-cb-notes-bulk-category]') : null;
-                button.disabled = busy || count === 0 ||
-                    (field !== null && (!field || field.value === '__choose__'));
-            });
+            var operation = operationSelect.value;
+            var validOperation = operation === 'notebook' || operation === 'category';
+            notebookGroup.hidden = operation !== 'notebook';
+            categoryGroup.hidden = operation !== 'category';
+            operationSelect.disabled = busy;
+            notebook.disabled = busy;
+            category.disabled = busy;
+            apply.disabled = busy || count === 0 || !validOperation ||
+                (operation === 'notebook' ? notebook.value : category.value) === '__choose__';
+            trash.disabled = busy || count === 0;
         }
 
         function showResult(message) {
@@ -80,10 +89,14 @@
             draw();
         });
         clear.addEventListener('click', clearSelection);
-        ['[data-cb-notes-bulk-notebook]', '[data-cb-notes-bulk-category]'].forEach(function (selector) {
-            var field = document.querySelector(selector);
-            if (field) field.addEventListener('change', draw);
+        operationSelect.addEventListener('change', function () {
+            // Switching the operation must not reuse a stale previous target.
+            notebook.value = '__choose__';
+            category.value = '__choose__';
+            draw();
         });
+        notebook.addEventListener('change', draw);
+        category.addEventListener('change', draw);
         refresh.addEventListener('click', function () { window.location.reload(); });
 
         function execute(operation, ids, target) {
@@ -134,6 +147,10 @@
                 // Server already applied authorized operations. Do not invent a
                 // local sort, count, category label or pagination state.
                 clearSelection();
+                operationSelect.value = '__choose__';
+                notebook.value = '__choose__';
+                category.value = '__choose__';
+                draw();
                 showResult(outcome.updated + ' updated; ' + outcome.failed + ' failed.' +
                     (failedNames.length ? ' Not updated: ' + failedNames.join(', ') + '.' : '') +
                     ' Refresh results to see the latest Library.');
@@ -146,54 +163,53 @@
             });
         }
 
-        actions.forEach(function (button) {
-            button.addEventListener('click', function () {
-                if (busy) return;
-                var ids = selected().map(function (box) { return box.getAttribute('data-cb-notes-select-id'); });
-                var operation = button.getAttribute('data-cb-notes-bulk-action');
-                if (!ids.length || ids.length > 20 ||
-                    ['notebook', 'category', 'trash'].indexOf(operation) < 0) return;
+        apply.addEventListener('click', function () {
+            if (busy || apply.disabled) return;
+            var ids = selected().map(function (box) {
+                return box.getAttribute('data-cb-notes-select-id');
+            });
+            var operation = operationSelect.value;
+            if (!ids.length || ids.length > 20 ||
+                (operation !== 'notebook' && operation !== 'category')) return;
+            var target = operation === 'notebook' ? notebook.value : category.value;
+            if (typeof target !== 'string' || target === '__choose__') return;
+            execute(operation, ids, target);
+        });
 
-                var field = operation === 'notebook'
-                    ? document.querySelector('[data-cb-notes-bulk-notebook]')
-                    : document.querySelector('[data-cb-notes-bulk-category]');
-                var target = operation === 'trash' ? '' : (field && field.value);
-                if (typeof target !== 'string' || target === '__choose__') return;
+        trash.addEventListener('click', function () {
+            if (busy || trash.disabled) return;
+            var ids = selected().map(function (box) {
+                return box.getAttribute('data-cb-notes-select-id');
+            });
+            if (!ids.length || ids.length > 20) return;
 
-                if (operation !== 'trash') {
-                    execute(operation, ids, target);
-                    return;
-                }
-
-                // Fail closed: dangerous bulk mutation *always* requires Base.
-                var modal = window.cbCore && window.cbCore.modal;
-                if (!modal || typeof modal.show !== 'function') {
-                    showError('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.');
-                    return;
-                }
-                busy = true;
-                draw();
-                showError('');
-                modal.show({
-                    title: 'Move selected notes to Trash?',
-                    body: 'You selected ' + ids.length +
-                        ' private notes. You can restore them from WordPress Trash, but existing share links will be revoked.',
-                    confirmVariant: 'danger',
-                    confirmLabel: 'Move to Trash',
-                    cancelLabel: 'Cancel'
-                }).then(function (confirmed) {
-                    if (confirmed === true) {
-                        // Release modal lock; execute immediately reapplies the lock.
-                        busy = false;
-                        return execute('trash', ids, '');
-                    }
-                    return null;
-                }).catch(function () {
-                    showError('Confirmation failed. Nothing was requested from Trash.');
-                }).finally(function () {
+            // Fail closed: dangerous bulk mutation *always* requires Base.
+            var modal = window.cbCore && window.cbCore.modal;
+            if (!modal || typeof modal.show !== 'function') {
+                showError('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.');
+                return;
+            }
+            busy = true;
+            draw();
+            showError('');
+            modal.show({
+                title: 'Move selected notes to Trash?',
+                body: 'You selected ' + ids.length +
+                    ' private notes. You can restore them from WordPress Trash, but existing share links will be revoked.',
+                confirmVariant: 'danger',
+                confirmLabel: 'Move to Trash',
+                cancelLabel: 'Cancel'
+            }).then(function (confirmed) {
+                if (confirmed === true) {
                     busy = false;
-                    draw();
-                });
+                    return execute('trash', ids, '');
+                }
+                return null;
+            }).catch(function () {
+                showError('Confirmation failed. Nothing was requested from Trash.');
+            }).finally(function () {
+                busy = false;
+                draw();
             });
         });
         draw();
