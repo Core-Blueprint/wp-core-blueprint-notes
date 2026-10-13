@@ -49,6 +49,9 @@ function harness(existing = {}) {
         editPost: { PluginDocumentSettingPanel: 'PluginDocumentSettingPanel' },
         element: { createElement: el, useState, useEffect },
         data: {
+            select() {
+                return { getEditedPostAttribute: () => meta };
+            },
             useSelect(callback) {
                 return callback(() => ({ getEditedPostAttribute: () => meta }));
             },
