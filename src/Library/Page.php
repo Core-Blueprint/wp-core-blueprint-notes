@@ -178,13 +178,13 @@ final class Page {
             echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
         }
         echo '</div></div><div class="cb-notes-library__actions">';
-        echo '<a class="button button-secondary" href="' . esc_url($link) . '">'
+        echo '<a class="button cb-core-button cb-core-button--secondary cb-core-button--compact" href="' . esc_url($link) . '">'
             . esc_html__('Edit', 'core-blueprint-notes') . '</a>';
         $trash = get_delete_post_link($post->ID, '', false);
         if (is_string($trash) && $trash !== '' && current_user_can('delete_post', $post->ID)) {
             // Fail closed: the action is hidden until the Base confirmation
             // handler is available. WordPress core still owns the trash URL.
-            echo '<button type="button" class="button-link cb-notes-library__trash" hidden'
+            echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__trash" hidden'
                 . ' data-cb-notes-trash-url="' . esc_url($trash) . '">'
                 . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
         }
