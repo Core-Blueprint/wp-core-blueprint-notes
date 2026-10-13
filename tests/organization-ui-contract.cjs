@@ -12,11 +12,13 @@ const sharing = fs.readFileSync(path.join(root, 'assets/sharing.js'), 'utf8');
 const snapshot = fs.readFileSync(path.join(root, 'src/Sharing/Snapshot.php'), 'utf8');
 
 const checks = [
-    ['Gutenberg exposes Notebook, Category and Tags', editor.includes("['notebook', 'category', 'tag'].forEach(")],
-    ['Notebook input uses Name not duplicated pane label', editor.includes("kind === 'notebook' ? 'Name' : 'Type'")],
+    ['Gutenberg offers one progressive Organize panel', editor.includes("wp.plugins.registerPlugin('cb-notes-organize'") && !editor.includes("['notebook', 'category', 'tag'].forEach(")],
+    ['Notebook primary with accessible Category and Tags controls', editor.includes("label: 'Notebook'") && editor.includes("label: 'Category'") && editor.includes("label: 'Add existing tag'")],
     ['Gutenberg uses owner-only organization endpoint', editor.includes("'/core-blueprint-notes/v1/organization'")],
-    ['Tags selector enforces max 12', editor.includes('selected.length < 12')],
+    ['Tags selector enforces max 12', editor.includes('chosenTags.length < 12') && editor.includes('selected.length < 12')],
     ['Editor updates native WordPress post meta', editor.includes('dispatch.editPost({ meta:')],
+    ['Advanced organization can be disclosed and starts visible for existing labels', editor.includes("'aria-expanded': advanced") && editor.includes("setAdvanced(true)")],
+    ['New labels are created contextually', editor.includes('function createControls(kind)') && editor.includes("setCreating(kind)")],
     ['Organization supports create rename delete', admin.includes("mutate('create'") && admin.includes("mutate('rename'") && admin.includes("mutate('delete'")],
     ['Organization removal uses Base danger modal', admin.includes("confirmVariant: 'danger'") && admin.includes('confirmCheck: {')],
     ['Organize registers with Base AdminTheme', catalog.includes('AdminTheme::register_screen(self::$admin_hook')],
