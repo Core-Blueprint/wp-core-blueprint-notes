@@ -15,12 +15,9 @@
             var url = button.getAttribute('data-cb-notes-trash-url');
             if (!url) return;
 
-            // Never display a destructive action if Base's confirmation is
-            // unavailable. No window.confirm or insecure fallback.
-            var modal = window.cbCore && window.cbCore.modal;
-            if (!modal || typeof modal.show !== 'function') {
-                return;
-            }
+            // Expose only with JavaScript; resolve the Base modal lazily at
+            // click time, because WP script modules can load after DOM-ready.
+            // Never navigate without an explicit Base modal confirmation.
             button.hidden = false;
             button.addEventListener('click', function () {
                 if (button.disabled) return;
