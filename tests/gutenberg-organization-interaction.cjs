@@ -119,7 +119,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
     run.paint();
     await settle(); // Loads current user's catalog.
     run.paint();
-    assert.equal(run.plugins[0].config.render instanceof Function, true);
+    assert.equal(typeof run.plugins[0].config.render, 'function', 'Gutenberg render callback available across VM contexts');
     assert.equal(run.walk(n => n.type === 'SelectControl' && n.props.label === 'Notebook').length, 1);
     assert.equal(run.walk(n => n.type === 'SelectControl' && n.props.label === 'Category').length, 0,
         'Beginner sees only Notebook by default');
