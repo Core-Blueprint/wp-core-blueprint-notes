@@ -232,6 +232,12 @@ final class Page {
             }
         }
         echo '</div></div></div><div class="cb-notes-library__actions">';
+        self::render_actions($post, $title, $link);
+        echo '</div></li>';
+    }
+
+    /** The same authorized Favorite, Pin, Edit and Trash controls in both views. */
+    private static function render_actions(\WP_Post $post, string $title, string $link): void {
         $markers = Markers::for_post((int)$post->ID);
         foreach ([
             'favorite' => [
@@ -280,7 +286,100 @@ final class Page {
                 . ' aria-label="' . esc_attr($trash_label) . '" title="' . esc_attr($trash_label) . '">'
                 . '<span class="dashicons dashicons-trash" aria-hidden="true"></span></button>';
         }
-        echo '</div></li>';
+    }
+
+
+    /**
+     * Table is a presentation of the exact owner-bound WP_Query result.
+     * It reuses the same per-note access gate, catalog labels and actions.
+     */
+    private static function render_table(array $posts, int $owner, array $state): void {
+        echo '<div class="cb-notes-library__table-scroll" role="region" tabindex="0"'
+            . ' aria-label="' . esc_attr__('Notes table, scroll horizontally if needed', 'core-blueprint-notes') . '">';
+        echo '<table class="cb-notes-library__table"><thead><tr>';
+        $title_sort = $state['sort'] === 'title';
+        echo '<th scope="col" class="cb-notes-library__col-title"'
+            . ($title_sort ? ' aria-sort="ascending"' : '') . '><a href="'
+            . esc_url(self::url($state, ['sort' => 'title', 'paged' => 1])) . '">'
+            . esc_html__('Title', 'core-blueprint-notes') . '</a></th>';
+        echo '<th scope="col">' . esc_html__('Notebook', 'core-blueprint-notes') . '</th>';
+        echo '<th scope="col">' . esc_html__('Category', 'core-blueprint-notes') . '</th>';
+        echo '<th scope="col">' . esc_html__('Tags', 'core-blueprint-notes') . '</th>';
+        $modified_sort = $state['sort'] === 'oldest' ? 'modified' : 'oldest';
+        $modified_dir = $state['sort'] === 'oldest' ? 'ascending' : 'descending';
+        echo '<th scope="col"' . (!$title_sort ? ' aria-sort="' . $modified_dir . '"' : '') . '><a href="'
+            . esc_url(self::url($state, ['sort' => $modified_sort, 'paged' => 1])) . '">'
+            . esc_html__('Modified', 'core-blueprint-notes') . '</a></th>';
+        echo '<th scope="col">' . esc_html__('Actions', 'core-blueprint-notes') . '</th>';
+        echo '</tr></thead><tbody>';
+        foreach ($posts as $post) {
+            if ($post instanceof \WP_Post) {
+                self::render_table_row($post, $owner);
+            }
+        }
+        echo '</tbody></table></div>';
+    }
+
+    private static function render_table_row(\WP_Post $post, int $owner): void {
+        if ((int)$post->post_author !== $owner || !Access::can_read($post)) {
+            return;
+        }
+        $link = get_edit_post_link($post->ID);
+        if (!is_string($link) || $link === '') {
+            return;
+        }
+        $title = get_the_title($post);
+        if (trim($title) === '') {
+            $title = __('Untitled note', 'core-blueprint-notes');
+        }
+        $labels = Catalog::labels_for_post((int)$post->ID);
+        $modified = mysql2date(
+            get_option('date_format') . ' ' . get_option('time_format'),
+            $post->post_modified,
+            true
+        );
+        echo '<tr><th scope="row" class="cb-notes-library__table-title"><div class="cb-notes-library__identity">';
+        echo '<label class="cb-notes-library__select" hidden>'
+            . '<input type="checkbox" data-cb-notes-select-id="' . esc_attr((string)$post->ID) . '"'
+            . ' aria-label="' . esc_attr(sprintf(
+                /* translators: %s: note title */
+                __('Select note: %s', 'core-blueprint-notes'), $title
+            )) . '"><span class="screen-reader-text">' . esc_html__('Select note', 'core-blueprint-notes')
+            . '</span></label>';
+        echo '<div class="cb-notes-library__note-content"><a class="cb-notes-library__note-title" href="'
+            . esc_url($link) . '">' . esc_html($title) . '</a>';
+        echo '<span class="cb-notes-library__table-status">'
+            . esc_html($post->post_status === 'draft'
+                ? __('Draft', 'core-blueprint-notes') : __('Private', 'core-blueprint-notes'))
+            . '</span></div></div></th>';
+        echo '<td>' . esc_html($labels['notebook'] !== ''
+            ? $labels['notebook'] : __('Unfiled', 'core-blueprint-notes')) . '</td>';
+        echo '<td>' . ($labels['category'] !== ''
+            ? esc_html($labels['category']) : '<span class="cb-notes-library__blank">—</span>') . '</td>';
+        echo '<td class="cb-notes-library__table-tags">';
+        if ($labels['tags'] === []) {
+            echo '<span class="cb-notes-library__blank">—</span>';
+        } else {
+            foreach (array_slice($labels['tags'], 0, 3) as $tag) {
+                echo '<span class="cb-notes-library__tag">' . esc_html($tag) . '</span>';
+            }
+            $extra = array_slice($labels['tags'], 3);
+            if ($extra !== []) {
+                $extra_title = sprintf(
+                    /* translators: %s: comma-separated private tag names */
+                    __('Additional tags: %s', 'core-blueprint-notes'),
+                    implode(', ', $extra)
+                );
+                echo '<span class="cb-notes-library__tag-more" role="note" tabindex="0"'
+                    . ' title="' . esc_attr($extra_title) . '" aria-label="' . esc_attr($extra_title) . '">+'
+                    . esc_html((string)count($extra)) . '</span>';
+            }
+        }
+        echo '</td>';
+        echo '<td class="cb-notes-library__table-date">' . esc_html($modified) . '</td>';
+        echo '<td class="cb-notes-library__table-actions"><div class="cb-notes-library__actions">';
+        self::render_actions($post, $title, $link);
+        echo '</div></td></tr>';
     }
 
     /** Contextual guidance without revealing catalog labels for invalid filters. */
