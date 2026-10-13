@@ -38,7 +38,15 @@
             boxes.forEach(function (box) { box.disabled = busy; });
             selectAll.disabled = busy;
             clear.disabled = busy;
-            actions.forEach(function (button) { button.disabled = busy || count === 0; });
+            actions.forEach(function (button) {
+                var operation = button.getAttribute('data-cb-notes-bulk-action');
+                var field = operation === 'notebook'
+                    ? document.querySelector('[data-cb-notes-bulk-notebook]')
+                    : operation === 'category'
+                    ? document.querySelector('[data-cb-notes-bulk-category]') : null;
+                button.disabled = busy || count === 0 ||
+                    (field !== null && (!field || field.value === '__choose__'));
+            });
         }
 
         function showResult(message) {
@@ -72,6 +80,10 @@
             draw();
         });
         clear.addEventListener('click', clearSelection);
+        ['[data-cb-notes-bulk-notebook]', '[data-cb-notes-bulk-category]'].forEach(function (selector) {
+            var field = document.querySelector(selector);
+            if (field) field.addEventListener('change', draw);
+        });
         refresh.addEventListener('click', function () { window.location.reload(); });
 
         function execute(operation, ids, target) {
@@ -146,7 +158,7 @@
                     ? document.querySelector('[data-cb-notes-bulk-notebook]')
                     : document.querySelector('[data-cb-notes-bulk-category]');
                 var target = operation === 'trash' ? '' : (field && field.value);
-                if (typeof target !== 'string') return;
+                if (typeof target !== 'string' || target === '__choose__') return;
 
                 if (operation !== 'trash') {
                     execute(operation, ids, target);
