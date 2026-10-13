@@ -28,6 +28,7 @@ namespace {
     require_once __DIR__ . '/../src/Library/Query.php';
 
     use CB\Notes\Library\Query;
+    use CB\Notes\Library\Markers;
 
     function ensure(bool $condition, string $name): void {
         if (!$condition) {
