@@ -1,12 +1,12 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha5\` | **Status:** staging test candidate, not Golden or production-ready.
+**Version:** \`0.1.0-alpha6\` | **Status:** staging test candidate, not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
 ## Current functions
 
-- **Notes → Library:** private daily workspace, New note, newest-first list, server-side title/content search, Notebook and Unfiled navigation, combined Category/Tag filters, sort, bounded pagination, Edit and confirm-before-trash. Gutenberg stays the sole editor. Notes → All Notes remains available as a native fallback.
+- **Notes → Library:** primary (top) Notes submenu workspace, New note, newest-first list, server-side title/content search, Notebook and Unfiled navigation, combined Category/Tag filters, sort, bounded pagination, Edit and confirm-before-trash. Gutenberg stays the sole editor. Notes → All Notes remains available as a native fallback; the optional AI Access shortcut sits last. The Settings Hub workspace link opens Library.
 
 - Native Gutenberg Notes with revisions, autosaves, strict owner authorization and optional administrator override.
 - Personal **Notebooks** (one per Note), **Categories** (one per Note) and **Tags** (up to 12 per Note).
@@ -31,8 +31,8 @@ Tag/media/attachment visibility in third-party blocks is **not** supported for s
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha5.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha5.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha6.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha6.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. Both PHP and JavaScript smoke suites include Sharing, personal organization and alpha5 Library query/UX contracts. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
