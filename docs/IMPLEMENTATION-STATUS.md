@@ -1,32 +1,29 @@
-# Core Blueprint Notes — alpha3 handover
+# Core Blueprint Notes — alpha4 implementation status
 
-**Version:** `0.1.0-alpha3` | **Branch:** `feature/notes-visibility-sharing-alpha3-v1`
-**Status:** development test candidate. No Golden claim or approved runtime acceptance.
+**Version:** 0.1.0-alpha4.
+**Branch:** \`feature/notes-personal-organization-alpha4-v1\`.
+**Status:** source test candidate; no Golden or runtime-security claim.
 
-## Architecture and ownership
+## Scope added in alpha4
 
-- Base is a mandatory external dependency. Its Modal Foundation (WP-native presentation), Settings Hub and Governance/Audit remain owned by Base. **No Base changes are included.**
-- Secure Share is an optional external dependency. Notes registers an adapter only when its public provider interface/facade is available. **No Secure Share changes are included.**
-- Notes owns personal content, its sharing mode and frozen snapshot. Gutenberg `publish` never implies public exposure.
-- Public and Secure Share are mutually exclusive, with a separate explicit public warning; reverting to private invalidates the local authorization before revoking provider grants.
-- Supported static Gutenberg blocks only. Attachments/media/embeds excluded until a separate protected-files contract is designed.
+1. Personal catalog with three classification kinds: one notebook, one category and multiple tags (up to 12). Catalog definitions are private, owner-scoped user meta. Notes store only opaque catalog IDs in authorized post meta.
+2. Gutenberg document panels for all three kinds and fast personal-label creation; the Notebook/Name and Category/Type labels avoid redundant section headings.
+3. Native private **Notes → Organize** page with create, rename and delete using the Base danger confirmation where needed.
+4. Notes Admin list shows resolved labels and filters by the owner's private catalog; no global term REST routes or cross-owner autocomplete.
+5. Alpha1/2 text Notebook labels migrate to stable catalog IDs in bounded author-only batches. Label removal cleans up references on at most 250 owned Notes per action, otherwise fails without an unbounded operation.
+6. Alpha4 security contracts and PHP/Node smoke tests added to the standard \`tools/check\` gate. Existing alpha3 private/Public/Secure Share behavior remains.
 
-## Changes relative to alpha2
+## Ownership boundaries
 
-1. Sharing API, public snapshot endpoint, optional Secure Share resource provider and Gutenberg Sharing panel.
-2. Base danger confirmation with typed phrase and required checkbox, without a custom modal.
-3. Earlier REST exact-note authorization, forced private internal status, legacy status migration and private-by-default sharing state.
-4. Stale content/share state checks; immediate revocation even from a stale edit session.
-5. Trash/delete disarms public and secure delivery, preventing restore from reviving old URLs.
-6. Notebook form field changed from repeating “Notebook” to “Name”.
-7. Additional PHP/Node sharing smoke and UI contract tests; canonical check/build scripts target alpha3.
+- Base (mandatory) continues to own Settings Hub, UI Modal Foundation, capabilities/governance infrastructure; this branch does not modify Base.
+- Secure Share (optional) continues to own grant and secure transport; this branch does not modify Secure Share.
+- Notes owns classification, author isolation, shared snapshot projection and private/public mode authority.
+- Team notebooks, hierarchy and shared classification catalogs require separate design acceptance.
 
-## Verification and open gates
+## Validation gates
 
-Verify `bash tools/check` and `bash tools/build-release` from the **canonical GitHub branch**, then record ZIP checksum and exact HEAD. WordPress runtime privacy, Gutenberg modal interaction, public route/HTTP headers, Secure Share integration, real two-user REST/revisions tests, cross-extension fail-soft behavior and production caching are **open** until proven on staging.
+The sourcegate and canonical ZIP must be verified on the exact branch HEAD, with the resulting SHA-256 recorded. Full WordPress/Gutenberg, cross-user REST, migration, library filter, cache, Public Share, Secure Share and revocation tests remain pending until demonstrated in staging.
 
-If Base or Secure Share needs a contract change, stop that part and coordinate with its owning project before altering either repository.
+[Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
-[Complete acceptance batch](ALPHA3-ACCEPTANCE.md) · [Original architecture RFC](ARCHITECTURE-V1-RFC.md) · [Integration RFC](INTEGRATION-CONTRACTS-V1-RFC.md)
-
-No merge, CI, deployment, release or publishing without explicit GO.
+No merge, CI/CD, production installation or WordPress.org submission without explicit GO.
