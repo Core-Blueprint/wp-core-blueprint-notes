@@ -163,8 +163,20 @@
 .cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__marker[hidden] {
     display: none;
 }
-/* Only layout the marker icon. Base owns button surfaces, colors and states. */
-.cb-notes-library__marker .dashicons { font-size: 18px; width: 18px; height: 18px; }
+/* Base defines icon size and button geometry. Flex-center the WordPress
+   Dashicons glyph inside that size, instead of aligning its font baseline. */
+.cb-notes-library__marker > .dashicons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+.cb-notes-library__marker > .dashicons::before {
+    display: block;
+    line-height: 1;
+}
 .cb-notes-library__empty { text-align: center; padding: var(--cb-space-6, 32px) 12px; }
 .cb-notes-library__empty-title { margin: 0; color: var(--cb-text-strong); font-size: 1rem; line-height: 1.4; }
 .cb-notes-library__empty p { color: var(--cb-text-muted); margin-block: var(--cb-space-3, 12px) var(--cb-space-4, 16px); }
