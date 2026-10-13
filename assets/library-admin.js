@@ -93,7 +93,7 @@
                     }
                     // Pin ordering and saved views require server pagination
                     // to be recalculated, not an inaccurate local DOM reorder.
-                    if (kind === 'pinned' || view === kind + 's') {
+                    if (kind === 'pinned' || (kind === 'favorite' && view === 'favorites')) {
                         window.location.reload();
                         return;
                     }
