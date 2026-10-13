@@ -8,6 +8,7 @@ use CB\Notes\Sharing\Controller;
 use CB\Notes\Integration\SecureProvider;
 use CB\Notes\Organization\Catalog;
 use CB\Notes\Library\Page as LibraryPage;
+use CB\Notes\Library\Markers;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -40,6 +41,7 @@ final class Plugin {
         SettingsPage::init();
         Catalog::init();
         LibraryPage::init();
+        Markers::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
         add_filter('map_meta_cap',[Access::class,'map_meta_cap'],20,4);
         add_filter('wp_insert_post_data',[Access::class,'force_private_status'],50,2);
