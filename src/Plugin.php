@@ -38,6 +38,8 @@ final class Plugin {
         SettingsPage::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
         add_filter('map_meta_cap',[Access::class,'map_meta_cap'],20,4);
+        add_filter('wp_insert_post_data',[Access::class,'force_private_status'],50,2);
+        add_filter('rest_request_before_callbacks',[Access::class,'before_rest'],10,3);
         add_action('pre_get_posts',[Access::class,'scope_query']);
         add_filter('rest_cb_note_query',[Access::class,'scope_rest']);
         add_filter('rest_prepare_cb_note',[Access::class,'protect_rest'],10,2);
