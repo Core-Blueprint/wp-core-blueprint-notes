@@ -1,24 +1,27 @@
-# Core Blueprint Notes — alpha2 implementation status
+# Core Blueprint Notes — alpha3 status
 
-**Version:** 0.1.0-alpha2. **Status:** feature-branch test candidate; not merged, not Golden, not production-ready.
+**Version:** `0.1.0-alpha3`
+**Feature branch:** `feature/notes-visibility-sharing-alpha3-v1`
+**Status:** implementation and mocked smoke tests authored, runtime and final build verification pending; not Golden and not production-ready.
 
-## Implemented
+## Current implementation
 
-- Native Gutenberg Notes and personal Notebook labels (alpha1 preserved).
-- Owner-scoped Notes/REST boundaries and opt-in read-only Abilities (alpha1 preserved).
-- Required Core Blueprint Base public API 1.2, now including the SettingsRegistry dependency.
-- Base Settings Hub provider: official Notes tile in **Business**, Overview and AI Access tabs.
-- Overview: current-author Notes count, Gutenberg/AI state, Manage Notes shortcut.
-- AI Access: existing `cb_notes_mcp_read_enabled` option and `cb_notes_settings` settings group; no new authorization or external transport.
-- Legacy **Notes → AI Access** submenu redirects to the canonical Hub tab before WordPress renders the admin header.
-- Dedicated mocked Settings Hub contract tests, in addition to the alpha1 permission/Abilities suite.
+- Preserves the accepted alpha2 Settings Hub, Notes list and Gutenberg core.
+- Server-side native private status, early REST item guards, and bounded migration of existing alpha1/2 published Notes.
+- Explicit Public Share with separate noindex/no-store route, frozen and allowlisted Gutenberg HTML snapshot, author-only write authority, Base danger confirmation with typed `PUBLIC` plus acknowledgement.
+- Optional Secure Share provider via its stable `PublicApi`, with grant-backed frozen read-only delivery, optional password and bounded expiry. Missing dependency must fail soft.
+- Independent permission checks for sharing GET/POST, content hash + expected sharing mode + modified-time verification for new exposure. Emergency revocation never requires matching stale editor state.
+- Trash/permanent delete permanently disarm sharing so restore cannot re-enable an old link.
+- Duplicate Notebook field label fixed. Sharing Gutenberg sidebar added.
+- Added `tests/sharing-smoke.php` and `tests/sharing-ui-contract.cjs` to `tools/check`. Release version and build guard updated to alpha3.
+- Public sharing rewrite reconciles after upgrades on administrator requests.
 
-## Validation boundary
+## Verification gate
 
-The new Settings Hub PHP implementation has passed sandbox PHP lint and a local equivalent of the 25-assertion mocked Settings Hub test. Existing PHP/JS and WordPress-specific integration checks must be rerun from **the canonical GitHub featurebranch** with `bash tools/check` and `bash tools/build-release`.
+The **source is committed** on the alpha3 feature branch. GitHub file presence/source inspection is not the same as executing the suite. The sandbox cannot pull this private repository directly over the network. Run `bash tools/check` and `bash tools/build-release` from the fetched branch to establish canonical exact-source validation and generate a SHA-256.
 
-The sandbox cannot fetch the private GitHub branch directly; a local source mirror is not evidence of byte-for-byte package identity. The canonical ZIP and SHA-256 must therefore be built/recorded from the fetched featurebranch during acceptance.
+**Open**: real WordPress update/activation, current-user Gutenberg behavior, Base modal interaction, status migration, REST cross-user and anonymous denial, public snapshot/header/caching tests, Secure Share issuance and revocation, restore negative tests, accessibility and dark-mode visual review.
 
-Still open: WordPress activation/update, official first-party tile registration, tab appearance/light/dark/mobile behavior, form persistence, legacy shortcut redirect, multi-user REST/privacy smoke, optional MCP Adapter smoke.
+See [alpha3 acceptance](ALPHA3-ACCEPTANCE.md). Do not install on production or assume live security guarantees from mocked smoke tests.
 
-**No merge, CI/CD, publish or deployment was performed.**
+**No Base or Secure Share patch, merge, CI/CD run, publication or deployment was performed.**
