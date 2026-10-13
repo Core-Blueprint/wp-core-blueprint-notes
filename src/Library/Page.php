@@ -16,6 +16,7 @@ final class Page {
 
     public static function init(): void {
         add_action('admin_menu', [self::class, 'register_menu'], 11);
+        add_action('admin_menu', [Menu::class, 'reorder'], 999);
         add_action('admin_enqueue_scripts', [self::class, 'enqueue']);
     }
 
