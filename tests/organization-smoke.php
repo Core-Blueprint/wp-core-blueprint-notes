@@ -176,4 +176,29 @@ check(Catalog::contains(7, 'notebook', $legacy), 'alpha2 Notebook text migrated 
 check(Catalog::labels_for_post(102)['notebook'] === 'Legacy Projects', 'migrated label remains visible');
 check(count(Catalog::catalog(8)['notebook']) === 1, 'legacy migration cannot modify another user catalog');
 
+/* Base compatibility contract: verify the real registration call shape. */
+class NotesFakeAdminTheme {
+    public static array $screens = [];
+    public static function register_screen(string $hook, array $requirements): void {
+        self::$screens[$hook] = $requirements;
+    }
+}
+class_alias(NotesFakeAdminTheme::class, 'CoreBlueprint\Core\UI\AdminTheme');
+function add_submenu_page(
+    string $parent_slug, string $page_title, string $menu_title,
+    string $capability, string $menu_slug, callable $callback
+): string {
+    $GLOBALS['notes_admin_menu'] = compact('parent_slug', 'page_title',
+        'menu_title', 'capability', 'menu_slug', 'callback');
+    return 'cb_note_page_cb-notes-organize';
+}
+Catalog::register_admin_menu();
+$requirements = NotesFakeAdminTheme::$screens['cb_note_page_cb-notes-organize'] ?? [];
+check(($requirements['foundations'] ?? []) === ['select-picker'],
+    'Organize requests Base Select Picker on its own registered screen');
+check(($requirements['components'] ?? []) === ['buttons', 'cards', 'fields', 'form-controls', 'panels'],
+    'Organize declares Base semantic component requirements');
+check(($GLOBALS['notes_admin_menu']['capability'] ?? '') === 'cb_notes_edit',
+    'Organize menu remains limited to Notes editors');
+
 echo "Notes alpha4 private organization smoke: PASS\n";
