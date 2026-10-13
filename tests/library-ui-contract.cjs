@@ -27,9 +27,20 @@ verify(page.includes('aria-current="page"'), 'accessible notebook state');
 verify(page.includes('type="search"') && page.includes('type="hidden" name="cbn_notebook"'), 'search and notebook filters');
 verify(page.includes('<details class="cb-notes-library__advanced"'), 'advanced filter disclosure');
 verify(page.includes('get_edit_post_link') && page.includes('get_delete_post_link'), 'native editing and trash actions');
-verify(page.includes('class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'), 'Edit uses canonical Base secondary compact button');
-verify(page.includes('class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__trash" hidden'), 'Trash uses canonical Base danger compact button');
+verify(page.includes('class="button cb-core-button cb-core-button--secondary cb-core-button--compact cb-core-button--icon-only cb-notes-library__edit"'), 'Edit uses canonical Base compact icon-only secondary button');
+verify(page.includes('class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-core-button--icon-only cb-notes-library__trash" hidden'), 'Trash uses canonical Base compact icon-only danger button');
 verify(!page.includes('button-link cb-notes-library__trash'), 'no old text-link trash action');
+verify(page.includes('dashicons dashicons-edit') && page.includes('dashicons dashicons-trash'), 'Edit and Trash render WordPress pencil/trash icons');
+verify(page.includes("__('Edit note: %s'") && page.includes("__('Move note to Trash: %s'"),
+    'Icon-only controls have localized per-note accessible names');
+verify(page.includes('aria-label="' + "' . esc_attr($edit_label)" )
+    && page.includes('aria-label="' + "' . esc_attr($trash_label)" ),
+    'Both icon-only actions expose accessible labels');
+verify(page.includes('title="' + "' . esc_attr($edit_label)" )
+    && page.includes('title="' + "' . esc_attr($trash_label)" ),
+    'Both icon-only actions show accessible native tooltips');
+verify(!page.includes("esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>'"),
+    'Trash action no longer renders a text label');
 verify(css.includes('.cb-core-button.cb-notes-library__trash[hidden]') && css.includes('display: none;'), 'hidden trash remains hidden against Base inline-flex display');
 verify(!css.includes('.cb-notes-library__trash:hover') && !css.includes('.cb-notes-library__trash { color:'), 'Base owns danger appearance');
 
@@ -55,11 +66,11 @@ verify(!markers.includes('register_post_meta(') && !markers.includes('show_in_re
 verify(query.includes("Markers::FAVORITE") && query.includes("Markers::PINNED"), 'P1 saved views filter by exact private metadata');
 verify(js.includes("window.fetch(endpoint") && js.includes("credentials: 'same-origin'"), 'P1 actions are authenticated async requests');
 verify(css.includes('cb-notes-library__marker[hidden]'), 'P1 actions remain hidden without JavaScript');
-verify(css.includes('.cb-notes-library__marker > .dashicons {')
+verify(css.includes('.cb-notes-library__actions .cb-core-button--icon-only > .dashicons {')
     && css.includes('align-items: center;')
     && css.includes('justify-content: center;')
-    && css.includes('.cb-notes-library__marker > .dashicons::before {'),
-    'P1 icon glyphs are centered inside Base icon-only buttons');
+    && css.includes('.cb-notes-library__actions .cb-core-button--icon-only > .dashicons::before {'),
+    'All Library action glyphs are centered inside Base icon-only buttons');
 verify(!css.includes('.cb-notes-library__marker .dashicons { font-size: 18px;'),
     'P1 icon sizing stays owned by Base');
 console.log('PASS JS: tests/library-ui-contract.cjs');
