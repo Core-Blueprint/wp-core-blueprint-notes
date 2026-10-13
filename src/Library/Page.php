@@ -19,6 +19,7 @@ final class Page {
         add_action('admin_menu', [self::class, 'register_menu'], 11);
         add_action('admin_menu', [Menu::class, 'reorder'], 999);
         add_action('admin_enqueue_scripts', [self::class, 'enqueue']);
+        Display::init();
     }
 
     public static function register_menu(): void {
@@ -65,8 +66,7 @@ final class Page {
         );
     }
 
-    private static function url(array $state, array $changes = []): string {
-        $state = array_merge($state, $changes);
+    public static function parameters(array $state): array {
         $parameters = [
             'post_type' => Plugin::TYPE,
             'page' => 'cb-notes-library',
@@ -86,7 +86,11 @@ final class Page {
                 $parameters[$parameter] = (string)$value;
             }
         }
-        return add_query_arg($parameters, admin_url('edit.php'));
+        return $parameters;
+    }
+
+    public static function url(array $state, array $changes = []): string {
+        return add_query_arg(self::parameters(array_merge($state, $changes)), admin_url('edit.php'));
     }
 
     private static function nav_link(string $label, array $state, string $notebook): void {
@@ -438,26 +442,46 @@ final class Page {
             'pinned' => __('Pinned notes', 'core-blueprint-notes'),
             default => __('Your notes', 'core-blueprint-notes'),
         };
+        $layout = Display::current($owner);
         echo '<div class="cb-notes-library__results-heading"><div class="cb-notes-library__results-title">'
             . '<label class="cb-notes-library__select-all" hidden>'
             . '<input type="checkbox" data-cb-notes-select-all'
             . ' aria-label="' . esc_attr__('Select all visible notes', 'core-blueprint-notes') . '">'
             . '<span class="screen-reader-text">' . esc_html__('Select all visible notes', 'core-blueprint-notes')
             . '</span></label><h2>' . esc_html($heading) . '</h2></div>';
+        echo '<div class="cb-notes-library__results-tools">';
         echo '<span>' . esc_html(sprintf(
             /* translators: %d: number of matching notes */
             _n('%d note', '%d notes', (int)$query->found_posts, 'core-blueprint-notes'),
             (int)$query->found_posts
-        )) . '</span></div>';
+        )) . '</span>';
+        echo '<nav class="cb-notes-library__display-toggle" aria-label="'
+            . esc_attr__('Notes display', 'core-blueprint-notes') . '">';
+        foreach ([
+            'list' => __('List', 'core-blueprint-notes'),
+            'table' => __('Table', 'core-blueprint-notes'),
+        ] as $mode => $name) {
+            $active = $layout === $mode;
+            echo '<a class="button cb-core-button cb-core-button--compact cb-notes-library__display-link'
+                . ($active ? ' is-active' : '') . '" href="'
+                . esc_url(Display::switch_url($mode, $state)) . '"'
+                . ($active ? ' aria-current="page"' : '') . '>'
+                . esc_html($name) . '</a>';
+        }
+        echo '</nav></div></div>';
         if ($query->have_posts()) {
             self::render_bulk_toolbar($catalog);
-            echo '<ul class="cb-notes-library__notes">';
-            foreach ($query->posts as $post) {
-                if ($post instanceof \WP_Post) {
-                    self::render_note($post, $owner);
+            if ($layout === 'table') {
+                self::render_table($query->posts, $owner, $state);
+            } else {
+                echo '<ul class="cb-notes-library__notes">';
+                foreach ($query->posts as $post) {
+                    if ($post instanceof \WP_Post) {
+                        self::render_note($post, $owner);
+                    }
                 }
+                echo '</ul>';
             }
-            echo '</ul>';
         } else {
             self::render_empty_state($state, (int)$query->found_posts, $create_url);
         }
