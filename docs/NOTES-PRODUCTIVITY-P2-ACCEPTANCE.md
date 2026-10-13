@@ -1,6 +1,6 @@
 # Core Blueprint Notes — Productivity P2 Bulk Actions acceptance
 
-**Version:** 0.1.0-alpha14
+**Version:** 0.1.0-alpha15
 **Branch:** feature/notes-productivity-p2-bulk-actions-v1
 **Base:** Accepted alpha13, commit aa4a07e9f87db5bdfdbaf377ec9b30c4615654f5
 **Status:** source candidate; no Golden, staging-security, deployment or merge claim.
@@ -19,11 +19,11 @@
     node tests/library-bulk-interaction.cjs
     bash tools/check
     bash tools/build-release
-    unzip -t dist/core-blueprint-notes-0.1.0-alpha14.zip
-    sha256sum dist/core-blueprint-notes-0.1.0-alpha14.zip
+    unzip -t dist/core-blueprint-notes-0.1.0-alpha15.zip
+    sha256sum dist/core-blueprint-notes-0.1.0-alpha15.zip
     git status --short
 
-Do not upload an alpha14 ZIP until all sourcegate, build and ZIP integrity checks pass.
+Do not upload an alpha15 ZIP until all sourcegate, build and ZIP integrity checks pass.
 
 ## Focused WordPress staging acceptance
 
@@ -31,14 +31,14 @@ Use disposable Notes with at least two separately signed-in Editor accounts, mul
 
 1. **Progressive selection:** with JavaScript active, every visible personal Note has a keyboard-accessible checkbox and the header has Select all visible notes. Without selection, toolbar hidden. After selection, count and toolbar appear. Partial selection sets the indeterminate header state. Clear selection resets all.
 2. **Page-only scope:** select all on a page of 20. Navigate to another page, notebook or search: no selection carries over. Never submit more than 20 IDs.
-3. **Notebook move:** select two Notes, choose an existing personal notebook and Move to notebook. The Move button stays disabled until Choose notebook is replaced by a deliberate selection. Confirm persistence after Refresh results; clear a notebook by explicitly choosing Unfiled. Original note content remains.
-4. **Category:** choose category and Set category, Set category must stay disabled until a destination is deliberately chosen. Then clear by explicitly selecting No category. Check persistence and combined Library filters. Tags unchanged.
-5. **Bulk Trash:** select Notes and Move to Trash. A Core Blueprint Base danger modal opens. Cancel preserves all Notes, sharing and selection. Confirm invokes WordPress Trash, removes Notes after manual refresh and permanently revokes Public/Secure Share links, including after restore.
+3. **Notebook move:** select two Notes. Choose Action: Move to notebook. Only the Notebook destination becomes visible, Category stays hidden, and Apply remains disabled until a notebook (or explicit Unfiled) is chosen. Then click Apply. Confirm persistence after Refresh results; clear a notebook by explicitly choosing Unfiled. Original note content remains.
+4. **Category:** choose Action: Set category. Only the Category destination becomes visible and Apply stays disabled until a category or explicit No category is chosen. Switching from notebook to category clears both previous destination choices. Then clear by explicitly selecting No category. Check persistence and combined Library filters. Tags unchanged.
+5. **Bulk Trash:** select Notes and click the separate red Move to Trash button on the right, even when no Action/destination is chosen. Verify canonical Base red outline, hover/focus and keyboard focus in Light and Dark Mode. A Core Blueprint Base danger modal opens. Cancel preserves all Notes, sharing and selection. Confirm invokes WordPress Trash, removes Notes after manual refresh and permanently revokes Public/Secure Share links, including after restore.
 6. **Cross-user authorization:** user B cannot change a Note owned by A. Mixed A/B batches update only authorized Notes and return exact successful/failed counts. No foreign titles or catalog labels disclosed.
 7. **Destination validation:** foreign/malformed catalog ID, invalid nonce, duplicate/malformed IDs, more than 20 IDs or unknown operation fail before mutation. Network request submits only selected IDs.
 8. **Partial feedback:** mixed authorized/denied batch shows exact success/failure counts, identifies failed visible Notes by label, preserves accessible status and offers Refresh results; no auto-reload hiding errors.
 9. **Failure:** simulate network loss before submission: error alert without falsely claiming success. Missing Base modal prevents Trash entirely.
-10. **Accessibility/responsive:** Light/Dark, narrow admin, 200% zoom, keyboard/focus order, select-all, named checkboxes, toolbar controls, status feedback, Base danger button.
+10. **Accessibility/responsive:** Light/Dark, narrow admin, 200% zoom, keyboard/focus order, select-all, named checkboxes, Action and conditional destination labels, Apply enablement, status feedback, distinct red Base danger button. The two form groups must no longer appear simultaneously.
 
 ## Design/security constraints
 
