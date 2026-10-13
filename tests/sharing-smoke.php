@@ -37,7 +37,10 @@ function absint(mixed $value): int { return abs((int)$value); }
 function sanitize_text_field(string $value): string { return strip_tags($value); }
 function get_current_user_id(): int { return $GLOBALS['current_user']; }
 function user_can(int $id,string $cap): bool { return in_array($cap,$GLOBALS['capabilities'][$id]??[],true); }
-function current_user_can(string $cap,int $id=0): bool { return user_can(get_current_user_id(),$cap); }
+function current_user_can(string $cap,int $id=0): bool {
+    if($cap==='edit_post') return $id>0 && (int)(get_post($id)?->post_author??0)===get_current_user_id() && user_can(get_current_user_id(),$cap);
+    return user_can(get_current_user_id(),$cap);
+}
 function get_post(int $id): ?WP_Post { return $GLOBALS['posts'][$id]??null; }
 function get_post_meta(int $id,string $key,bool $single=true): mixed {
     return $GLOBALS['notes_meta'][$id][$key]??'';
@@ -61,7 +64,10 @@ function esc_html(string $text): string{return htmlspecialchars($text,ENT_QUOTES
 function esc_attr(string $text): string{return esc_html($text);}
 function get_bloginfo(string $key): string{return 'en-US';}
 class WP_Query {public function __construct(array $args=[]) {}}
+class MockAudit { public static function record(string $event,string $severity,array $details): void {} }
+class_alias(MockAudit::class, 'CoreBlueprint\\Core\\Governance\\Audit');
 require dirname(__DIR__).'/src/Access.php';
+require dirname(__DIR__).'/src/Plugin.php';
 require dirname(__DIR__).'/src/Sharing/Snapshot.php';
 require dirname(__DIR__).'/src/Integration/SecureProvider.php';
 require dirname(__DIR__).'/src/Sharing/Controller.php';
