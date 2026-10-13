@@ -82,6 +82,15 @@ final class Controller {
         if (!$post instanceof \WP_Post || !self::can_manage($request)) {
             return self::error('Note not found.', 404);
         }
+        if ($mode === 'private') {
+            // Revocation must remain available regardless of unsaved/stale edits.
+            update_post_meta($post->ID, self::MODE_META, 'private');
+            delete_post_meta($post->ID, self::PUBLIC_META);
+            delete_post_meta($post->ID, self::PUBLIC_KEY);
+            self::revoke_old_secure($post->ID);
+            self::record('private', $post->ID);
+            return self::read($request);
+        }
         // Timestamp precision alone cannot detect edits within the same second.
         $expectedMode = (string)$request->get_param('expected_mode');
         if ($expectedMode !== self::mode($post->ID)) {
@@ -107,16 +116,6 @@ final class Controller {
         }
         if ($mode === 'secure' && !current_user_can('cb_notes_share_secure')) {
             return self::error('Secure sharing is not permitted for this account.', 403);
-        }
-
-        if ($mode === 'private') {
-            // Stop delivery first; provider always rechecks this domain state.
-            update_post_meta($post->ID, self::MODE_META, 'private');
-            delete_post_meta($post->ID, self::PUBLIC_META);
-            delete_post_meta($post->ID, self::PUBLIC_KEY);
-            self::revoke_old_secure($post->ID);
-            self::record('private', $post->ID);
-            return self::read($request);
         }
 
         $html = Snapshot::capture($post);
