@@ -1,6 +1,6 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha15\` | **Status:** staging test candidate, not Golden or production-ready.
+**Version:** \`0.1.0-alpha16\` | **Status:** staging test candidate, not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
@@ -8,7 +8,7 @@ Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace
 
 - **Professional Productivity P2:** page-local selection of up to 20 visible notes; streamlined Base bulk toolbar: choose one operation, reveal only its notebook/category destination, then Apply; separate red Move to Trash action. All destinations are explicit, owner-valid and protected by the existing WordPress authorization. The Trash batch requires Base danger confirmation, retains share-link revocation, and reports partial success without an implicit page reload. No tags or hidden cross-page selections.
 - **Professional Productivity P1:** independent personal Favorites and Pins. Star and pin quick actions use Base compact icon-only buttons with centered Dashicons and nonce-protected AJAX. Favorites and Pinned have dedicated Library views; pins sort first by default without overriding explicit title/oldest sorts. Protected post-meta flags are not exposed in Gutenberg REST or frozen shared copies.
-- **Notes → Library:** primary (top) Notes submenu workspace, New note, newest-first list, server-side title/content search, Notebook and Unfiled navigation, combined Category/Tag filters, sort, bounded pagination, Four equal-size Base icon-only actions: Favorite, Pin, Edit (pencil) and Move to Trash (trash icon). Edit and Trash include per-note accessible labels and native tooltips; Trash uses Base danger tokens for its red outline/icon, hover and keyboard-focus states even alongside WP admin CSS; it still requires the Base danger confirmation. Gutenberg stays the sole editor. Notes → All Notes remains available as a native fallback; the optional AI Access shortcut sits last. The Settings Hub workspace link opens Library.
+- **Notes → Library:** primary (top) Notes submenu workspace, New note, newest-first list, server-side title/content search, Notebook and Unfiled navigation, combined Category/Tag filters, sort, bounded pagination, Four equal-size Base icon-only actions: Favorite, Pin, Edit (pencil) and Move to Trash (trash icon). Edit and Trash include per-note accessible labels and native tooltips; Trash uses Base danger tokens for its red outline/icon, hover and keyboard-focus states even alongside WP admin CSS; it still requires the Base danger confirmation. Gutenberg stays the sole editor. Alpha16 removes the duplicate All Notes submenu item whenever Library is registered; WordPress's native list URL remains available to legacy deep links and Gutenberg integrations. If Library is missing, native All Notes remains a safe navigation fallback. The optional AI Access shortcut sits last. The Settings Hub workspace link opens Library.
 
 - Native Gutenberg Notes with revisions, autosaves, strict owner authorization and optional administrator override.
 - Personal **Notebooks** (one per Note), **Categories** (one per Note) and **Tags** (up to 12 per Note).
@@ -34,12 +34,12 @@ Tag/media/attachment visibility in third-party blocks is **not** supported for s
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha15.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha15.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha16.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha16.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes P2 bulk owner/nonce/catalog/lifecycle regression and UI interaction checks, Sharing, personal organization, Gutenberg organization and sharing guidance interactions, Library queries, marker security/interactions, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
 
-For current Alpha14 changes, use [Productivity P2 acceptance](docs/NOTES-PRODUCTIVITY-P2-ACCEPTANCE.md). P1 is covered by [Productivity P1 acceptance](docs/NOTES-PRODUCTIVITY-P1-ACCEPTANCE.md). The earlier editor change remains documented in [Gutenberg UX Golden G1–G2 acceptance](docs/GUTENBERG-UX-G1-ACCEPTANCE.md). The previously accepted Library remains covered by the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
+For current Alpha16 changes, use [Productivity P2 acceptance](docs/NOTES-PRODUCTIVITY-P2-ACCEPTANCE.md). P1 is covered by [Productivity P1 acceptance](docs/NOTES-PRODUCTIVITY-P1-ACCEPTANCE.md). The earlier editor change remains documented in [Gutenberg UX Golden G1–G2 acceptance](docs/GUTENBERG-UX-G1-ACCEPTANCE.md). The previously accepted Library remains covered by the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
 
 **Governance:** no merge, CI/CD, WordPress.org publication or production deployment without separate explicit GO.
