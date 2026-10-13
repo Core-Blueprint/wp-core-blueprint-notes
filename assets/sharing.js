@@ -50,6 +50,8 @@
             var data = {
                 mode: mode,
                 expected_modified_gmt: sharing.modified_gmt,
+                expected_content_version: sharing.content_version,
+                expected_mode: sharing.mode,
                 confirmation: confirmation || ''
             };
             if (mode === 'secure') {
