@@ -1,8 +1,8 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha17.
+**Current test candidate:** 0.1.0-alpha18.
 **Branch:** `feature/notes-library-overview-golden-v1`.
-**Status:** Alpha17 Library Overview staging candidate. Isolated JS contracts passed; full local sourcegate, build and WordPress Light/Dark/owner runtime acceptance outstanding. Not Golden or production-ready.
+**Status:** Alpha18 Library Overview staging candidate. Isolated JS contracts passed; full local sourcegate, build and WordPress Light/Dark/owner runtime acceptance outstanding. Not Golden or production-ready.
 
 ## Scope added in alpha4
 
@@ -44,6 +44,7 @@
 ## Library Overview & P2 Toolbar Alignment (Alpha17)
 
 - Retains the single owner-scoped Library, sidebar, saved views, filters, 20-per-page query, native Gutenberg editing and four compact row actions.
+- Alpha18 removes the inherited bottom margin from the selectable Library result heading only, vertically centering the `Your notes` title with its checkbox. Sidebar headings keep their spacing.
 - Separates timestamp/status from classification metadata; displays an explicit Notebook label with Unfiled fallback, Category only when assigned, and at most three personal tags plus an accessible +N tooltip for remaining tags. Values resolve exclusively through the owner's existing private catalog and are escaped; no taxonomy, REST or public-share changes.
 - The contextual bulk toolbar uses one Base-derived sizing token across Action/destination selects, standard-density Apply and red Trash, inside a responsive one-rail grid. The row-level Favorite/Pin/Edit/Trash buttons remain compact.
 - New Library Overview JS contract is included in tools/check. Full local sourcegate and WordPress staging acceptance remain required before Golden.
