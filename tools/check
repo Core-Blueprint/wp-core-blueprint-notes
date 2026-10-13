@@ -7,6 +7,7 @@ find "$ROOT" -name '*.php' -not -path '*/dist/*' -print0 | while IFS= read -r -d
 done
 node --check "$ROOT/assets/editor.js"
 node --check "$ROOT/assets/sharing.js"
+node "$ROOT/tests/sharing-ui-contract.cjs"
 php "$ROOT/tests/contract-smoke.php"
 php "$ROOT/tests/settings-hub-smoke.php"
 php "$ROOT/tests/sharing-smoke.php"
