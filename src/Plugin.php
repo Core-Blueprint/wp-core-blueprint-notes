@@ -7,6 +7,7 @@ use CB\Notes\Admin\SettingsPage;
 use CB\Notes\Sharing\Controller;
 use CB\Notes\Integration\SecureProvider;
 use CB\Notes\Organization\Catalog;
+use CB\Notes\Library\Page as LibraryPage;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -38,6 +39,7 @@ final class Plugin {
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
         SettingsPage::init();
         Catalog::init();
+        LibraryPage::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
         add_filter('map_meta_cap',[Access::class,'map_meta_cap'],20,4);
         add_filter('wp_insert_post_data',[Access::class,'force_private_status'],50,2);
@@ -151,7 +153,7 @@ final class Plugin {
         ExtensionRegistry::register([
             'id'=>'core-blueprint-notes','plugin_file'=>CB_NOTES_BASENAME,
             'requires_api'=>CB_NOTES_REQUIRED_API,
-            'menu_url'=>admin_url('edit.php?post_type='.self::TYPE),
+            'menu_url'=>admin_url('edit.php?post_type='.self::TYPE.'&page=cb-notes-library'),
             'status_id'=>'core-blueprint-notes',
         ]);
     }
@@ -159,14 +161,14 @@ final class Plugin {
         $definitions['core-blueprint-notes']=[
             'provider'=>[self::class,'status'],
             'label'=>__('Notes','core-blueprint-notes'),
-            'url'=>admin_url('edit.php?post_type='.self::TYPE),
+            'url'=>admin_url('edit.php?post_type='.self::TYPE.'&page=cb-notes-library'),
         ];
         return $definitions;
     }
     public static function status(): array {
         return ['state'=>'ok',
             'detail'=>__('Private Gutenberg notes enabled','core-blueprint-notes'),
-            'url'=>admin_url('edit.php?post_type='.self::TYPE)];
+            'url'=>admin_url('edit.php?post_type='.self::TYPE.'&page=cb-notes-library')];
     }
     public static function register_events(): void {
         foreach(['created','updated','trashed','restored','deleted'] as $kind) {
@@ -244,7 +246,7 @@ final class Plugin {
         return $views;
     }
     public static function action_links(array $links): array {
-        $links[]='<a href="'.esc_url(admin_url('edit.php?post_type='.self::TYPE)).'">'.
+        $links[]='<a href="'.esc_url(admin_url('edit.php?post_type='.self::TYPE.'&page=cb-notes-library')).'">'.
             esc_html__('Notes','core-blueprint-notes').'</a>';
         if (current_user_can('manage_options')) {
             $links[]='<a href="'.esc_url(SettingsRegistry::url(SettingsPage::EXTENSION_ID)).'">'.
