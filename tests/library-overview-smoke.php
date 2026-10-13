@@ -109,5 +109,38 @@ namespace {
     $foreign = render_note_for(2, 999);
     check_view($foreign === '', 'Foreign-owned note renders no metadata or actions');
 
+
+    $GLOBALS['labels'][4] = [
+        'notebook' => 'Foreign secret', 'category' => 'Foreign', 'tags' => ['private'],
+    ];
+    ob_start();
+    (new \ReflectionMethod(Page::class, 'render_table'))->invoke(null,
+        [new WP_Post(1, 42), new WP_Post(2, 42), new WP_Post(4, 999)],
+        42,
+        ['search' => '', 'view' => '', 'notebook' => '', 'category' => '',
+            'tag' => '', 'sort' => 'modified', 'paged' => 1]
+    );
+    $table = (string)ob_get_clean();
+    check_view(str_contains($table, '<table class="cb-notes-library__table">') &&
+        str_contains($table, '<thead>') && str_contains($table, '<tbody>') &&
+        str_contains($table, 'scope="row"'), 'Table View renders a semantic table');
+    check_view(str_contains($table, 'Note #1') && str_contains($table, 'Note #2') &&
+        !str_contains($table, 'Note #4') && !str_contains($table, 'Foreign secret'),
+        'Table respects owner gate before displaying titles or catalog labels');
+    check_view(substr_count($table, 'data-cb-notes-select-id=') === 2 &&
+        substr_count($table, 'data-cb-notes-marker="favorite"') === 2 &&
+        substr_count($table, 'data-cb-notes-marker="pinned"') === 2,
+        'Each table row has one selection and the same markers');
+    check_view(str_contains($table, 'data-cb-notes-trash-url=') &&
+        str_contains($table, 'dashicons-edit'), 'Table uses existing Edit/Trash contracts');
+    check_view(str_contains($table, 'Research &amp; Planning') &&
+        str_contains($table, 'External') && str_contains($table, '&lt;unsafe&gt;') &&
+        !str_contains($table, '<unsafe>') && str_contains($table, '>+2</span>'),
+        'Table metadata escaped; only 3 tags visible with correct overflow');
+    check_view(str_contains($table, 'cbn_sort=title') &&
+        str_contains($table, 'cbn_sort=oldest') &&
+        str_contains($table, 'aria-sort="descending"'),
+        'Title/Modified headers reuse existing server sort modes');
+
     echo "PASS PHP: tests/library-overview-smoke.php\n";
 }
