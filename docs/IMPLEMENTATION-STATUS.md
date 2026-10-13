@@ -1,8 +1,15 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha23.
-**Branch:** `feature/notes-library-table-view-p27-v1`.
-**Status:** Alpha18 Library Overview staging candidate. Isolated JS contracts passed; full local sourcegate, build and WordPress Light/Dark/owner runtime acceptance outstanding. Not Golden or production-ready.
+**Current test candidate:** 0.1.0-alpha24.
+**Branch:** `feature/notes-rc1-golden-hardening-v1` (from Alpha23 P2.7 branch, unmerged).
+**Status:** RC1 one-batch source hardening in progress, not Golden and not production-ready. Alpha23 UI was visually accepted; full exact-head sourcegate/build, WordPress privacy/security, lifecycle, i18n and compatibility acceptance still open.
+
+## RC1 integrated hardening (Alpha24)
+
+- One release-hardening branch inherits Alpha23 without merging it to main. The single-batch release boundary is documented in `docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Suite Overseer Notes roadmap.
+- Reconciles dynamic PHP gettext labels in Sharing and classification filters with literal, statically extractable strings.
+- Build script creates a fresh deterministic ZIP from an allowlist, normalizes staged timestamps/modes and refuses symlinks or unexpected package files; two local builds must have identical SHA-256.
+- Open gates: user B/admin/anonymous WordPress runtime privacy, public and optional Secure Share cache/revocation, Base/PHP/WP compatibility, JS UI localization extraction, migration/data portability/uninstall decision, and user-accepted final RC1 artifact.
 
 ## Scope added in alpha4
 
