@@ -243,6 +243,10 @@
 .cb-notes-library__meta-kind { font-weight: 600; color: var(--cb-text-muted); }
 .cb-notes-library__tag { color: var(--cb-text-muted); }
 .cb-notes-library__tag-more { color: var(--cb-text-strong); cursor: help; }
+.cb-notes-library__tag-more:focus-visible {
+    outline: 2px solid var(--cb-accent);
+    outline-offset: 2px;
+}
 .cb-notes-library__actions {
     display: flex;
     flex-wrap: wrap;
