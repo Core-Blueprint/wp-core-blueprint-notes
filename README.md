@@ -1,12 +1,12 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha10\` | **Status:** staging test candidate, not Golden or production-ready.
+**Version:** \`0.1.0-alpha11\` | **Status:** staging test candidate, not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
 ## Current functions
 
-- **Professional Productivity P1:** independent personal Favorites and Pins. Star and pin quick actions use Base compact buttons and nonce-protected AJAX. Favorites and Pinned have dedicated Library views; pins sort first by default without overriding explicit title/oldest sorts. Protected post-meta flags are not exposed in Gutenberg REST or frozen shared copies.
+- **Professional Productivity P1:** independent personal Favorites and Pins. Star and pin quick actions use Base compact icon-only buttons with centered Dashicons and nonce-protected AJAX. Favorites and Pinned have dedicated Library views; pins sort first by default without overriding explicit title/oldest sorts. Protected post-meta flags are not exposed in Gutenberg REST or frozen shared copies.
 - **Notes → Library:** primary (top) Notes submenu workspace, New note, newest-first list, server-side title/content search, Notebook and Unfiled navigation, combined Category/Tag filters, sort, bounded pagination, Edit with the Base secondary button and confirm-before-trash with the Base danger button. Gutenberg stays the sole editor. Notes → All Notes remains available as a native fallback; the optional AI Access shortcut sits last. The Settings Hub workspace link opens Library.
 
 - Native Gutenberg Notes with revisions, autosaves, strict owner authorization and optional administrator override.
@@ -33,8 +33,8 @@ Tag/media/attachment visibility in third-party blocks is **not** supported for s
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha10.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha10.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha11.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha11.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes Sharing, personal organization, Gutenberg organization and sharing guidance interactions, Library queries, marker security/interactions, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
