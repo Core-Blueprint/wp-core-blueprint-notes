@@ -194,10 +194,10 @@ function add_submenu_page(
 }
 Catalog::register_admin_menu();
 $requirements = NotesFakeAdminTheme::$screens['cb_note_page_cb-notes-organize'] ?? [];
-check(($requirements['foundations'] ?? []) === ['select-picker'],
-    'Organize requests Base Select Picker on its own registered screen');
-check(($requirements['components'] ?? []) === ['buttons', 'cards', 'fields', 'form-controls', 'panels'],
-    'Organize declares Base semantic component requirements');
+check(($requirements['foundations'] ?? []) === [],
+    'Organize no longer requests the unused Base Select Picker');
+check(($requirements['components'] ?? []) === ['buttons', 'cards', 'fields', 'form-controls', 'nav-tabs', 'notices', 'panels'],
+    'Organize declares Base tabs, notices and form component requirements');
 check(($GLOBALS['notes_admin_menu']['capability'] ?? '') === 'cb_notes_edit',
     'Organize menu remains limited to Notes editors');
 
