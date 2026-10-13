@@ -2,6 +2,7 @@
 (function () {
     'use strict';
     if (!wp || !wp.element || !wp.components || !wp.apiFetch) return;
+
     var el = wp.element.createElement;
     var useState = wp.element.useState;
     var useEffect = wp.element.useEffect;
@@ -9,119 +10,105 @@
     var target = document.getElementById('cb-notes-organization-root');
     if (!target) return;
 
-    /*
-     * Base Select Picker enhances and relocates the native <select>.
-     * React owns only the host slot; it never reconciles the enhanced DOM.
-     * The native select remains the accessible and functional fallback.
-     */
-    function KindPicker(props) {
-        var host = useRef(null);
-        var select = useRef(null);
-        var currentChange = useRef(props.onChange);
-        currentChange.current = props.onChange;
+    var kinds = {
+        notebook: { title: 'Notebooks', singular: 'notebook' },
+        category: { title: 'Categories', singular: 'category' },
+        tag: { title: 'Tags', singular: 'tag' }
+    };
+    var path = '/core-blueprint-notes/v1/organization';
 
-        useEffect(function () {
-            var container = host.current;
-            if (!container) return;
-            var nativeSelect = document.createElement('select');
-            nativeSelect.id = 'cb-notes-organize-kind';
-            nativeSelect.dataset.cbCoreSelectPicker = '1';
-            nativeSelect.dataset.cbCoreSelectPickerSearch = 'false';
-            [
-                ['notebook', 'Notebooks'],
-                ['category', 'Categories'],
-                ['tag', 'Tags']
-            ].forEach(function (entry) {
-                var option = document.createElement('option');
-                option.value = entry[0];
-                option.textContent = entry[1];
-                nativeSelect.appendChild(option);
-            });
-            nativeSelect.value = props.value;
-            container.appendChild(nativeSelect);
-            select.current = nativeSelect;
-            function changed() { currentChange.current(nativeSelect.value); }
-            nativeSelect.addEventListener('change', changed);
-
-            // If Base loaded earlier, enhance now; otherwise its module
-            // scans the marked native select at DOMContentLoaded.
-            if (window.cbCore && window.cbCore.selectPicker &&
-                typeof window.cbCore.selectPicker.enhance === 'function') {
-                window.cbCore.selectPicker.enhance(nativeSelect);
-            }
-            return function () {
-                nativeSelect.removeEventListener('change', changed);
-                select.current = null;
-                container.textContent = '';
-            };
-        }, []);
-
-        useEffect(function () {
-            if (!select.current) return;
-            select.current.value = props.value;
-            select.current.dispatchEvent(new Event('cb:select-picker-sync'));
-        }, [props.value]);
-
-        return el('div', { className: 'cb-core-field cb-notes-organize__selector' },
-            el('label', {
-                htmlFor: 'cb-notes-organize-kind', className: 'cb-core-field__label'
-            }, 'Manage'),
-            el('div', { ref: host, className: 'cb-notes-organize__picker-host' })
-        );
+    function validSection(value) {
+        return Object.prototype.hasOwnProperty.call(kinds, value) ? value : 'notebook';
     }
 
-    function Card(props) {
-        return el('section', {
-            className: 'cb-core-card cb-notes-organize__card' +
-                (props.id === 'select' ? ' cb-notes-organize__card--picker' : ''),
-            key: props.id
-        },
-            el('header', { className: 'cb-core-card__header' },
-                el('h2', { className: 'cb-core-card__title' }, props.title)),
-            el('div', { className: 'cb-core-card__body' }, props.children)
-        );
+    function sectionFromUrl() {
+        return validSection(new URL(window.location.href).searchParams.get('section'));
+    }
+
+    function sectionUrl(section) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('section', section);
+        return url.toString();
     }
 
     function App() {
         var catalogState = useState(null), catalog = catalogState[0], setCatalog = catalogState[1];
-        var kindState = useState('notebook'), kind = kindState[0], setKind = kindState[1];
+        var kindState = useState(sectionFromUrl), kind = kindState[0], setKind = kindState[1];
+        var addingState = useState(false), adding = addingState[0], setAdding = addingState[1];
         var nameState = useState(''), newName = nameState[0], setNewName = nameState[1];
         var editState = useState(''), editing = editState[0], setEditing = editState[1];
         var editNameState = useState(''), editName = editNameState[0], setEditName = editNameState[1];
         var busyState = useState(false), busy = busyState[0], setBusy = busyState[1];
         var messageState = useState(''), message = messageState[0], setMessage = messageState[1];
         var errorState = useState(''), error = errorState[0], setError = errorState[1];
-        var path = '/core-blueprint-notes/v1/organization';
+        var createInput = useRef(null);
 
         useEffect(function () {
-            var alive = true;
-            wp.apiFetch({ path: path }).then(function (data) {
-                if (alive) setCatalog(data);
+            var active = true;
+            wp.apiFetch({ path: path }).then(function (result) {
+                if (active) setCatalog(result);
             }).catch(function (failure) {
-                if (alive) setError(failure.message || 'Could not load your personal labels.');
+                if (active) setError(failure.message || 'Could not load your personal labels.');
             });
-            return function () { alive = false; };
+            return function () { active = false; };
         }, []);
 
-        function mutate(action, id, name) {
+        useEffect(function () {
+            if (adding && createInput.current) {
+                var input = createInput.current.querySelector('input');
+                if (input) input.focus();
+            }
+        }, [adding, kind]);
+
+        useEffect(function () {
+            function restoreSection() {
+                setKind(sectionFromUrl());
+                setAdding(false);
+                setEditing('');
+                setNewName('');
+                setMessage('');
+                setError('');
+            }
+            window.addEventListener('popstate', restoreSection);
+            return function () { window.removeEventListener('popstate', restoreSection); };
+        }, []);
+
+        function selectSection(next, event) {
+            if (event) event.preventDefault();
+            if (busy || next === kind) return;
+            window.history.replaceState(window.history.state, '', sectionUrl(next));
+            setKind(next);
+            setAdding(false);
+            setEditing('');
+            setNewName('');
+            setEditName('');
+            setError('');
+            setMessage('');
+        }
+
+        function mutate(action, itemId, name, selectedKind) {
             if (busy) return;
             setBusy(true);
             setError('');
             setMessage('');
-            wp.apiFetch({ path: path, method: 'POST',
-                data: { action: action, kind: kind, id: id || '', name: name || '' }
+            wp.apiFetch({
+                path: path,
+                method: 'POST',
+                data: { action: action, kind: selectedKind, id: itemId || '', name: name || '' }
             }).then(function (result) {
                 setCatalog(result);
                 setNewName('');
                 setEditing('');
                 setEditName('');
-                setMessage('Your personal ' + kind + ' list has been updated.');
+                setAdding(false);
+                var verb = action === 'create' ? 'Created' : action === 'rename' ? 'Renamed' : 'Removed';
+                setMessage(verb + ' ' + kinds[selectedKind].singular + ' successfully.');
             }).catch(function (failure) {
                 setError(failure.message || 'Changes could not be saved.');
             }).finally(function () { setBusy(false); });
         }
 
-        function confirmDelete(item) {
+        function confirmDelete(item, selectedKind) {
             var modal = window.cbCore && window.cbCore.modal;
             if (!modal || typeof modal.show !== 'function') {
                 setError('The Core Blueprint confirmation is unavailable. No item was removed.');
@@ -129,138 +116,193 @@
             }
             modal.show({
                 title: 'Remove ' + item.name + '?',
-                body: 'This removes the personal ' + kind + ' from your catalog. Notes linked to it will become unfiled in that field. Note contents and revisions will not be deleted.',
+                body: 'This removes the personal ' + kinds[selectedKind].singular +
+                    ' from your catalog. Notes using it will become unfiled in that field. Note content and revisions remain intact.',
                 confirmVariant: 'danger',
                 confirmLabel: 'Remove label',
-                confirmCheck: { label: 'I understand that this label will no longer be assigned to notes.' }
-            }).then(function (yes) {
-                if (yes === true) mutate('delete', item.id, '');
+                confirmCheck: {
+                    label: 'I understand that this label will no longer be assigned to notes.'
+                }
+            }).then(function (accepted) {
+                if (accepted === true) mutate('delete', item.id, '', selectedKind);
             }).catch(function () {
-                setError('Could not confirm removal. No changes were made.');
+                setError('Could not complete the confirmation. No changes were made.');
             });
         }
 
-        var kinds = {
-            notebook: { title: 'Notebooks', singular: 'notebook' },
-            category: { title: 'Categories', singular: 'category' },
-            tag: { title: 'Tags', singular: 'tag' }
-        };
         var spec = kinds[kind];
-        var children = [
-            el(Card, { id: 'select', key: 'select', title: 'Personal organization' },
-                el(KindPicker, {
-                    value: kind,
-                    onChange: function (value) {
-                        setKind(value);
-                        setEditing('');
-                        setNewName('');
-                        setMessage('');
-                        setError('');
-                    }
-                })
-            )
+        var tabs = Object.keys(kinds).map(function (key) {
+            var active = key === kind;
+            return el('a', {
+                key: key,
+                href: sectionUrl(key),
+                className: 'nav-tab' + (active ? ' nav-tab-active' : ''),
+                'aria-current': active ? 'page' : undefined,
+                onClick: function (event) { selectSection(key, event); }
+            }, kinds[key].title);
+        });
+
+        var content = [
+            el('nav', {
+                key: 'tabs', className: 'nav-tab-wrapper cb-core-tab-wrapper cb-notes-organize__tabs',
+                'aria-label': 'Personal organization sections'
+            }, tabs)
         ];
 
-        var notices = [];
-        if (error) notices.push(el(wp.components.Notice, {
-            key: 'error', status: 'error', isDismissible: true,
-            onRemove: function () { setError(''); }
-        }, error));
-        if (message) notices.push(el(wp.components.Notice, {
-            key: 'success', status: 'success', isDismissible: true,
-            onRemove: function () { setMessage(''); }
-        }, message));
-        if (notices.length) {
-            children.push(el('div', {
-                key: 'notices', className: 'cb-notes-organize__notices', role: 'status'
-            }, notices));
+        if (error) {
+            content.push(el('div', {
+                key: 'error', className: 'cb-core-notice cb-core-notice--error',
+                role: 'alert'
+            }, el('div', { className: 'cb-core-notice__content' },
+                el('p', { className: 'cb-core-notice__message' }, error)
+            )));
+        }
+        if (message) {
+            content.push(el('p', {
+                key: 'message', className: 'cb-notes-organize__feedback',
+                role: 'status', 'aria-live': 'polite'
+            }, message));
         }
 
         if (!catalog) {
-            children.push(el(Card, { id: 'loading', key: 'loading', title: spec.title },
-                el('p', { className: 'cb-notes-organize__help' }, 'Loading private labels…')
-            ));
+            content.push(el('p', {
+                key: 'loading', className: 'cb-notes-organize__help',
+                role: 'status'
+            }, 'Loading personal labels…'));
         } else {
             var items = catalog[kind] || [];
-            var existing = [
-                el('p', { key: 'count', className: 'cb-notes-organize__help' },
-                    items.length + ' personal labels. Changes are private to your account.')
-            ];
+            var list = [];
 
-            if (!items.length) {
-                existing.push(el('p', {
+            if (items.length === 0) {
+                list.push(el('p', {
                     key: 'empty', className: 'cb-notes-organize__empty'
-                }, 'No ' + spec.title.toLowerCase() + ' yet. Create one below.'));
+                }, 'No ' + spec.title.toLowerCase() + ' yet. Use Add new to create your first ' + spec.singular + '.'));
             }
-
             items.forEach(function (item) {
                 var isEditing = editing === item.id;
-                var actions;
+                var row;
+
                 if (isEditing) {
-                    actions = el('div', { className: 'cb-notes-organize__rename' },
+                    row = el('div', { className: 'cb-notes-organize__rename' },
                         el(wp.components.TextControl, {
-                            label: 'Rename ' + item.name, value: editName,
-                            maxLength: 80, onChange: setEditName
+                            label: 'Rename ' + item.name,
+                            value: editName,
+                            maxLength: 80,
+                            disabled: busy,
+                            onChange: setEditName
                         }),
                         el('div', { className: 'cb-notes-organize__actions' },
                             el(wp.components.Button, {
                                 className: 'cb-core-button cb-core-button--primary',
-                                variant: 'primary', disabled: busy || !editName.trim(),
-                                onClick: function () { mutate('rename', item.id, editName.trim()); }
+                                variant: 'primary',
+                                disabled: busy || !editName.trim(),
+                                onClick: function () { mutate('rename', item.id, editName.trim(), kind); }
                             }, 'Save'),
                             el(wp.components.Button, {
                                 className: 'cb-core-button cb-core-button--secondary',
                                 variant: 'secondary',
-                                onClick: function () { setEditing(''); }
+                                disabled: busy,
+                                onClick: function () { setEditing(''); setEditName(''); }
                             }, 'Cancel')
                         )
                     );
                 } else {
-                    actions = el('div', { className: 'cb-notes-organize__actions' },
+                    row = el('div', { className: 'cb-notes-organize__actions' },
                         el(wp.components.Button, {
                             className: 'cb-core-button cb-core-button--secondary',
-                            variant: 'secondary', disabled: busy,
-                            onClick: function () { setEditing(item.id); setEditName(item.name); }
+                            variant: 'secondary',
+                            disabled: busy,
+                            onClick: function () {
+                                setAdding(false);
+                                setEditing(item.id);
+                                setEditName(item.name);
+                                setError('');
+                                setMessage('');
+                            }
                         }, 'Rename'),
                         el(wp.components.Button, {
                             className: 'cb-core-button cb-core-button--danger',
-                            variant: 'secondary', isDestructive: true, disabled: busy,
-                            onClick: function () { confirmDelete(item); }
+                            variant: 'secondary',
+                            isDestructive: true,
+                            disabled: busy,
+                            onClick: function () { confirmDelete(item, kind); }
                         }, 'Remove')
                     );
                 }
-                existing.push(el('div', { key: item.id, className: 'cb-notes-organize__item' },
-                    el('strong', { className: 'cb-notes-organize__item-name' }, item.name),
-                    actions
-                ));
+
+                list.push(el('div', {
+                    key: item.id,
+                    className: 'cb-notes-organize__item' + (isEditing ? ' cb-notes-organize__item--editing' : '')
+                }, el('strong', { className: 'cb-notes-organize__item-name' }, item.name), row));
             });
 
-            children.push(el(Card, {
-                id: 'items', key: 'items', title: spec.title
-            }, el('div', { className: 'cb-notes-organize__items' }, existing)));
+            var header = el('div', { className: 'cb-notes-organize__list-header' },
+                el('div', { className: 'cb-notes-organize__list-heading' },
+                    el('h2', { className: 'cb-notes-organize__heading' }, spec.title),
+                    el('span', { className: 'cb-notes-organize__count' },
+                        items.length + (items.length === 1 ? ' personal label' : ' personal labels'))
+                ),
+                el(wp.components.Button, {
+                    className: 'cb-core-button ' +
+                        (adding ? 'cb-core-button--secondary' : 'cb-core-button--primary'),
+                    variant: adding ? 'secondary' : 'primary',
+                    disabled: busy,
+                    'aria-expanded': adding,
+                    'aria-controls': 'cb-notes-organize-create',
+                    onClick: function () {
+                        setEditing('');
+                        setEditName('');
+                        setNewName('');
+                        setAdding(!adding);
+                        setError('');
+                        setMessage('');
+                    }
+                }, adding ? 'Cancel' : 'Add new')
+            );
 
-            children.push(el(Card, {
-                id: 'create', key: 'create', title: 'Create ' + spec.singular
-            },
-                el('div', { className: 'cb-notes-organize__create' },
+            var panel = [header];
+            if (adding) {
+                panel.push(el('div', {
+                    id: 'cb-notes-organize-create',
+                    key: 'create',
+                    ref: createInput,
+                    className: 'cb-notes-organize__create'
+                },
                     el(wp.components.TextControl, {
-                        key: 'new-name', label: 'Name', value: newName,
-                        onChange: setNewName, maxLength: 80,
+                        label: 'Name',
+                        value: newName,
+                        maxLength: 80,
+                        disabled: busy,
+                        onChange: setNewName,
                         placeholder: 'Name your new ' + spec.singular
                     }),
                     el('div', { className: 'cb-notes-organize__actions' },
                         el(wp.components.Button, {
                             className: 'cb-core-button cb-core-button--primary',
-                            variant: 'primary', disabled: busy || !newName.trim(),
-                            onClick: function () { mutate('create', '', newName.trim()); }
-                        }, 'Create ' + spec.singular)
-                    ),
-                    el('p', { className: 'cb-notes-organize__help' },
-                        'Removing a label does not delete any note. Labels are not included in shared content.')
-                )
-            ));
+                            variant: 'primary',
+                            disabled: busy || !newName.trim(),
+                            onClick: function () { mutate('create', '', newName.trim(), kind); }
+                        }, 'Create ' + spec.singular),
+                        el(wp.components.Button, {
+                            className: 'cb-core-button cb-core-button--secondary',
+                            variant: 'secondary',
+                            disabled: busy,
+                            onClick: function () { setAdding(false); setNewName(''); }
+                        }, 'Cancel')
+                    )
+                ));
+            }
+            panel.push(el('div', {
+                key: 'items', className: 'cb-notes-organize__items'
+            }, list));
+
+            content.push(el('section', {
+                key: 'manager', className: 'cb-core-card cb-notes-organize__card',
+                'aria-label': spec.title + ' management'
+            }, el('div', { className: 'cb-core-card__body' }, panel)));
         }
-        return el('div', { className: 'cb-notes-organize__stack' }, children);
+
+        return el('div', { className: 'cb-notes-organize__stack' }, content);
     }
 
     wp.element.render(el(App), target);
