@@ -1,6 +1,6 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha14.
+**Current test candidate:** 0.1.0-alpha15.
 **Branch:** `feature/notes-productivity-p2-bulk-actions-v1`.
 **Status:** Alpha14 P2 staging candidate; full local sourcegate and WordPress runtime acceptance outstanding. Not Golden or production-ready.
 
@@ -32,9 +32,9 @@
 - PHP/REST storage, authorization, frozen snapshots, Base and Secure Share code were not modified in Alpha9.
 - **Alpha10–13 P1**: owner-authorized Favorite and Pinned protected post-meta flags, AJAX marker toggles, separate saved views and pinned-first default ordering. Alpha11 centers the Star/Pin glyphs without overriding Base sizes. Alpha12 makes Edit and Trash icon-only buttons with localized per-note tooltips and accessible labels, while preserving the Base confirmation requirement and native WordPress trash route. Alpha13 ensures the Base danger color/focus semantics survive WordPress admin button cascade in the Library; no local color palette introduced. Gutenberg content and frozen public/secure snapshots remain unchanged.
 
-## P2 Professional Productivity (Alpha14)
+## P2 Professional Productivity (Alpha14–15)
 
-- Adds checkbox selection of the visible Library page (maximum 20 rows) and a Base-themed contextual toolbar. Selection never crosses search, notebook, or pagination boundaries.
+- Adds checkbox selection of the visible Library page (maximum 20 rows) and a Base-themed contextual toolbar. Alpha15 replaces two simultaneous forms with one Action selector, conditional destination field and Apply; the independent red Trash action remains Base-confirmed. Selection never crosses search, notebook, or pagination boundaries.
 - Owner-only AJAX action `cb_notes_bulk`: per-note ownership and edit/delete permissions, per-user catalog destination validation, explicit nonce, strict bounded distinct note IDs.
 - Independently apply notebook moves, category changes, or `wp_trash_post`. No bulk tags or irreversible deletion. Trash invokes existing Notes share-link revocation lifecycle hooks.
 - Response returns exact updated/failed IDs and counts, including partial failures; client identifies failed visible note names with safe text content and offers manual refresh to maintain correct server-side filters.
