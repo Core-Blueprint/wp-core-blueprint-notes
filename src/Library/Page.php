@@ -42,6 +42,7 @@ final class Page {
             return;
         }
         Assets::enqueue_modals(Assets::MODAL_PRESENTATION_WP_NATIVE);
+        wp_enqueue_style('dashicons');
         wp_enqueue_style(
             'cb-notes-library',
             plugins_url('assets/library-admin.css', CB_NOTES_FILE),
