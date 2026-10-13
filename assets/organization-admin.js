@@ -74,6 +74,11 @@
         }, []);
 
         function selectSection(next, event) {
+            // Respect Ctrl/Cmd/Shift-click and opening a section in a new tab.
+            if (event && (event.ctrlKey || event.metaKey || event.shiftKey ||
+                event.altKey || (typeof event.button === 'number' && event.button !== 0))) {
+                return;
+            }
             if (event) event.preventDefault();
             if (busy || next === kind) return;
             window.history.replaceState(window.history.state, '', sectionUrl(next));
@@ -153,7 +158,9 @@
             content.push(el('div', {
                 key: 'error', className: 'cb-core-notice cb-core-notice--error',
                 role: 'alert'
-            }, el('div', { className: 'cb-core-notice__content' },
+            }, el('span', {
+                className: 'cb-core-notice__icon', 'aria-hidden': 'true'
+            }, '!'), el('div', { className: 'cb-core-notice__content' },
                 el('p', { className: 'cb-core-notice__message' }, error)
             )));
         }
@@ -164,7 +171,7 @@
             }, message));
         }
 
-        if (!catalog) {
+        if (!catalog && !error) {
             content.push(el('p', {
                 key: 'loading', className: 'cb-notes-organize__help',
                 role: 'status'
@@ -248,7 +255,7 @@
                     variant: adding ? 'secondary' : 'primary',
                     disabled: busy,
                     'aria-expanded': adding,
-                    'aria-controls': 'cb-notes-organize-create',
+                    'aria-controls': adding ? 'cb-notes-organize-create' : undefined,
                     onClick: function () {
                         setEditing('');
                         setEditName('');
