@@ -8,6 +8,7 @@ done
 node --check "$ROOT/assets/editor.js"
 node --check "$ROOT/assets/organization-admin.js"
 node "$ROOT/tests/organization-ui-contract.cjs"
+node "$ROOT/tests/organization-interaction-smoke.cjs"
 node --check "$ROOT/assets/sharing.js"
 node "$ROOT/tests/sharing-ui-contract.cjs"
 php "$ROOT/tests/contract-smoke.php"
