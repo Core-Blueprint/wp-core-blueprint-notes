@@ -50,5 +50,10 @@ check(css.includes('.cb-notes-library__classification {') &&
     css.includes('var(--cb-space-2, 8px)') &&
     css.includes('.cb-notes-library__tag-more {'),
     'Compact, wrapping Base-token metadata rail');
+check(css.includes('.cb-notes-library__results-heading .cb-notes-library__results-title h2 {') &&
+    /\.cb-notes-library__results-heading\s+\.cb-notes-library__results-title h2\s*\{\s*margin:\s*0;\s*\}/.test(css) &&
+    css.includes('align-items: center;') &&
+    !css.includes('.cb-notes-library__results-title h2 { margin-block-end:'),
+    'Your notes heading has no bottom margin and aligns centrally with its checkbox');
 check(!css.match(/#[0-9a-fA-F]{3,8}\b/), 'No hard-coded custom color palette');
 console.log('PASS JS: tests/library-overview-contract.cjs');
