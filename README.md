@@ -35,7 +35,7 @@ unzip -t dist/core-blueprint-notes-0.1.0-alpha6.zip
 sha256sum dist/core-blueprint-notes-0.1.0-alpha6.zip
 \`\`\`
 
-Artifact root: \`core-blueprint-notes/\`. Both PHP and JavaScript smoke suites include Sharing, personal organization and alpha5 Library query/UX contracts. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
+Artifact root: \`core-blueprint-notes/\`. Both PHP and JavaScript smoke suites include Sharing, personal organization and alpha6 Library query, UX and menu-order contracts. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
 
 Use the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
 
