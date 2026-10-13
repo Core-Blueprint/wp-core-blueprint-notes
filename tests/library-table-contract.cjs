@@ -72,7 +72,7 @@ check(display.includes("add_action('admin_post_' . self::ACTION") &&
 check(css.includes('.cb-notes-library__table-scroll {') &&
     css.includes('overflow-x: auto;') &&
     css.includes('.cb-notes-library__table {') &&
-    css.includes('min-width: 740px;') &&
+    css.includes('min-width: 940px;') &&
     css.includes('var(--cb-border)'),
     'Responsive, contained, token-based Table View');
 check(css.includes('.cb-notes-library__display-link.is-active') &&
