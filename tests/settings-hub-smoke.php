@@ -100,7 +100,8 @@ namespace {
     check(($GLOBALS['last_query']['posts_per_page'] ?? 0) === 1, 'count query bounded');
     check(!str_contains($overview, '<h1'), 'Base owns only page heading');
     check(str_contains($overview, 'nav-tab-active'), 'unknown tab defaults to Overview');
-    check(str_contains($overview, 'Manage Notes'), 'own WordPress workspace linked');
+    check(str_contains($overview, 'Open Notes Library'), 'primary Library workspace linked');
+    check(str_contains($overview, 'page=cb-notes-library'), 'Settings Hub link resolves to Library');
     check(str_contains($overview, 'Disabled'), 'read-only AI status shown disabled');
 
     $_GET['tab'] = 'ai-access';
