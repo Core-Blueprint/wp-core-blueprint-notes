@@ -1,47 +1,40 @@
 # Core Blueprint Notes
 
-**Version:** `0.1.0-alpha3` | **Status:** private-staging test candidate; not Golden, merged or production-ready.
+**Version:** \`0.1.0-alpha4\` | **Status:** staging test candidate, not Golden or production-ready.
 
-WordPress-native Gutenberg Notes with owner-scoped privacy, personal notebook labels and deliberately controlled sharing. **Core Blueprint Base API 1.2+ is mandatory**. Secure Share is an optional, independent provider.
+Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
-## Implemented capabilities
+## Current functions
 
-- Native Gutenberg editor, WordPress revisions/autosaves, private-by-default `cb_note` storage and explicit owner/administrator permissions.
-- Flat personal **Notebook** label, with sidebar field named **Name**.
-- Base Settings Hub registration under **Business** with Overview / AI Access. Existing read-only Abilities API/MCP opt-in is preserved.
-- **Sharing** Gutenberg panel with three mutually exclusive access states:
-  - **Private**: default, no external access.
-  - **Public Share**: frozen, allowlisted static-text HTML snapshot at a dedicated `/cb-notes/shared/<key>/` URL, noindex/no-store, behind a mandatory **Base Modal Foundation danger confirmation** with typed `PUBLIC` and acknowledgement.
-  - **Secure Share**: optional Secure Share public `ResourceProvider` integration; frozen view-only snapshot, password/PIN when supplied, 1/7/30-day expiration, per-grant authorization and ability to revoke. No fallback if Secure Share is absent.
-- Ordinary WordPress Publish action is coerced to internal `private` status and does **not** publish to a public URL.
-- Public and Secure Share are different capabilities from Notes editing. The owner must separately authorize either mode.
-- Content-version digest and expected sharing mode prevent stale sharing approvals. **Stopping sharing is allowed even if the editor has stale/unsaved changes.**
-- Existing alpha1/alpha2 Notes with `publish` status are migrated to `private` in bounded batches on administrator visits.
-- Trash/delete revokes the share; restore must never reactivate the prior public URL.
-- Private Notes editing, public sharing and Secure Share operations are intentionally separate from one another.
+- Native Gutenberg Notes with revisions, autosaves, strict owner authorization and optional administrator override.
+- Personal **Notebooks** (one per Note), **Categories** (one per Note) and **Tags** (up to 12 per Note).
+- Owner-private organization catalog stored in **user meta**, with opaque identifiers stored in authorized Note post meta. This is intentionally **not** a global WordPress taxonomy, so term labels, suggestions and filters are never shared by default.
+- Gutenberg document panels for Notebook, Category and Tags. Users can choose existing labels or create a new one. Use **Notes → Organize** to manage, rename and remove personal labels. Removal cleans up references on up to 250 owned Notes; larger operations are explicitly refused pending a reviewed bulk process. Old Notebook text labels migrate on the owner's admin visits in batches of 30.
+- Notes list columns for Notebook, Category and Tags, with combined owner-scoped filters. Internal organization metadata is never added to Public or Secure Share snapshots.
+- Private-by-default \`cb_note\` WordPress post type. WordPress's native Publish action does **not** make Notes externally public.
+- **Public Share:** separate unlisted URL with frozen allowlisted static Gutenberg HTML, explicitly created only through a Base danger modal with typed \`PUBLIC\` and required acknowledgement. Noindex/no-store are not substitutes for authorization.
+- **Secure Share:** optional standalone premium-capable provider adapter using Secure Share's public consumer API. If absent, no prompt, warning, upsell or nonfunctional control appears. Secure links support available provider-side protection, expiry and revocation; only frozen view snapshots are delivered.
+- Shared links can be revoked. Trash/delete permanently disarms Notes-managed public and secure delivery. The original Note remains private.
+- Optional read-only Abilities/MCP integration; AI abilities remain disabled by default and author-scoped.
+- Base Settings Hub tile under **Business**; Overview and AI Access settings.
 
-## Boundaries / warnings
+## Privacy boundaries
 
-**Only use disposable staging and test data.** Neither multi-user WordPress runtime privacy nor the authenticated Secure Share provider flow has been accepted yet. Unsupported block types (media, embeds, dynamic/custom blocks), public media attachments, shortcode expansion and live collaboration are out of scope. Only statically supported text/layout blocks are eligible for sharing.
+No global Notes taxonomies or term endpoints are registered. REST organization operations always use the authenticated user's own catalog. A site administrator with \`cb_notes_manage_all\` can manage other authors' Note content under the established policy, but their different personal labels cannot be silently assigned to another author's note.
 
-Shared copies are frozen. Editing the original does not change the shared version. After withdrawal, recipients might retain copies; disabling a link does not recall them. A shared link is a bearer secret where applicable; never put a secure invitation URL in logs or tickets.
+Tag/media/attachment visibility in third-party blocks is **not** supported for shared snapshots. Dynamic blocks, embeds and media are rejected. Hierarchical notebooks, team notebooks, collaboration, independent export/import and private file attachments remain explicitly out of scope. Core Blueprint Notes never claims secrecy against a server administrator or compromised hosting account.
 
-Public Share URL delivery is **unlisted, not password protected**. Noindex is not a secrecy mechanism. Secure Share is the separate controlled-access mode.
+## Build and staging acceptance
 
-## Build from the canonical GitHub branch
-
-```bash
-git fetch origin
-git switch feature/notes-visibility-sharing-alpha3-v1 || git switch --track origin/feature/notes-visibility-sharing-alpha3-v1
-git pull --ff-only
+\`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha3.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha3.zip
-```
+unzip -t dist/core-blueprint-notes-0.1.0-alpha4.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha4.zip
+\`\`\`
 
-Output: `dist/core-blueprint-notes-0.1.0-alpha3.zip` with root `core-blueprint-notes/`.
+Artifact root: \`core-blueprint-notes/\`. Both PHP and JavaScript smoke suites include the alpha3 Sharing gates plus alpha4 owner-private organization checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
 
-`tools/check` runs PHP/JavaScript syntax, the existing owner/Abilities and Settings Hub smoke tests, plus alpha3 sharing-state and modal-contract tests. These are **mock/unit-level** controls; they do not establish production safety. See [alpha3 acceptance](docs/ALPHA3-ACCEPTANCE.md) for the required WordPress, two-user privacy, cache and Secure Share runtime tests.
+Use the [single alpha4 staging acceptance batch](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) to verify upgrade/migration, Gutenberg, organization, private library filters, Public/Secure Share, cache and the mandatory two-user privacy matrix.
 
-No merge, deployment, publication, release, or CI/CD action is authorized by building this test candidate.
+**Governance:** no merge, CI/CD, WordPress.org publication or production deployment without separate explicit GO.
