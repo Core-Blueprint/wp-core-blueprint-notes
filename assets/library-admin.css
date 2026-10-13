@@ -156,21 +156,24 @@
     background: var(--cb-surface-2);
 }
 .cb-notes-library__bulk-top,
-.cb-notes-library__bulk-options {
+.cb-notes-library__bulk-options,
+.cb-notes-library__bulk-edit {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--cb-space-3, 12px);
 }
-.cb-notes-library__bulk-top { justify-content: space-between; margin-block-end: var(--cb-space-3, 12px); }
-.cb-notes-library__bulk-options > div {
-    display: flex;
-    align-items: end;
-    flex-wrap: wrap;
-    gap: var(--cb-space-2, 8px);
+.cb-notes-library__bulk-top {
+    justify-content: space-between;
+    margin-block-end: var(--cb-space-3, 12px);
 }
-.cb-notes-library__bulk-options label { width: 100%; font-weight: 600; }
-.cb-notes-library__bulk-options select { min-width: 12ch; max-width: 100%; }
+.cb-notes-library__bulk-options { align-items: end; justify-content: space-between; }
+.cb-notes-library__bulk-edit { align-items: end; flex: 1 1 auto; }
+.cb-notes-library__bulk-field { display: grid; gap: var(--cb-space-2, 8px); min-width: 0; }
+.cb-notes-library__bulk-field label { font-weight: 600; }
+.cb-notes-library__bulk-field select { min-width: 12rem; max-width: 100%; }
+.cb-core-wrap .cb-notes-library__bulk-field[hidden] { display: none; }
+.cb-notes-library__bulk-trash { margin-inline-start: auto; }
 .cb-notes-library__bulk-result {
     display: flex;
     flex-wrap: wrap;
@@ -263,6 +266,30 @@
     color: var(--cb-danger);
     opacity: 0.5;
 }
+/* Apply the same canonical danger tokens to the separate bulk-trash action.
+   WordPress .button specificity otherwise removes its destructive appearance. */
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash {
+    background: transparent;
+    border: 1px solid var(--cb-danger);
+    color: var(--cb-danger);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:hover,
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:focus {
+    background: var(--cb-danger);
+    border-color: var(--cb-danger);
+    color: var(--cb-surface-1);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:focus-visible {
+    outline: 2px solid var(--cb-danger);
+    outline-offset: 2px;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:disabled {
+    background: transparent;
+    color: var(--cb-danger);
+    opacity: 0.5;
+}
 .cb-notes-library__empty { text-align: center; padding: var(--cb-space-6, 32px) 12px; }
 .cb-notes-library__empty-title { margin: 0; color: var(--cb-text-strong); font-size: 1rem; line-height: 1.4; }
 .cb-notes-library__empty p { color: var(--cb-text-muted); margin-block: var(--cb-space-3, 12px) var(--cb-space-4, 16px); }
@@ -287,9 +314,10 @@
     .cb-notes-library__filter-grid { grid-template-columns: minmax(0, 1fr); }
     .cb-notes-library__note { align-items: flex-start; flex-direction: column; }
     .cb-notes-library__actions { justify-content: flex-start; }
-    .cb-notes-library__bulk-options { flex-direction: column; align-items: stretch; }
-    .cb-notes-library__bulk-options > div { align-items: stretch; }
-    .cb-notes-library__bulk-options select { flex: 1 1 100%; }
+    .cb-notes-library__bulk-options,
+    .cb-notes-library__bulk-edit { flex-direction: column; align-items: stretch; }
+    .cb-notes-library__bulk-field select { width: 100%; min-width: 0; }
+    .cb-notes-library__bulk-trash { margin-inline-start: 0; align-self: flex-start; }
     .cb-notes-library__identity { align-items: flex-start; }
 }
 @media (prefers-reduced-motion: reduce) {
