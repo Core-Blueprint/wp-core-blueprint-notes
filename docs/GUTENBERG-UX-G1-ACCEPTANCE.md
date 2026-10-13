@@ -1,8 +1,8 @@
-# Core Blueprint Notes — Gutenberg UX Golden G1 acceptance
+# Core Blueprint Notes — Gutenberg UX Golden G1–G2 acceptance
 
 **Version:** 0.1.0-alpha9
 **Branch:** feature/notes-gutenberg-ux-g1-v1
-**Scope:** one progressive Gutenberg Organize panel; privacy messaging.
+**Scope:** G1 progressive Organize panel and G2 Save & Share guidance. No sharing authorization or data-model changes.
 **Dependencies:** Core Blueprint Base API 1.2+, native Gutenberg. Secure Share remains optional.
 **Status:** staging candidate only. Do not claim Golden before browser/runtime acceptance.
 
@@ -15,6 +15,7 @@
     git rev-parse HEAD
     node --check assets/editor.js
     node tests/gutenberg-organization-interaction.cjs
+    node tests/gutenberg-sharing-guidance.cjs
     node tests/organization-ui-contract.cjs
     node tests/sharing-ui-contract.cjs
     bash tools/check
@@ -33,7 +34,7 @@ Use disposable staging and replace the installed plugin with the new alpha9 ZIP.
 4. Select, clear and reselect a Notebook. Save, reopen, confirm the ID-backed choice persists and Library Notebook/Unfiled filters update.
 5. Use New notebook to create a personal notebook inline, verify it is selected automatically, save and reopen. Cancel an inline creation and verify no empty catalog item appears. Repeat for Category and Tag.
 6. Assign several tags, remove one and verify the change after reopening; at the maximum of twelve, no action should allow adding a thirteenth.
-7. While editing an existing Note, verify changes aren't silently published via Sharing. Confirm that the separate Sharing panel still provides the explicit Public Share confirmation (typed PUBLIC and checkbox) and allows independent revocation. No new share link may be created by saving a Note.
+7. While editing an existing Note, verify Saving/Publishing never triggers sharing. The separate Sharing panel displays Private, Public copy active or Secure copy active. When a share exists, it explains that saving does not update the frozen copy. Confirm the explicit Public Share action still uses typed PUBLIC plus acknowledgement. With unsaved edits, making new links is disabled but Stop sharing remains available.
 8. Check narrow Gutenberg sidebars, keyboard focus/labels, browser zoom, screen readers, and WordPress Light/Dark Mode. Note that the editor uses Gutenberg components, not Base Admin Theme button styles.
 9. Repeat with a second user. Labels and suggestions remain strictly personal. The existing cross-user REST and Public/Secure Share boundaries must not regress.
 10. On first use, a failed organization REST request must show a meaningful error without overwriting saved classification meta; Share must remain available independently.
@@ -42,4 +43,4 @@ Use disposable staging and replace the installed plugin with the new alpha9 ZIP.
 
 Collect one screenshot of the default collapsed Organize panel, one with Category/Tags revealed, and the local sourcegate/build output. No change to Base, Secure Share, the personal catalog data model or native Gutenberg is permitted in G1.
 
-After G1 acceptance, plan **G2 Save & Share guided workflow polish** only if the real editor still needs improvement. Keep the Sharing safety contracts and explicit public confirmation intact. Do not merge or deploy without an explicit GO.
+After G1–G2 acceptance, proceed to the previously agreed **Professional Productivity** roadmap only with a separately scoped feature plan. Keep the Sharing safety contracts and explicit public confirmation intact. Do not merge or deploy without an explicit GO.
