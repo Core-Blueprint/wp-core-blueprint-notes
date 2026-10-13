@@ -55,4 +55,11 @@ verify(!markers.includes('register_post_meta(') && !markers.includes('show_in_re
 verify(query.includes("Markers::FAVORITE") && query.includes("Markers::PINNED"), 'P1 saved views filter by exact private metadata');
 verify(js.includes("window.fetch(endpoint") && js.includes("credentials: 'same-origin'"), 'P1 actions are authenticated async requests');
 verify(css.includes('cb-notes-library__marker[hidden]'), 'P1 actions remain hidden without JavaScript');
+verify(css.includes('.cb-notes-library__marker > .dashicons {')
+    && css.includes('align-items: center;')
+    && css.includes('justify-content: center;')
+    && css.includes('.cb-notes-library__marker > .dashicons::before {'),
+    'P1 icon glyphs are centered inside Base icon-only buttons');
+verify(!css.includes('.cb-notes-library__marker .dashicons { font-size: 18px;'),
+    'P1 icon sizing stays owned by Base');
 console.log('PASS JS: tests/library-ui-contract.cjs');
