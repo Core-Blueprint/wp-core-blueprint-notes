@@ -8,9 +8,10 @@ use CB\Notes\Plugin;
 defined('ABSPATH') || exit;
 
 /**
- * Keep the personal Library first and the optional AI settings shortcut last.
- * This only changes ordering of existing entries, never their callbacks,
- * permissions, registered hooks or canonical WordPress admin routes.
+ * Make Library the single visible Notes workspace. Keep the native WordPress
+ * list endpoint available for deep links, Gutenberg and compatibility, but
+ * hide its duplicate submenu entry when Library is registered. Preserve a
+ * native fallback for roles/environments without the Library submenu.
  */
 final class Menu {
     private const LIBRARY = 'cb-notes-library';
@@ -35,6 +36,17 @@ final class Menu {
         $native = 'edit.php?post_type=' . Plugin::TYPE;
         $new = 'post-new.php?post_type=' . Plugin::TYPE;
 
+        // Never hide native navigation unless the personal Library is present.
+        // This only filters the visible menu row; WordPress core keeps its
+        // original edit.php list route and post type screens intact.
+        $has_library = false;
+        foreach ($entries as $entry) {
+            if (is_array($entry) && ($entry[2] ?? null) === self::LIBRARY) {
+                $has_library = true;
+                break;
+            }
+        }
+
         $groups = [
             self::LIBRARY => [],
             $native => [],
@@ -52,6 +64,10 @@ final class Menu {
 
             if ($slug === self::AI) {
                 $ai[] = $entry;
+            } elseif ($has_library && $slug === $native) {
+                // Library is canonical. Do not mutate or redirect the native
+                // screen; simply omit its duplicate visible submenu item.
+                continue;
             } elseif (array_key_exists($slug, $groups)) {
                 $groups[$slug][] = $entry;
             } else {
