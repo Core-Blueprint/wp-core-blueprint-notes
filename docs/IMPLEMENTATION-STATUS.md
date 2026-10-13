@@ -1,13 +1,13 @@
-# Core Blueprint Notes — alpha4 implementation status
+# Core Blueprint Notes — current implementation status
 
-**Version:** 0.1.0-alpha4.
-**Branch:** \`feature/notes-personal-organization-alpha4-v1\`.
-**Status:** source test candidate; no Golden or runtime-security claim.
+**Current test candidate:** 0.1.0-alpha9.
+**Branch:** `feature/notes-gutenberg-ux-g1-v1`.
+**Status:** G1–G2 implemented; local sourcegate/build and new Gutenberg runtime acceptance pending. No Golden or production claim.
 
 ## Scope added in alpha4
 
 1. Personal catalog with three classification kinds: one notebook, one category and multiple tags (up to 12). Catalog definitions are private, owner-scoped user meta. Notes store only opaque catalog IDs in authorized post meta.
-2. Gutenberg document panels for all three kinds and fast personal-label creation; the Notebook/Name and Category/Type labels avoid redundant section headings.
+2. Alpha4 originally exposed separate Gutenberg document panels for all three classification kinds. Alpha9 replaces these with one progressive Organize panel, while preserving the original storage and owner-only REST contracts.
 3. Native private **Notes → Organize** page with create, rename and delete using the Base danger confirmation where needed.
 4. Notes Admin list shows resolved labels and filters by the owner's private catalog; no global term REST routes or cross-owner autocomplete.
 5. Alpha1/2 text Notebook labels migrate to stable catalog IDs in bounded author-only batches. Label removal cleans up references on at most 250 owned Notes per action, otherwise fails without an unbounded operation.
@@ -24,6 +24,13 @@
 - Canonical `tools/check` runs a mocked JavaScript interaction smoke for tabs and CRUD, plus existing organization/privacy/sharing regressions.
 - Acceptance requires real WordPress testing of tab switching, direct section URLs, keyboard/focus, dark/light themes, Add new/Rename/Remove, and Gutenberg/list privacy regressions.
 
+## Library and Gutenberg developments
+
+- **Alpha5–8 Notes Library**: personal workspace, notebook navigation, search, classification filters, pagination, context-aware empty states, Base danger confirmation and Base compact action buttons. The user reported visual and functional stability before G1 development.
+- **Alpha9 Gutenberg G1**: one Organize document panel; Notebook is immediately visible; Category and Tags behind progressive disclosure, automatically expanded when classifications already exist. Inline personal-label creation and the twelve-tag limit remain.
+- **Alpha9 Gutenberg G2**: an explicit Sharing status; separate Save/Share guidance; explanation that shared snapshots do not change when saving the private original. New sharing is blocked for unsaved edits; revocation remains available.
+- PHP/REST storage, authorization, frozen snapshots, Base and Secure Share code have not been modified in Alpha9.
+
 ## Ownership boundaries
 
 - Base (mandatory) continues to own Settings Hub, UI Modal Foundation, capabilities/governance infrastructure; this branch does not modify Base.
@@ -33,7 +40,7 @@
 
 ## Validation gates
 
-The sourcegate and canonical ZIP must be verified on the exact branch HEAD, with the resulting SHA-256 recorded. Full WordPress/Gutenberg, cross-user REST, migration, library filter, cache, Public Share, Secure Share and revocation tests remain pending until demonstrated in staging.
+For alpha9, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Acceptance focuses on the two Gutenberg panel changes, including inline catalog CRUD, owner-bound meta, unsaved edit handling, private sharing and responsive/accessibility behaviors. Earlier Alpha8 was reported stable by the user; the new alpha9 interface still requires its own staging acceptance. Mocked source checks do not replace WordPress runtime proof.
 
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
