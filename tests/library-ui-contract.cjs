@@ -42,7 +42,19 @@ verify(page.includes('title="' + "' . esc_attr($edit_label)" )
 verify(!page.includes("esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>'"),
     'Trash action no longer renders a text label');
 verify(css.includes('.cb-core-button.cb-notes-library__trash[hidden]') && css.includes('display: none;'), 'hidden trash remains hidden against Base inline-flex display');
-verify(!css.includes('.cb-notes-library__trash:hover') && !css.includes('.cb-notes-library__trash { color:'), 'Base owns danger appearance');
+verify(css.includes('button.cb-core-button.cb-core-button--danger.cb-notes-library__trash {')
+    && css.includes('border: 1px solid var(--cb-danger);')
+    && css.includes('color: var(--cb-danger);'),
+    'Trash is visibly outlined red using the canonical Base danger token');
+verify(css.includes('button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:hover,')
+    && css.includes('background: var(--cb-danger);')
+    && css.includes('color: var(--cb-surface-1);'),
+    'Trash hover/focus uses the Base danger interaction contract');
+verify(css.includes('button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:focus-visible {')
+    && css.includes('outline: 2px solid var(--cb-danger);'),
+    'Trash focus ring is danger red rather than generic blue');
+verify(!/#[0-9a-fA-F]{3,8}\b/.test(css),
+    'Notes Library introduces no independent hardcoded danger palette');
 
 verify(page.includes('data-cb-notes-trash-url') && page.includes(' hidden'), 'trash disabled without explicit JS confirmation');
 verify(query.includes("'author' => $owner > 0 ? $owner : -1"), 'SQL owner bound');
