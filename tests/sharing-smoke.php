@@ -122,11 +122,12 @@ $latestVersion=\CB\Notes\Sharing\Controller::read(new WP_REST_Request('/core-blu
 verify($latestVersion!==$version,'content digest changes for same-timestamp note edit');
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META)['html']==='<p>Not for everyone</p>','private edits do not change public copy');
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
-    'id'=>42, 'mode'=>'private', 'expected_modified_gmt'=>$note->post_modified_gmt,
-    'expected_mode'=>'public', 'expected_content_version'=>$latestVersion
+    'id'=>42, 'mode'=>'private', 'expected_modified_gmt'=>'stale-is-okay-for-revocation',
+    'expected_mode'=>'obsolete', 'expected_content_version'=>'obsolete'
 ]);
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify($result['mode']==='private' && get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','private stops public URL authorization');
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'private mode invalidates previous share key');
 $note->post_content='UNSAFE';
 verify(\CB\Notes\Sharing\Snapshot::capture($note) instanceof WP_Error,'dynamic/embedded blocks refused');
 $GLOBALS['current_user']=5;
