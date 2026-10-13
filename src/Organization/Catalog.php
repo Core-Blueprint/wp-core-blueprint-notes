@@ -27,6 +27,7 @@ final class Catalog {
     private const ID_PATTERN = '/^[a-f0-9]{32}$/D';
     private const MAX_ITEMS = 150;
     private const MAX_TAGS_PER_NOTE = 12;
+    private static string $admin_hook = '';
 
     public static function init(): void {
         add_action('init', [self::class, 'register_meta'], 7);
@@ -131,7 +132,8 @@ final class Catalog {
         ]);
     }
 
-    public static function can_edit_meta(string $key, int $post_id, int $user_id): bool {
+    public static function can_edit_meta(bool $allowed, string $key, int $post_id, int $user_id): bool {
+        unset($allowed, $key);
         $post = get_post($post_id);
         return $post instanceof \WP_Post && Access::allowed($post, 'edit', $user_id);
     }
@@ -358,7 +360,8 @@ final class Catalog {
             echo '<label class="screen-reader-text" for="' . esc_attr($param) . '">'
                 . esc_html(sprintf(__('Filter by %s', 'core-blueprint-notes'), $kind)) . '</label>';
             echo '<select name="' . esc_attr($param) . '" id="' . esc_attr($param) . '">';
-            echo '<option value="">' . esc_html(sprintf(__('All %s', 'core-blueprint-notes'), $kind . 's')) . '</option>';
+            $all_label = ['notebook' => 'All notebooks', 'category' => 'All categories', 'tag' => 'All tags'][$kind];
+            echo '<option value="">' . esc_html(__($all_label, 'core-blueprint-notes')) . '</option>';
             foreach ($cat[$kind] as $item) {
                 echo '<option value="' . esc_attr($item['id']) . '" ' .
                     selected($selected, $item['id'], false) . '>' . esc_html($item['name']) . '</option>';
@@ -398,7 +401,7 @@ final class Catalog {
     }
 
     public static function register_admin_menu(): void {
-        add_submenu_page('edit.php?post_type=' . Plugin::TYPE,
+        self::$admin_hook = (string)add_submenu_page('edit.php?post_type=' . Plugin::TYPE,
             __('Organize Notes', 'core-blueprint-notes'),
             __('Organize', 'core-blueprint-notes'),
             'cb_notes_edit', 'cb-notes-organize',
@@ -415,9 +418,10 @@ final class Catalog {
     }
 
     public static function enqueue_admin(string $hook): void {
-        if ($hook !== 'cb_note_page_cb-notes-organize' || !self::can_organize()) {
+        if ($hook !== self::$admin_hook || !self::can_organize()) {
             return;
         }
+        \CoreBlueprint\Core\UI\Assets::enqueue_modals(\CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_WP_NATIVE);
         wp_enqueue_script('cb-notes-organize',
             plugins_url('assets/organization-admin.js', CB_NOTES_FILE),
             ['wp-element', 'wp-components', 'wp-api-fetch'],
