@@ -1,40 +1,44 @@
 # Core Blueprint Notes
 
-**Version:** `0.1.0-alpha2` | **Status:** development test candidate; not Golden or production-ready.
+**Version:** `0.1.0-alpha3` | **Status:** feature-branch test candidate; not Golden or production-ready.
 
-Private, WordPress-native Gutenberg notes for the Core Blueprint WP Suite.
+Private Gutenberg notes for the Core Blueprint WordPress Suite, with optional and explicitly controlled sharing.
 
-## What is implemented
+## Features implemented
 
-- Native Gutenberg Notes editing with WordPress autosaves and revisions.
-- Personal ownership: editors can manage only their own notes; administrators have an explicit `cb_notes_manage_all` override. Subscribers have no Notes access by default.
-- Flat personal **Notebook** text labels stored per note in post meta; no site-global term taxonomy and no hierarchy/team sharing yet.
-- Non-public `cb_note` post type, author-scoped lists and REST requests, object-level read/edit/delete checks.
-- Required Core Blueprint Base API 1.2+, ExtensionRegistry and Governance/Audit integration; plugin activation requires active Base.
-- Core Blueprint Base Settings Hub tile under **Business**, with **Overview** and **AI Access** tabs. The legacy **Notes → AI Access** menu opens the central AI settings directly. The Overview shows only the current user's own note count; no global private counts.\n- Optional read-only Abilities API (`core-blueprint-notes/list-notes`, `search-notes`, `read-note`). **MCP access is OFF by default**, requires the separate authenticated WordPress MCP Adapter, and may be enabled under **Core Blueprint → Extensions → Notes → AI Access** (with a shortcut under **Notes → AI Access**). Only accounts with `cb_notes_use_ai` may invoke read abilities, administrators by default. AI may read only notes authored by the connected user, even when that user is an administrator. No external AI requests or AI write operations.
+- Native WordPress Gutenberg notes, revisions and autosaves; personal notebook labels (`Notebook → Name`) in the document sidebar.
+- Non-public `cb_note` type, user ownership and object-level authorization. Saving or pressing Gutenberg's native Publish never exposes the original Note publicly. Previously `publish`-status alpha1/2 Notes are migrated to `private` in bounded admin batches.
+- Base Settings Hub tile under **Business** with Overview and AI Access tabs; required Base public API 1.2.
+- Optional read-only WordPress Abilities API and MCP exposure, **off by default**. Connected AI users may read only their own notes.
+- **Sharing** in the Gutenberg sidebar, independent from saving:
+  - **Private** is the default and revocation state.
+  - **Public Share** creates a separate, hard-to-guess, anonymous public URL to a *frozen, allowlisted static HTML snapshot* only after a **Base danger modal** with typed `PUBLIC` and an acknowledgement checkbox.
+  - **Secure Share** integrates optionally with `CB\SecureShare\PublicApi\ResourceProvider` to issue a frozen view-only invitation. Secure Share owns tokens, password/PIN, expiry and transport. No silent fallback if Secure Share is absent.
+- Sharing requires authorship and Notes-specific capabilities. Snapshot publishing rejects stale content or sharing state. Emergency revocation always remains available.
+- Trash and deletion revoke stored sharing authority, and restoring a Note does **not** reactivate prior share links.
 
-## Security limits
+## Security scope
 
-**Alpha staging only. Never use with real confidential notes or attachments until the multi-user WordPress acceptance checks pass.** Gutenberg may embed public Media Library URLs or external embeds: these are not private file storage. This alpha has no private attachment handling, team-sharing ACL, cross-extension relationship UI, importer/exporter or AI write proposals.
+**Do not use real confidential notes or files yet.** This alpha needs multi-user WordPress REST, caching/CDN, Gutenberg and optional Secure Share runtime acceptance. Do not put public Media Library files, embeds, dynamic blocks, confidential attachments, JavaScript or unsupported blocks into a shared Note. Sharing currently only supports an allowlist of static blocks such as paragraphs, headings, lists, quotes, preformatted code and tables; unsupported blocks are explicitly refused. Shared snapshots are isolated from future Note edits.
 
-The original planning documents describe a **proposed** `cb_notebook` taxonomy. This alpha intentionally uses private per-note metadata instead to avoid leaking global taxonomy names. We must explicitly design per-user hierarchical notebook ACLs before adding the taxonomy.
+Public links are anonymous for anyone who knows the URL, with `noindex` and no-store as defense in depth. This is *not* access control. Secure Share links are controlled bearer-based access; neither mode proves a specific recipient actually read the content. No public Gutenberg post page or custom theme template is enabled by this alpha.
 
-## Install, checks and packaging
+Notebooks remain **personal labels**, not hierarchical shared knowledge spaces. CRM, Work, Helpdesk and Docs adapters are still design-only and are not delivered by this alpha. No new Base or Secure Share code is required in this branch.
 
-Requirements: WordPress 7.0+, PHP 8.4+, Core Blueprint Base with compatible Core API 1.2.
+## Source checks and package
 
-From the repository root:
+Requirements: WordPress 7.0+, PHP 8.4+, Core Blueprint Base with compatible public Core API 1.2. Secure Share is optional.
 
 ```bash
 bash tools/check
 bash tools/build-release
-sha256sum dist/core-blueprint-notes-0.1.0-alpha2.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha3.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha3.zip
 ```
 
-Build output: `dist/core-blueprint-notes-0.1.0-alpha2.zip`, with plugin folder `core-blueprint-notes/`.
+Package root: `core-blueprint-notes/`, output: `dist/core-blueprint-notes-0.1.0-alpha3.zip`.
+The source gate covers PHP lint, JS and shell syntax, mocked ownership/Abilities/Settings Hub/Sharing contracts, and static modal UX tests. **These are not live WordPress integration tests.**
 
-The source gate validates PHP/JS syntax, shell syntax, permission/Abilities tests and a focused mocked Settings Hub test. **These tests do not execute WordPress.** Real installation, Gutenberg and REST authorization remain mandatory.
+Read the [complete alpha3 acceptance test batch](docs/ALPHA3-ACCEPTANCE.md), [implementation status](docs/IMPLEMENTATION-STATUS.md), [architecture RFC](docs/ARCHITECTURE-V1-RFC.md) and [integration RFC](docs/INTEGRATION-CONTRACTS-V1-RFC.md).
 
-See [tomorrow's manual test batch](docs/TEST-PLAN.md), [Architecture RFC](docs/ARCHITECTURE-V1-RFC.md) and [Integration/Abilities RFC](docs/INTEGRATION-CONTRACTS-V1-RFC.md).
-
-**Governance:** source is on a featurebranch. Do not merge, publish, deploy or trigger CI/CD without explicit GO.
+**Governance:** no merge, release, publication, deployment or CI/CD is authorized by work on this branch.
