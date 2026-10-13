@@ -127,13 +127,19 @@
 }
 /* Base owns the selected primary and inactive secondary surfaces. Match
    the compact icon-only buttons already used by Library row actions. */
-.cb-notes-library__display-toggle .cb-notes-library__display-link {
+/* Base Primary adds a 1px outer glow and Base focus adds a 2px ring.
+   The view switch needs a single 1px border in every mouse/touch state.
+   Override shadow only in this component, not the global Base button API. */
+.cb-core-wrap .cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    border-width: 1px;
+    box-shadow: none !important;
     text-decoration: none;
 }
-.cb-notes-library__display-toggle .cb-notes-library__display-link.is-active {
+.cb-core-wrap .cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link.is-active {
     border-color: var(--cb-accent);
 }
 .cb-notes-library__display-toggle .cb-core-button--icon-only > .dashicons {
@@ -148,8 +154,17 @@
     display: block;
     line-height: 1;
 }
-.cb-notes-library__display-toggle .cb-notes-library__display-link:focus-visible {
-    outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
+/* Mouse focus must not retain the WordPress/Base 2px halo.
+   A real keyboard focus indicator stays visible but is only 1px wide. */
+.cb-core-wrap .cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link:focus {
+    border-width: 1px;
+    box-shadow: none !important;
+    outline: none;
+}
+.cb-core-wrap .cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link:focus-visible {
+    border-width: 1px;
+    box-shadow: none !important;
+    outline: 1px solid var(--cb-interactive-focus, var(--cb-accent));
     outline-offset: 2px;
 }
 /* Table is optional. Use genuine table semantics and contained horizontal
