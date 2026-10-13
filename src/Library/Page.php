@@ -318,19 +318,30 @@ final class Page {
         echo '<button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
             . ' data-cb-notes-bulk-clear>' . esc_html__('Clear selection', 'core-blueprint-notes') . '</button></div>';
         echo '<div class="cb-notes-library__bulk-options">';
-        echo '<div><label for="cb-notes-bulk-notebook">' . esc_html__('Notebook', 'core-blueprint-notes') . '</label>';
+        echo '<div class="cb-notes-library__bulk-edit">';
+        echo '<div class="cb-notes-library__bulk-field"><label for="cb-notes-bulk-operation">'
+            . esc_html__('Action', 'core-blueprint-notes') . '</label>';
+        echo '<select id="cb-notes-bulk-operation" data-cb-notes-bulk-operation>';
+        echo '<option value="__choose__" selected disabled>' . esc_html__('Choose action…', 'core-blueprint-notes') . '</option>';
+        echo '<option value="notebook">' . esc_html__('Move to notebook', 'core-blueprint-notes') . '</option>';
+        echo '<option value="category">' . esc_html__('Set category', 'core-blueprint-notes') . '</option>';
+        echo '</select></div>';
+        echo '<div class="cb-notes-library__bulk-field" data-cb-notes-bulk-target="notebook" hidden>';
+        echo '<label for="cb-notes-bulk-notebook">' . esc_html__('Notebook', 'core-blueprint-notes') . '</label>';
         echo '<select id="cb-notes-bulk-notebook" data-cb-notes-bulk-notebook>';
         echo '<option value="__choose__" selected disabled>' . esc_html__('Choose notebook…', 'core-blueprint-notes') . '</option>';
         self::select_options($catalog['notebook'], '__choose__', __('Unfiled (no notebook)', 'core-blueprint-notes'));
-        echo '</select><button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
-            . ' data-cb-notes-bulk-action="notebook">' . esc_html__('Move to notebook', 'core-blueprint-notes') . '</button></div>';
-        echo '<div><label for="cb-notes-bulk-category">' . esc_html__('Category', 'core-blueprint-notes') . '</label>';
+        echo '</select></div>';
+        echo '<div class="cb-notes-library__bulk-field" data-cb-notes-bulk-target="category" hidden>';
+        echo '<label for="cb-notes-bulk-category">' . esc_html__('Category', 'core-blueprint-notes') . '</label>';
         echo '<select id="cb-notes-bulk-category" data-cb-notes-bulk-category>';
         echo '<option value="__choose__" selected disabled>' . esc_html__('Choose category…', 'core-blueprint-notes') . '</option>';
         self::select_options($catalog['category'], '__choose__', __('No category', 'core-blueprint-notes'));
-        echo '</select><button type="button" class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'
-            . ' data-cb-notes-bulk-action="category">' . esc_html__('Set category', 'core-blueprint-notes') . '</button></div>';
-        echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact"'
+        echo '</select></div>';
+        echo '<button type="button" class="button cb-core-button cb-core-button--primary cb-core-button--compact"'
+            . ' data-cb-notes-bulk-action="apply">' . esc_html__('Apply', 'core-blueprint-notes') . '</button>';
+        echo '</div>';
+        echo '<button type="button" class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__bulk-trash"'
             . ' data-cb-notes-bulk-action="trash">' . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
         echo '</div></section>';
         echo '<div class="cb-notes-library__bulk-result" data-cb-notes-bulk-result role="status" aria-live="polite" hidden>'
