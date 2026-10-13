@@ -57,7 +57,11 @@
         }, [chosenCategory, chosenTagIds]);
 
         function save(kind, value) {
-            dispatch.editPost({ meta: Object.assign({}, meta, { [fields[kind]]: value }) });
+            // An asynchronous catalog creation can resolve after other sidebar
+            // edits. Read the latest Gutenberg meta at commit time so it does
+            // not accidentally revert unrelated classifications.
+            var latest = wp.data.select('core/editor').getEditedPostAttribute('meta') || {};
+            dispatch.editPost({ meta: Object.assign({}, latest, { [fields[kind]]: value }) });
         }
 
         function beginCreation(kind) {
