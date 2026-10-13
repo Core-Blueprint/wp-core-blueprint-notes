@@ -29,7 +29,7 @@ namespace {
 
     function render_state(array $changes, int $found = 0): string {
         $state = array_merge([
-            'search' => '', 'notebook' => '', 'category' => '', 'tag' => '',
+            'search' => '', 'view' => '', 'notebook' => '', 'category' => '', 'tag' => '',
             'sort' => 'modified', 'paged' => 1, 'invalid' => false,
         ], $changes);
         ob_start();
@@ -44,6 +44,12 @@ namespace {
 
     $html = render_state(['notebook' => str_repeat('a', 32)]);
     verify(str_contains($html, 'This notebook is empty') && str_contains($html, 'select this notebook'), 'empty notebook guidance');
+
+    $html = render_state(['view' => 'favorites']);
+    verify(str_contains($html, 'No favorites yet'), 'favorite empty state');
+
+    $html = render_state(['view' => 'pinned']);
+    verify(str_contains($html, 'No pinned notes yet'), 'pinned empty state');
 
     $html = render_state(['notebook' => 'unfiled']);
     verify(str_contains($html, 'No unfiled notes') && str_contains($html, 'Show all notes'), 'unfiled guidance');
