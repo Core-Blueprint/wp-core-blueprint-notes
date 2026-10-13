@@ -86,7 +86,7 @@
             if (kind !== 'tag') {
                 controls.push(el(wp.components.SelectControl, {
                     key: 'choice',
-                    label: kind === 'notebook' ? 'Notebook' : 'Category',
+                    label: kind === 'notebook' ? 'Name' : 'Type',
                     value: state[fields[kind]] || '',
                     options: [{ label: 'Unfiled', value: '' }].concat(options.map(function (item) {
                         return { label: item.name, value: item.id };
