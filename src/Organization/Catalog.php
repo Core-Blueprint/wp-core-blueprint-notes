@@ -430,8 +430,13 @@ final class Catalog {
             echo '<label class="screen-reader-text" for="' . esc_attr($param) . '">'
                 . esc_html(sprintf(__('Filter by %s', 'core-blueprint-notes'), $kind)) . '</label>';
             echo '<select name="' . esc_attr($param) . '" id="' . esc_attr($param) . '">';
-            $all_label = ['notebook' => 'All notebooks', 'category' => 'All categories', 'tag' => 'All tags'][$kind];
-            echo '<option value="">' . esc_html(__($all_label, 'core-blueprint-notes')) . '</option>';
+            $all_label = match ($kind) {
+                'notebook' => __('All notebooks', 'core-blueprint-notes'),
+                'category' => __('All categories', 'core-blueprint-notes'),
+                'tag' => __('All tags', 'core-blueprint-notes'),
+                default => '',
+            };
+            echo '<option value="">' . esc_html($all_label) . '</option>';
             foreach ($cat[$kind] as $item) {
                 echo '<option value="' . esc_attr($item['id']) . '" ' .
                     selected($selected, $item['id'], false) . '>' . esc_html($item['name']) . '</option>';
