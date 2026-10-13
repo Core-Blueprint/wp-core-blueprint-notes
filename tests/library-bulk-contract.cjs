@@ -19,13 +19,33 @@ check(page.includes('data-cb-notes-bulk-toolbar hidden') &&
     page.includes('data-cb-notes-bulk-nonce'), 'JS-only bulk toolbar with scoped nonce');
 check(page.includes("self::select_options($catalog['notebook']") &&
     page.includes("self::select_options($catalog['category']"), 'Owner catalog drives destination controls');
+check(page.includes('data-cb-notes-bulk-operation') &&
+    page.includes('<option value="notebook">') &&
+    page.includes('<option value="category">'), 'One action selector instead of two separate forms');
 check(page.includes('value="__choose__" selected disabled') &&
-    script.includes("field.value === '__choose__'") &&
-    script.includes("target === '__choose__'"),
-    'No implicit Unfiled/No-category bulk change without explicit destination');
-check(page.includes('data-cb-notes-bulk-action="notebook"') &&
-    page.includes('data-cb-notes-bulk-action="category"') &&
-    page.includes('data-cb-notes-bulk-action="trash"'), 'Three explicit bulk actions');
+    script.includes("target === '__choose__'") &&
+    script.includes("operationSelect.addEventListener('change'") &&
+    script.includes("notebook.value = '__choose__'") &&
+    script.includes("category.value = '__choose__'"),
+    'No implicit destination and no stale target when switching action');
+check(page.includes('data-cb-notes-bulk-action="apply"') &&
+    page.includes('data-cb-notes-bulk-action="trash"') &&
+    !page.includes('data-cb-notes-bulk-action="notebook"') &&
+    !page.includes('data-cb-notes-bulk-action="category"'),
+    'One Apply button and separate Base danger Trash');
+check(page.includes('data-cb-notes-bulk-target="notebook" hidden') &&
+    page.includes('data-cb-notes-bulk-target="category" hidden') &&
+    script.includes('notebookGroup.hidden =') &&
+    script.includes('categoryGroup.hidden ='),
+    'Only relevant destination is shown');
+check(css.includes('.cb-notes-library__bulk-field[hidden]') &&
+    css.includes('.cb-notes-library__bulk-edit') &&
+    css.includes('.cb-notes-library__bulk-trash { margin-inline-start: auto;'),
+    'Compact responsive action row with isolated Trash');
+check(css.includes('cb-notes-library__bulk-trash:hover') &&
+    css.includes('border: 1px solid var(--cb-danger);') &&
+    css.includes('outline: 2px solid var(--cb-danger);'),
+    'Bulk Trash is visibly dangerous with canonical Base tokens');
 check(page.includes('cb-core-button--danger cb-core-button--compact') &&
     page.includes('data-cb-notes-bulk-action="trash"'), 'Trash uses canonical Base danger button');
 check(page.includes("'cb-notes-library-bulk'") && page.includes("'assets/library-bulk.js'"),
