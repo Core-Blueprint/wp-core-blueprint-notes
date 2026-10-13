@@ -237,7 +237,22 @@ final class Controller {
     }
 
     private static function error(string $message, int $status): \WP_Error {
-        return new \WP_Error('cb_notes_sharing_unavailable', __($message, 'core-blueprint-notes'), ['status' => $status]);
+        // All shipped messages use literal gettext keys: variable __(...) calls
+        // are not discoverable by WordPress translation extractors.
+        $translated = match ($message) {
+            'Note not found.' => __('Note not found.', 'core-blueprint-notes'),
+            'Invalid sharing mode.' => __('Invalid sharing mode.', 'core-blueprint-notes'),
+            'Sharing settings have changed. Reload before continuing.' => __('Sharing settings have changed. Reload before continuing.', 'core-blueprint-notes'),
+            'Note content has changed. Reload before sharing.' => __('Note content has changed. Reload before sharing.', 'core-blueprint-notes'),
+            'This note has changed. Reload and review the latest version before sharing.' => __('This note has changed. Reload and review the latest version before sharing.', 'core-blueprint-notes'),
+            'Public sharing requires a separate explicit confirmation.' => __('Public sharing requires a separate explicit confirmation.', 'core-blueprint-notes'),
+            'Secure sharing is not permitted for this account.' => __('Secure sharing is not permitted for this account.', 'core-blueprint-notes'),
+            'Core Blueprint Secure Share is not available.' => __('Core Blueprint Secure Share is not available.', 'core-blueprint-notes'),
+            'Secure links must expire within 1 to 30 days.' => __('Secure links must expire within 1 to 30 days.', 'core-blueprint-notes'),
+            'Secure sharing failed. No new link is active in Notes.' => __('Secure sharing failed. No new link is active in Notes.', 'core-blueprint-notes'),
+            default => __('Sharing is unavailable.', 'core-blueprint-notes'),
+        };
+        return new \WP_Error('cb_notes_sharing_unavailable', $translated, ['status' => $status]);
     }
 
     /** Authorization invariant shared by the public route and regression tests. */
