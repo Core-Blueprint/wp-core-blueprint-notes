@@ -222,8 +222,8 @@ final class Page {
                     __('Additional tags: %s', 'core-blueprint-notes'),
                     implode(', ', $extra)
                 );
-                echo '<span class="cb-notes-library__tag-more" title="' . esc_attr($extra_title) . '"'
-                    . ' aria-label="' . esc_attr($extra_title) . '">+'
+                echo '<span class="cb-notes-library__tag-more" role="note" tabindex="0"'
+                    . ' title="' . esc_attr($extra_title) . '" aria-label="' . esc_attr($extra_title) . '">+'
                     . esc_html((string)count($extra)) . '</span>';
             }
         }
