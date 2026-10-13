@@ -59,6 +59,13 @@ final class Menu {
             }
         }
 
-        return array_values(array_merge(...array_values($groups), $additional, $ai));
+        return array_values(array_merge(
+            $groups[self::LIBRARY],
+            $groups[$native],
+            $groups[$new],
+            $groups[self::ORGANIZE],
+            $additional,
+            $ai
+        ));
     }
 }
