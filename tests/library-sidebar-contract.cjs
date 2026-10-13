@@ -12,7 +12,7 @@ function check(ok, message) {
 const start = page.indexOf('public static function render(): void');
 const body = page.slice(start);
 const notebook = body.indexOf("esc_html__('Notebooks', 'core-blueprint-notes')");
-const navEnd = body.indexOf("echo '</nav><div class=\"cb-notes-library__sidebar-footer\"'");
+const navEnd = body.indexOf("'</nav><div class=\"cb-notes-library__sidebar-footer\">'");
 const footerLink = body.indexOf('class="cb-notes-library__organize-link"');
 const main = body.indexOf("echo '<main class=\"cb-notes-library__main");
 check(notebook >= 0 && navEnd > notebook && footerLink > navEnd && main > footerLink,
