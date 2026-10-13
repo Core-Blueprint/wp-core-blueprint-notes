@@ -1,12 +1,12 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha23\` | **Status:** staging test candidate, not Golden or production-ready.
+**Version:** \`0.1.0-alpha24\` | **Status:** RC1 hardening source candidate (Alpha24), not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
 ## Current functions
 
-- **Library Table View P2.7 (alpha23):** optional semantic Table mode with Title, Notebook, Category, Tags, Modified and shared Favorite/Pin/Edit/Trash actions. Both modes use the same owner-scoped Library query, filters and 20-per-page bulk selection. User preference persists with a nonce-protected WordPress admin action; List is the default. Title and Modified headers toggle ASC/DESC (A–Z/Z–A and newest/oldest); sorting does not automatically open More filters. Alpha21 separates sort-label underlines from direction arrows and replaces List/Table text links with accessible Base compact icon-only buttons (localized title and aria-label, active primary variant, current-page indicator). Alpha22 keeps each view-toggle border and keyboard focus outline at exactly 1px, removing the extra Base button halo without changing other buttons. Alpha23 gives the Library a quieter sidebar footer: a token-based divider and accessible slider-icon **Organize notes** action without underline, retaining the same admin destination and keyboard focus. The default pinned-first order remains distinct from explicit chronological sorting; mobile Table View scrolls within the Library panel.
+- **Library Table View P2.7 (alpha23, carried into alpha24):** optional semantic Table mode with Title, Notebook, Category, Tags, Modified and shared Favorite/Pin/Edit/Trash actions. Both modes use the same owner-scoped Library query, filters and 20-per-page bulk selection. User preference persists with a nonce-protected WordPress admin action; List is the default. Title and Modified headers toggle ASC/DESC (A–Z/Z–A and newest/oldest); sorting does not automatically open More filters. Alpha21 separates sort-label underlines from direction arrows and replaces List/Table text links with accessible Base compact icon-only buttons (localized title and aria-label, active primary variant, current-page indicator). Alpha22 keeps each view-toggle border and keyboard focus outline at exactly 1px, removing the extra Base button halo without changing other buttons. Alpha23 gives the Library a quieter sidebar footer: a token-based divider and accessible slider-icon **Organize notes** action without underline, retaining the same admin destination and keyboard focus. The default pinned-first order remains distinct from explicit chronological sorting; mobile Table View scrolls within the Library panel.
 - **Library Overview alpha18:** the same owner-scoped Library rows now show a quiet modified/status line and a separate compact classification line with labeled Notebook, optional Category and up to three personal Tags (+N for overflow, with an accessible tooltip). The P2 Action, destination, Apply and Base Danger Trash controls now share a single Base-derived control height and responsive command rail. No new queries, taxonomy, write endpoints or duplicate Library view.
 - **Professional Productivity P2:** page-local selection of up to 20 visible notes; streamlined Base bulk toolbar: choose one operation, reveal only its notebook/category destination, then Apply; separate red Move to Trash action. All destinations are explicit, owner-valid and protected by the existing WordPress authorization. The Trash batch requires Base danger confirmation, retains share-link revocation, and reports partial success without an implicit page reload. No tags or hidden cross-page selections.
 - **Professional Productivity P1:** independent personal Favorites and Pins. Star and pin quick actions use Base compact icon-only buttons with centered Dashicons and nonce-protected AJAX. Favorites and Pinned have dedicated Library views; pins sort first by default without overriding explicit title/oldest sorts. Protected post-meta flags are not exposed in Gutenberg REST or frozen shared copies.
@@ -31,13 +31,17 @@ No global Notes taxonomies or term endpoints are registered. REST organization o
 
 Tag/media/attachment visibility in third-party blocks is **not** supported for shared snapshots. Dynamic blocks, embeds and media are rejected. Hierarchical notebooks, team notebooks, collaboration, independent export/import and private file attachments remain explicitly out of scope. Core Blueprint Notes never claims secrecy against a server administrator or compromised hosting account.
 
+## RC1 single-batch hardening
+
+The `feature/notes-rc1-golden-hardening-v1` branch carries the accepted Alpha23 Library UI forward without an early merge and adds RC1 release-hardening. See [RC1 Golden acceptance](docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md) and the WP Suite Overseer Notes roadmap for the source/build/runtime/portability gates. The architecture RFC is a historical *proposal*: the shipped classification model is the owner-private `user_meta` catalog, not a global taxonomy. Data portability, uninstall behavior, JavaScript localization, multi-user WordPress security and CDN/integration acceptance remain open until evidenced.
+
 ## Build and staging acceptance
 
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha23.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha23.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha24.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes P2 bulk owner/nonce/catalog/lifecycle regression and UI interaction checks, Sharing, personal organization, Gutenberg organization and sharing guidance interactions, Library queries, marker security/interactions, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
