@@ -255,7 +255,7 @@
                     ),
                     el('p', { className: 'cb-notes-organize__help' },
                         'Removing a label does not delete any note. Labels are not included in shared content.')
-                ))
+                )
             ));
         }
         return el('div', { className: 'cb-notes-organize__stack' }, children);
