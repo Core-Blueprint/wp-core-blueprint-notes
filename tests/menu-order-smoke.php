@@ -39,23 +39,31 @@ namespace {
     $sorted = Menu::order($initial);
     $slugs = array_map(static fn(array $row): string => (string)$row[2], $sorted);
     assert_menu($slugs === [
-        'cb-notes-library', 'edit.php?post_type=cb_note',
-        'post-new.php?post_type=cb_note', 'cb-notes-organize',
-        'partner-notes-page', 'cb-notes-ai',
-    ], 'Library first, AI Access last, native and third-party entries retained');
-    assert_menu($sorted[0] === $library && $sorted[5] === $ai, 'callbacks and capability rows untouched');
+        'cb-notes-library', 'post-new.php?post_type=cb_note',
+        'cb-notes-organize', 'partner-notes-page', 'cb-notes-ai',
+    ], 'Library canonical, duplicate All Notes hidden, other entries retained');
+    assert_menu($sorted[0] === $library && $sorted[4] === $ai &&
+        $sorted[1] === $create && $sorted[2] === $organize &&
+        $sorted[3] === $thirdParty,
+        'visible callbacks, capabilities and third-party rows untouched');
     assert_menu(Menu::order($sorted) === $sorted, 'reordering is idempotent');
     $withoutAi = Menu::order([$all, $create, $organize, $library]);
-    assert_menu(count($withoutAi) === 4 && $withoutAi[0] === $library, 'editor menu without AI Access');
+    assert_menu(count($withoutAi) === 3 &&
+        $withoutAi[0] === $library && $withoutAi[1] === $create &&
+        $withoutAi[2] === $organize, 'editor menu shows Library, Add Note and Organize');
     $withoutLibrary = Menu::order([$all, $create, $organize, $ai]);
-    assert_menu($withoutLibrary[0] === $all && end($withoutLibrary) === $ai, 'non-Library fallback');
+    assert_menu($withoutLibrary[0] === $all && end($withoutLibrary) === $ai
+        && count($withoutLibrary) === 4, 'native All Notes remains visible when Library absent');
 
     $GLOBALS['submenu'] = [
         'edit.php?post_type=cb_note' => $initial,
         'edit.php?post_type=post' => [['Posts', 'edit_posts', 'edit.php']],
     ];
     Menu::reorder();
-    assert_menu($GLOBALS['submenu']['edit.php?post_type=cb_note'] === $sorted, 'WordPress submenu updated');
+    assert_menu($GLOBALS['submenu']['edit.php?post_type=cb_note'] === $sorted, 'WordPress Notes submenu updated');
+    // Hiding a menu entry never changes the WordPress list endpoint itself.
+    assert_menu(!in_array('edit.php?post_type=cb_note', array_column($sorted, 2), true),
+        'native list entry hidden, without mutating other menu slugs');
     assert_menu($GLOBALS['submenu']['edit.php?post_type=post'][0][2] === 'edit.php', 'other menus not changed');
 
     $GLOBALS['submenu'] = [];
