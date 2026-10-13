@@ -1,6 +1,6 @@
 # Core Blueprint Notes — Professional Productivity P1 acceptance
 
-**Version:** 0.1.0-alpha12
+**Version:** 0.1.0-alpha13
 **Branch:** feature/notes-productivity-p1-favorites-pins-v1
 **Scope:** Favorites and Pins, independent quick actions in Library, saved views, pinned-first default order.
 **Status:** staging candidate. No Golden claim or deployment without explicit GO.
@@ -17,14 +17,14 @@
     node tests/library-markers-interaction.cjs
     bash tools/check
     bash tools/build-release
-    unzip -t dist/core-blueprint-notes-0.1.0-alpha12.zip
-    sha256sum dist/core-blueprint-notes-0.1.0-alpha12.zip
+    unzip -t dist/core-blueprint-notes-0.1.0-alpha13.zip
+    sha256sum dist/core-blueprint-notes-0.1.0-alpha13.zip
     git status --short
 
 ## WordPress staging acceptance
 
 1. Install alpha10 on disposable staging. Previously accepted Library and Gutenberg editing must remain operational; no notes, revisions, notebooks, tags or share states may be changed by the upgrade.
-2. In Notes → Library, each personal note displays four equally sized Base icon-only actions in order: Star (Favorite), Pin, Pencil (Edit) and Trash (Move to Trash). Edit and Trash have accessible labels and titles describing the exact note. Trash still opens the Base danger-confirmation modal, and Cancel leaves the note unchanged. Actions are compact Base controls, keyboard accessible, with visible active states, proper tooltips and aria-pressed. The star and pin glyphs must be visually centered, not hanging below their buttons, at normal zoom and 200% zoom in Light and Dark Mode. No JavaScript means no action is offered.
+2. In Notes → Library, each personal note displays four equally sized Base icon-only actions in order: Star (Favorite), Pin, Pencil (Edit) and Trash (Move to Trash). Edit and Trash have accessible labels and titles describing the exact note. Trash is a red-outlined button with a red icon at rest, red fill on hover/focus, and a red visible keyboard focus ring (Base danger tokens). The red state must remain distinct in Light and Dark Mode. Trash still opens the Base danger-confirmation modal, and Cancel leaves the note unchanged. Actions are compact Base controls, keyboard accessible, with visible active states, proper tooltips and aria-pressed. The star and pin glyphs must be visually centered, not hanging below their buttons, at normal zoom and 200% zoom in Light and Dark Mode. No JavaScript means no action is offered.
 3. Click Star on a note in All Notes. It should turn active without a page reload, and the note appears in Favorites. Unstar it: pin state must not change. Test browser refresh and reopening Gutenberg to confirm persistence.
 4. Click Pin on a different note. The Library recalculates page ordering and displays this note first on the default Recently modified sort. Unpin it: natural modified sorting returns. Pinning does not automatically Favorite a note.
 5. Open Favorites, Pinned, All Notes and a Notebook. Check active sidebar state, URL deep links, search/filter combinations, page counts and empty-state copy. On Favorites/Pinned, removing the active marker refreshes the result. Explicit Title A–Z and Least recently modified sorts override pin priority.
