@@ -1,6 +1,6 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha8\` | **Status:** staging test candidate, not Golden or production-ready.
+**Version:** \`0.1.0-alpha9\` | **Status:** staging test candidate, not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
@@ -11,7 +11,7 @@ Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace
 - Native Gutenberg Notes with revisions, autosaves, strict owner authorization and optional administrator override.
 - Personal **Notebooks** (one per Note), **Categories** (one per Note) and **Tags** (up to 12 per Note).
 - Owner-private organization catalog stored in **user meta**, with opaque identifiers stored in authorized Note post meta. This is intentionally **not** a global WordPress taxonomy, so term labels, suggestions and filters are never shared by default.
-- Gutenberg document panels for Notebook, Category and Tags. Users can choose existing labels or create a new one. Use **Notes → Organize** for a compact Base-styled organizer with direct Notebooks/Categories/Tags tabs, contextual Add new, inline rename and confirmed removal. Removal cleans up references on up to 250 owned Notes; larger operations are explicitly refused pending a reviewed bulk process. Old Notebook text labels migrate on the owner's admin visits in batches of 30.
+- Gutenberg has one progressive **Organize** document panel: Notebook is immediately visible; Categories and Tags are disclosed on demand and open automatically when already assigned. Users can select existing personal labels or create one contextually. Use **Notes → Organize** for a compact Base-styled organizer with direct Notebooks/Categories/Tags tabs, contextual Add new, inline rename and confirmed removal. Removal cleans up references on up to 250 owned Notes; larger operations are explicitly refused pending a reviewed bulk process. Old Notebook text labels migrate on the owner's admin visits in batches of 30.
 - Notes list columns for Notebook, Category and Tags, with combined owner-scoped filters. Internal organization metadata is never added to Public or Secure Share snapshots.
 - Private-by-default \`cb_note\` WordPress post type. WordPress's native Publish action does **not** make Notes externally public.
 - **Public Share:** separate unlisted URL with frozen allowlisted static Gutenberg HTML, explicitly created only through a Base danger modal with typed \`PUBLIC\` and required acknowledgement. Noindex/no-store are not substitutes for authorization.
@@ -31,12 +31,12 @@ Tag/media/attachment visibility in third-party blocks is **not** supported for s
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha8.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha8.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha9.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha9.zip
 \`\`\`
 
-Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes Sharing, personal organization, Library queries, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
+Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes Sharing, personal organization, Gutenberg organization interactions, Library queries, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
 
-Use the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
+For the current editor change, use [Gutenberg UX Golden G1 acceptance](docs/GUTENBERG-UX-G1-ACCEPTANCE.md). The previously accepted Library remains covered by the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
 
 **Governance:** no merge, CI/CD, WordPress.org publication or production deployment without separate explicit GO.
