@@ -1,7 +1,7 @@
 /**
- * Notes Organize: geometry only. Color, controls, typography, cards, buttons
- * and enhanced select presentation belong to Core Blueprint Base.
- * Scoped to our own admin screen; all spacing is from the shared token set.
+ * Core Blueprint Notes / Organize
+ * Geometry only. Base owns cards, tabs, controls, buttons, states and colors.
+ * No custom theme selectors or hard-coded light/dark colors.
  */
 .cb-notes-organize-page #cb-notes-organization-root {
     max-width: 960px;
@@ -10,73 +10,96 @@
 
 .cb-notes-organize-page .cb-notes-organize__stack {
     display: grid;
-    gap: var(--cb-space-5);
-}
-
-.cb-notes-organize-page .cb-notes-organize__card {
-    margin: 0;
+    gap: var(--cb-space-4);
     min-width: 0;
 }
 
-/* Only the selector card may let Base's absolutely positioned popup escape. */
-.cb-notes-organize-page .cb-notes-organize__card--picker {
-    position: relative;
-    z-index: 2;
-    overflow: visible;
-}
-
-.cb-notes-organize-page .cb-notes-organize__selector {
-    max-width: 400px;
+.cb-notes-organize-page .cb-notes-organize__tabs {
+    margin-top: var(--cb-space-2);
     margin-bottom: 0;
 }
 
-.cb-notes-organize-page .cb-notes-organize__picker-host,
-.cb-notes-organize-page .cb-notes-organize__picker-host select,
-.cb-notes-organize-page .cb-notes-organize__picker-host .cb-core-select-picker {
-    width: 100%;
-    max-width: 100%;
+.cb-notes-organize-page .cb-notes-organize__card {
+    min-width: 0;
+    margin: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--cb-space-3);
+    margin-bottom: var(--cb-space-4);
+}
+
+.cb-notes-organize-page .cb-notes-organize__list-heading {
+    display: grid;
+    gap: var(--cb-space-1);
+    min-width: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__heading {
+    margin: 0;
+    color: var(--cb-text-strong);
+    font-size: var(--cb-fs-lg);
+    line-height: var(--cb-lh-normal);
+}
+
+.cb-notes-organize-page .cb-notes-organize__count {
+    color: var(--cb-text-muted);
+    font-size: var(--cb-fs-sm);
 }
 
 .cb-notes-organize-page .cb-notes-organize__items {
     display: grid;
-    gap: var(--cb-space-3);
+    gap: 0;
 }
 
 .cb-notes-organize-page .cb-notes-organize__item {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: var(--cb-space-3);
     padding: var(--cb-space-3) 0;
-    border-bottom: 1px solid var(--cb-border);
-}
-
-.cb-notes-organize-page .cb-notes-organize__item:last-child {
-    border-bottom: 0;
+    border-top: 1px solid var(--cb-border);
+    min-width: 0;
 }
 
 .cb-notes-organize-page .cb-notes-organize__item-name {
+    color: var(--cb-text-strong);
     min-width: 0;
     overflow-wrap: anywhere;
-    color: var(--cb-text-strong);
 }
 
 .cb-notes-organize-page .cb-notes-organize__actions {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--cb-space-3);
 }
 
 .cb-notes-organize-page .cb-notes-organize__rename,
 .cb-notes-organize-page .cb-notes-organize__create {
     display: grid;
-    align-content: start;
     justify-items: start;
+    align-content: start;
     gap: var(--cb-space-4);
     width: 100%;
     max-width: 520px;
+}
+
+.cb-notes-organize-page .cb-notes-organize__item--editing {
+    align-items: start;
+}
+
+.cb-notes-organize-page .cb-notes-organize__create {
+    padding: var(--cb-space-4);
+    margin: 0 0 var(--cb-space-4);
+    border: 1px solid var(--cb-border);
+    border-radius: var(--cb-radius-md);
+    background: var(--cb-surface-2);
 }
 
 .cb-notes-organize-page .cb-notes-organize__create .components-base-control,
@@ -88,6 +111,13 @@
 .cb-notes-organize-page .cb-notes-organize__create .components-text-control__input,
 .cb-notes-organize-page .cb-notes-organize__rename .components-text-control__input {
     width: 100%;
+}
+
+.cb-notes-organize-page .cb-notes-organize__feedback {
+    margin: 0;
+    color: var(--cb-text-muted);
+    font-size: var(--cb-fs-sm);
+    line-height: var(--cb-lh-normal);
 }
 
 .cb-notes-organize-page .cb-notes-organize__help {
@@ -105,7 +135,15 @@
     color: var(--cb-text-muted);
 }
 
+.cb-notes-organize-page .cb-notes-organize__card .cb-core-notice {
+    margin: 0;
+}
+
 @media (max-width: 600px) {
+    .cb-notes-organize-page .cb-notes-organize__list-header {
+        align-items: stretch;
+    }
+
     .cb-notes-organize-page .cb-notes-organize__item {
         align-items: stretch;
     }
