@@ -46,8 +46,20 @@ check(css.includes('cb-notes-library__bulk-trash:hover') &&
     css.includes('border: 1px solid var(--cb-danger);') &&
     css.includes('outline: 2px solid var(--cb-danger);'),
     'Bulk Trash is visibly dangerous with canonical Base tokens');
-check(page.includes('cb-core-button--danger cb-core-button--compact') &&
-    page.includes('data-cb-notes-bulk-action="trash"'), 'Trash uses canonical Base danger button');
+check(page.includes('cb-core-button--danger cb-notes-library__bulk-trash') &&
+    page.includes('data-cb-notes-bulk-action="trash"') &&
+    page.includes('cb-core-button--primary cb-notes-library__bulk-apply'),
+    'Apply and Trash use standard Base button density while row icon actions stay compact');
+check(css.includes('grid-template-columns: minmax(0, 1fr) auto;') &&
+    css.includes('--cb-notes-bulk-control-height: max(var(--cb-control-height, 32px), 2.75rem);') &&
+    css.includes('block-size: var(--cb-notes-bulk-control-height);') &&
+    css.includes('button.cb-notes-library__bulk-apply') &&
+    css.includes('button.cb-notes-library__bulk-trash') &&
+    css.includes('.cb-notes-library__bulk-field select'),
+    'Apply, Trash and both selects align to the same Base-derived control height');
+check(css.includes('grid-template-columns: minmax(0, 1fr);') &&
+    css.includes('.cb-notes-library__bulk-trash { margin-inline-start: 0; justify-self: start; }'),
+    'Narrow admin stacks the bulk rail without overlapping the separate Trash action');
 check(page.includes("'cb-notes-library-bulk'") && page.includes("'assets/library-bulk.js'"),
     'Library-only script registered');
 check(plugin.includes('Bulk::init()'), 'Scoped AJAX registered from Notes boot');
