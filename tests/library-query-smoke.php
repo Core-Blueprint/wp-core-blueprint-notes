@@ -59,7 +59,7 @@ namespace {
     ensure(!$state['invalid'] && $args['paged'] === 3, 'combined state');
     ensure($args['s'] === 'Plan' && isset($args['orderby']['title']), 'search and sort');
     ensure(count($args['meta_query']) === 4 && $args['meta_query']['relation'] === 'AND', 'combined filters');
-    ensure($args['meta_query'][3]['value'] === 's:32:"' . $ownerTag . '";', 'exact serialized tag');
+    ensure(($args['meta_query'][2]['value'] ?? null) === 's:32:"' . $ownerTag . '";', 'exact serialized tag');
 
     $foreign = Query::state(['cbn_notebook' => $foreignNotebook], $catalog);
     ensure($foreign['invalid'] && Query::args(42, $foreign)['post__in'] === [0], 'foreign notebook fail closed');
@@ -68,7 +68,7 @@ namespace {
     ensure(Query::args(0, Query::state([], $catalog))['post__in'] === [0], 'anonymous fail closed');
 
     $unfiled = Query::args(42, Query::state(['cbn_notebook' => 'unfiled'], $catalog));
-    ensure($unfiled['meta_query'][1]['relation'] === 'OR', 'unfiled missing-or-empty');
+    ensure(($unfiled['meta_query'][0]['relation'] ?? null) === 'OR', 'unfiled missing-or-empty');
 
     $clamped = Query::state(['cbn_paged' => '99999999', 'cbn_sort' => 'invalid', 'cbn_search' => str_repeat('a', 200)], $catalog);
     ensure($clamped['paged'] === 9999 && $clamped['sort'] === 'modified' && strlen($clamped['search']) === 120, 'bounded input');
