@@ -151,11 +151,16 @@ final class Catalog {
         $post = $post_id > 0 ? get_post($post_id) : null;
         $owner_id = $post instanceof \WP_Post ? (int) $post->post_author : get_current_user_id();
         if ($owner_id < 1 || $owner_id !== get_current_user_id()) {
-            // An administrator may edit another owner's body but cannot
-            // attach labels from the administrator's separate private catalog.
+            // Administrator "manage all" can edit note content without
+            // silently changing another author's personal classifications.
             foreach ([self::NOTEBOOK, self::CATEGORY, self::TAGS] as $field) {
-                if (array_key_exists($field, $meta)) {
-                    return self::error('cb_notes_organization_forbidden', 'Personal classifications belong to the note owner.', 403);
+                if (!array_key_exists($field, $meta)) {
+                    continue;
+                }
+                $saved = $post instanceof \WP_Post ? get_post_meta((int)$post->ID, $field, true) : null;
+                if ($saved !== $meta[$field]) {
+                    return self::error('cb_notes_organization_forbidden',
+                        'Personal classifications belong to the note owner.', 403);
                 }
             }
             return $prepared;
@@ -332,10 +337,11 @@ final class Catalog {
         }
         $items = self::catalog($owner);
         $changed = false;
+        $assignments = [];
         foreach ($ids as $id) {
             $name = self::normalize_name(get_post_meta((int)$id, Plugin::META_NOTEBOOK, true));
             if ($name === '') {
-                update_post_meta((int)$id, self::NOTEBOOK, '');
+                $assignments[(int)$id] = '';
                 continue;
             }
             $found = '';
@@ -351,11 +357,16 @@ final class Catalog {
                 $changed = true;
             }
             if ($found !== '') {
-                update_post_meta((int)$id, self::NOTEBOOK, $found);
+                $assignments[(int)$id] = $found;
             }
         }
-        if ($changed) {
-            update_user_meta($owner, self::USER_META, $items);
+        if ($changed && !update_user_meta($owner, self::USER_META, $items)) {
+            return;
+        }
+        // First persist catalog IDs, then references. No note may refer to
+        // a newly created catalog ID that failed to save.
+        foreach ($assignments as $id => $ref) {
+            update_post_meta($id, self::NOTEBOOK, $ref);
         }
     }
 
