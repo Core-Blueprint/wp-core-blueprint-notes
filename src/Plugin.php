@@ -4,6 +4,9 @@ namespace CB\Notes;
 use CoreBlueprint\Core\ExtensionRegistry;
 use CoreBlueprint\Core\Admin\SettingsRegistry;
 use CB\Notes\Admin\SettingsPage;
+use CB\Notes\Sharing\Controller;
+use CB\Notes\Integration\SecureProvider;
+use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
 defined('ABSPATH') || exit;
@@ -15,7 +18,7 @@ final class Plugin {
     public static function grant_roles(): void {
         foreach (['administrator','editor'] as $name) {
             $role=get_role($name);
-            if ($role) foreach (['cb_notes_edit','cb_notes_delete'] as $cap) $role->add_cap($cap);
+            if ($role) foreach (['cb_notes_edit','cb_notes_delete','cb_notes_share_public','cb_notes_share_secure'] as $cap) $role->add_cap($cap);
         }
         $admin=get_role('administrator');
         if ($admin) foreach (['cb_notes_manage_all','cb_notes_use_ai'] as $cap) $admin->add_cap($cap);
@@ -24,6 +27,12 @@ final class Plugin {
         if (self::$booted) return;
         self::$booted=true;
         add_action('init',[self::class,'register_content'],6);
+        add_action('init',[Controller::class,'register'],7);
+        add_action('init',[self::class,'upgrade_capabilities'],8);
+        add_action('init',[SecureProvider::class,'register'],15);
+        add_action('cb_secure_share_register_providers',[SecureProvider::class,'register']);
+        add_action('rest_api_init',[Controller::class,'rest']);
+        add_action('template_redirect',[Controller::class,'deliver_public'],-99);
         add_action('init',[self::class,'register_events'],9);
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
         SettingsPage::init();
@@ -44,6 +53,11 @@ final class Plugin {
         add_action('manage_cb_note_posts_custom_column',[self::class,'notebook_column'],10,2);
         add_filter('plugin_action_links_'.CB_NOTES_BASENAME,[self::class,'action_links']);
         add_action('wp_abilities_api_init',[Abilities::class,'register']);
+    }
+    public static function upgrade_capabilities(): void {
+        if (get_option('cb_notes_caps_migration', '') === 'alpha3') return;
+        self::grant_roles();
+        update_option('cb_notes_caps_migration', 'alpha3', false);
     }
     public static function register_content(): void {
         register_post_type(self::TYPE,[
@@ -140,6 +154,13 @@ final class Plugin {
     public static function editor_assets(): void {
         $screen=get_current_screen();
         if(!$screen||$screen->post_type!==self::TYPE) return;
+        if (class_exists(Assets::class)) {
+            Assets::enqueue_modals(Assets::MODAL_PRESENTATION_WP_NATIVE);
+        }
+        wp_enqueue_script('cb-notes-sharing',
+            plugins_url('assets/sharing.js',CB_NOTES_FILE),
+            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch'],
+            CB_NOTES_VERSION,true);
         wp_enqueue_script('cb-notes-editor',
             plugins_url('assets/editor.js',CB_NOTES_FILE),
             ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element'],
