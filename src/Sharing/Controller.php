@@ -48,6 +48,10 @@ final class Controller {
             && current_user_can('edit_post', $id);
     }
 
+    private static function content_version(\WP_Post $post): string {
+        return hash('sha256', $post->post_title . "\\n" . $post->post_content . "\\n" . $post->post_modified_gmt);
+    }
+
     private static function mode(int $id): string {
         $stored = (string)get_post_meta($id, self::MODE_META, true);
         return in_array($stored, ['public', 'secure'], true) ? $stored : 'private';
@@ -63,6 +67,7 @@ final class Controller {
         return [
             'mode' => $mode,
             'modified_gmt' => (string)$post->post_modified_gmt,
+            'content_version' => self::content_version($post),
             'public_url' => $mode === 'public' && is_array($snapshot)
                 ? self::url((string)($snapshot['key'] ?? '')) : null,
             'secure_available' => SecureProvider::available(),
@@ -76,6 +81,15 @@ final class Controller {
         $post = get_post(absint($request->get_param('id')));
         if (!$post instanceof \WP_Post || !self::can_manage($request)) {
             return self::error('Note not found.', 404);
+        }
+        // Timestamp precision alone cannot detect edits within the same second.
+        $expectedMode = (string)$request->get_param('expected_mode');
+        if ($expectedMode !== self::mode($post->ID)) {
+            return self::error('Sharing settings have changed. Reload before continuing.', 409);
+        }
+        $contentVersion = (string)$request->get_param('expected_content_version');
+        if ($contentVersion === '' || !hash_equals(self::content_version($post), $contentVersion)) {
+            return self::error('Note content has changed. Reload before sharing.', 409);
         }
         $expected = (string)$request->get_param('expected_modified_gmt');
         if ($expected === '' || $expected !== (string)$post->post_modified_gmt) {
