@@ -179,8 +179,11 @@ final class Page {
             . esc_html__('Edit', 'core-blueprint-notes') . '</a>';
         $trash = get_delete_post_link($post->ID, '', false);
         if (is_string($trash) && $trash !== '' && current_user_can('delete_post', $post->ID)) {
-            echo '<a class="cb-notes-library__trash" href="' . esc_url($trash) . '" data-cb-notes-trash="1">'
-                . esc_html__('Move to Trash', 'core-blueprint-notes') . '</a>';
+            // Progressive enhancement: no destructive link without a
+            // deliberate, explicit confirmation from the user.
+            echo '<button type="button" class="button-link cb-notes-library__trash" hidden'
+                . ' data-cb-notes-trash-url="' . esc_url($trash) . '">'
+                . esc_html__('Move to Trash', 'core-blueprint-notes') . '</button>';
         }
         echo '</div></li>';
     }
