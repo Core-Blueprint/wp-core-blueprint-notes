@@ -53,11 +53,10 @@ final class Controller {
         return in_array($stored, ['public', 'secure'], true) ? $stored : 'private';
     }
 
-    public static function read(\WP_REST_Request $request): array {
+    public static function read(\WP_REST_Request $request): array|\WP_Error {
         $post = get_post(absint($request->get_param('id')));
         if (!$post instanceof \WP_Post || !self::can_manage($request)) {
-            return ['mode' => 'private', 'modified_gmt' => '', 'public_url' => null,
-                'secure_available' => false, 'has_secure_link' => false, 'shared_at' => null];
+            return self::error('Note not found.', 404);
         }
         $mode = self::mode($post->ID);
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
