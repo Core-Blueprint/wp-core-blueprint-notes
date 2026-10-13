@@ -88,6 +88,9 @@
                     return !existing.some(function (previous) { return previous.id === item.id; });
                 });
                 setCatalog(next);
+                if (!created) {
+                    throw new Error('The new label could not be found. Reload the editor before trying again.');
+                }
                 if (created) {
                     if (kind === 'tag') {
                         var selected = Array.isArray(meta[fields.tag]) ? meta[fields.tag] : [];
@@ -139,7 +142,7 @@
 
         var controls = [];
         controls.push(el('p', { key: 'privacy', className: 'components-base-control__help' },
-            'Your notes stay private when saved. Sharing is a separate action.'));
+            'Saving this note does not publish it or update any shared copy. Sharing is a separate action.'));
 
         if (error) {
             controls.push(el(wp.components.Notice, {
@@ -228,6 +231,9 @@
                         className: 'components-base-control__help'
                     }, 'Maximum of 12 tags reached.')
                 ));
+            } else {
+                // Keep the aria-controls target present while collapsed.
+                controls.push(el('div', { key: 'advanced', id: 'cb-notes-editor-advanced', hidden: true }));
             }
             controls.push(el('p', { key: 'manage', className: 'components-base-control__help' },
                 'Rename or remove personal labels in Notes → Organize.'));
