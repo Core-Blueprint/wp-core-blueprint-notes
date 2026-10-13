@@ -115,5 +115,20 @@ check(css.includes('th[aria-sort="ascending"] a::after') &&
 check(css.includes('.cb-notes-library__display-link.is-active') &&
     css.includes('.cb-notes-library__display-link:focus-visible'),
     'Keyboard-visible selected view toggle with accessible current-page state');
+check(css.includes('.cb-notes-library__display-toggle .button.cb-core-button.cb-notes-library__display-link {') &&
+    css.includes('.cb-notes-library__display-link.is-active {') &&
+    css.includes('border-width: 1px;') &&
+    css.includes('box-shadow: none !important;'),
+    'List/Table has a strict 1px border without the Base primary glow or WP focus shadow');
+const displayFocus = css.slice(
+    css.indexOf('/* Mouse focus must not retain'),
+    css.indexOf('/* Table is optional.')
+);
+check(displayFocus.includes('.cb-notes-library__display-link:focus {') &&
+    displayFocus.includes('.cb-notes-library__display-link:focus-visible {') &&
+    displayFocus.includes('outline: 1px solid var(--cb-interactive-focus, var(--cb-accent));') &&
+    !displayFocus.includes('outline: 2px') &&
+    displayFocus.includes('box-shadow: none !important;'),
+    'Focus only retains a 1px accessible keyboard outline and no thick hover/focus halo');
 check(!/#[0-9a-fA-F]{3,8}\b/.test(css), 'No custom hardcoded color palette');
 console.log('PASS JS: tests/library-table-contract.cjs');
