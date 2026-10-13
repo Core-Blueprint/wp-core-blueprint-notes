@@ -44,8 +44,13 @@ function renderSharing(sharing, dirty) {
         (node.children || []).forEach(visit);
     }
     visit(tree);
-    const text = nodes.flatMap(node => node.children || [])
-        .filter(value => typeof value === 'string').join(' ');
+    function readText(node) {
+        if (Array.isArray(node)) return node.map(readText).join(' ');
+        if (typeof node === 'string' || typeof node === 'number') return String(node);
+        if (!node || !node.children) return '';
+        return node.children.map(readText).join(' ');
+    }
+    const text = readText(tree);
     const buttons = nodes.filter(node => node.type === 'Button');
     const hasButton = name => buttons.some(button => button.children.includes(name));
     const getButton = name => buttons.find(button => button.children.includes(name));
