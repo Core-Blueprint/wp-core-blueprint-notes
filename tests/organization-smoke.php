@@ -31,8 +31,17 @@ class WP_Query {
 }
 function __(string $s, string $domain): string { return $s; }
 function get_current_user_id(): int { return $GLOBALS['user_id']; }
-function current_user_can(string $cap): bool { return $GLOBALS['user_id'] > 0 && $cap === 'cb_notes_edit'; }
-function user_can(int $user, string $cap): bool { return $user > 0 && $cap === 'cb_notes_edit'; }
+function current_user_can(string $cap, int $post_id = 0): bool {
+    if ($GLOBALS['user_id'] === 9) {
+        return $cap === 'cb_notes_manage_all'
+            || ($cap === 'edit_post' && $post_id === 100)
+            || $cap === 'cb_notes_edit';
+    }
+    return $GLOBALS['user_id'] > 0 && $cap === 'cb_notes_edit';
+}
+function user_can(int $user, string $cap): bool {
+    return $user > 0 && ($cap === 'cb_notes_edit' || ($user === 9 && $cap === 'cb_notes_manage_all'));
+}
 function sanitize_text_field(string $s): string { return trim(strip_tags($s)); }
 function absint(mixed $v): int { return abs((int)$v); }
 function get_post(int $id): ?WP_Post { return $GLOBALS['posts'][$id] ?? null; }
@@ -121,6 +130,23 @@ check(Catalog::validate_note_rest(new stdClass(), new WP_REST_Request([
 check(Catalog::validate_note_rest(new stdClass(), new WP_REST_Request([
     'id' => 100, 'meta' => [Catalog::NOTEBOOK => $book],
 ])) instanceof WP_Error, 'cannot change other owner metadata');
+$GLOBALS['user_id'] = 9;
+$manager_request = new WP_REST_Request([
+    'id' => 100, 'meta' => [
+        Catalog::NOTEBOOK => $book,
+        Catalog::CATEGORY => $category,
+        Catalog::TAGS => [$tag],
+    ],
+]);
+check(Catalog::validate_note_rest(new stdClass(), $manager_request) instanceof stdClass,
+    'explicit manager may preserve another owners unchanged labels');
+check(Catalog::validate_note_rest(new stdClass(), new WP_REST_Request([
+    'id' => 100, 'meta' => [Catalog::NOTEBOOK => ''],
+])) instanceof WP_Error, 'explicit manager cannot silently clear other owners notebook');
+check(Catalog::validate_note_rest(new stdClass(), new WP_REST_Request([
+    'id' => 100, 'meta' => [Catalog::TAGS => []],
+])) instanceof WP_Error, 'explicit manager cannot silently remove other owners tags');
+$GLOBALS['user_id'] = 8;
 $b = change('create', 'notebook', 'Client A');
 check(is_array($b) && $b['notebook'][0]['id'] !== $book, 'identical names isolated per user');
 $GLOBALS['user_id'] = 7;
