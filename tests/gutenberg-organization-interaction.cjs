@@ -152,9 +152,12 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
     run.field('TextControl', 'New notebook name').props.onChange('Ideas');
     run.paint();
     run.field('Button', 'Create notebook').props.onClick();
+    // Simulate another Gutenberg sidebar control changing meta during REST.
+    run.meta.cb_notes_unrelated = 'preserved';
     await settle();
     run.paint();
     assert.equal(run.meta.cb_notes_notebook_id, '00000000000000000000000000000002', 'New notebook selected');
+    assert.equal(run.writes.at(-1).cb_notes_unrelated, 'preserved', 'Latest unrelated meta preserved across async creation');
     assert.equal(run.walk(n => n.type === 'TextControl' && n.props.label === 'New notebook name').length, 0,
         'Creation form closes after success');
 
