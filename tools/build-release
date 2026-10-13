@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUT="$ROOT/dist"
+mkdir -p "$OUT"
+bash "$ROOT/tools/check"
+VERSION="$(php -r '$p=file_get_contents($argv[1]); preg_match("/Version:\\s*(\\S+)/", $p, $m); echo $m[1] ?? "";' "$ROOT/core-blueprint-notes.php")"
+[[ "$VERSION" == '0.1.0-alpha18' ]] || { echo 'Unexpected plugin version' >&2; exit 1; }
+ZIP="$OUT/core-blueprint-notes-${VERSION}.zip"
+STAGE="$(mktemp -d "$OUT/.notes-package-XXXXXX")"
+trap 'rm -r -- "$STAGE"' EXIT
+mkdir -p "$STAGE/core-blueprint-notes"
+cp "$ROOT/core-blueprint-notes.php" "$ROOT/README.md" "$STAGE/core-blueprint-notes/"
+cp -R "$ROOT/src" "$ROOT/assets" "$ROOT/docs" "$STAGE/core-blueprint-notes/"
+(
+  cd "$STAGE"
+  zip -q -X -r "$ZIP" core-blueprint-notes
+)
+unzip -t "$ZIP" | tail -n 1
+sha256sum "$ZIP"
+printf 'Artifact: %s\n' "$ZIP"

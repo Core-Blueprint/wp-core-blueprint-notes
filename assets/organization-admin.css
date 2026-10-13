@@ -1,0 +1,156 @@
+/**
+ * Core Blueprint Notes / Organize
+ * Geometry only. Base owns cards, tabs, controls, buttons, states and colors.
+ * No custom theme selectors or hard-coded light/dark colors.
+ */
+.cb-notes-organize-page #cb-notes-organization-root {
+    max-width: 960px;
+    width: 100%;
+}
+
+.cb-notes-organize-page .cb-notes-organize__stack {
+    display: grid;
+    gap: var(--cb-space-4);
+    min-width: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__tabs {
+    margin-top: var(--cb-space-2);
+    margin-bottom: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__card {
+    min-width: 0;
+    margin: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--cb-space-3);
+    margin-bottom: var(--cb-space-4);
+}
+
+.cb-notes-organize-page .cb-notes-organize__list-heading {
+    display: grid;
+    gap: var(--cb-space-1);
+    min-width: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__heading {
+    margin: 0;
+    color: var(--cb-text-strong);
+    font-size: var(--cb-fs-lg);
+    line-height: var(--cb-lh-normal);
+}
+
+.cb-notes-organize-page .cb-notes-organize__count {
+    color: var(--cb-text-muted);
+    font-size: var(--cb-fs-sm);
+}
+
+.cb-notes-organize-page .cb-notes-organize__items {
+    display: grid;
+    gap: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--cb-space-3);
+    padding: var(--cb-space-3) 0;
+    border-top: 1px solid var(--cb-border);
+    min-width: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__item-name {
+    color: var(--cb-text-strong);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.cb-notes-organize-page .cb-notes-organize__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--cb-space-3);
+}
+
+.cb-notes-organize-page .cb-notes-organize__rename,
+.cb-notes-organize-page .cb-notes-organize__create {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    gap: var(--cb-space-4);
+    width: 100%;
+    max-width: 520px;
+}
+
+.cb-notes-organize-page .cb-notes-organize__item--editing {
+    align-items: start;
+}
+
+.cb-notes-organize-page .cb-notes-organize__create {
+    padding: var(--cb-space-4);
+    margin: 0 0 var(--cb-space-4);
+    border: 1px solid var(--cb-border);
+    border-radius: var(--cb-radius-md);
+    background: var(--cb-surface-2);
+}
+
+.cb-notes-organize-page .cb-notes-organize__create .components-base-control,
+.cb-notes-organize-page .cb-notes-organize__rename .components-base-control {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.cb-notes-organize-page .cb-notes-organize__create .components-text-control__input,
+.cb-notes-organize-page .cb-notes-organize__rename .components-text-control__input {
+    width: 100%;
+}
+
+.cb-notes-organize-page .cb-notes-organize__feedback {
+    margin: 0;
+    color: var(--cb-text-muted);
+    font-size: var(--cb-fs-sm);
+    line-height: var(--cb-lh-normal);
+}
+
+.cb-notes-organize-page .cb-notes-organize__help {
+    margin: 0;
+    font-size: var(--cb-fs-sm);
+    line-height: var(--cb-lh-relaxed);
+    color: var(--cb-text-muted);
+}
+
+.cb-notes-organize-page .cb-notes-organize__empty {
+    margin: 0;
+    padding: var(--cb-space-4);
+    border: 1px dashed var(--cb-border);
+    border-radius: var(--cb-radius-sm);
+    color: var(--cb-text-muted);
+}
+
+.cb-notes-organize-page .cb-notes-organize__card .cb-core-notice {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .cb-notes-organize-page .cb-notes-organize__list-header {
+        align-items: stretch;
+    }
+
+    .cb-notes-organize-page .cb-notes-organize__item {
+        align-items: stretch;
+    }
+
+    .cb-notes-organize-page .cb-notes-organize__item-name,
+    .cb-notes-organize-page .cb-notes-organize__item > .cb-notes-organize__actions,
+    .cb-notes-organize-page .cb-notes-organize__rename {
+        width: 100%;
+    }
+}

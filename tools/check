@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+find "$ROOT" -name '*.php' -not -path '*/dist/*' -print0 | while IFS= read -r -d '' file; do
+    php -l "$file" >/dev/null
+    echo "PASS PHP: ${file#"$ROOT/"}"
+done
+node --check "$ROOT/assets/editor.js"
+node --check "$ROOT/assets/organization-admin.js"
+node --check "$ROOT/assets/library-admin.js"
+node "$ROOT/tests/organization-ui-contract.cjs"
+node "$ROOT/tests/gutenberg-organization-interaction.cjs"
+node "$ROOT/tests/organization-interaction-smoke.cjs"
+node "$ROOT/tests/library-ui-contract.cjs"
+node "$ROOT/tests/library-interaction-smoke.cjs"
+node "$ROOT/tests/library-markers-interaction.cjs"
+node --check "$ROOT/assets/library-bulk.js"
+node "$ROOT/tests/library-bulk-contract.cjs"
+node "$ROOT/tests/library-overview-contract.cjs"
+node "$ROOT/tests/library-bulk-interaction.cjs"
+node --check "$ROOT/assets/sharing.js"
+node "$ROOT/tests/sharing-ui-contract.cjs"
+node "$ROOT/tests/gutenberg-sharing-guidance.cjs"
+php "$ROOT/tests/contract-smoke.php"
+php "$ROOT/tests/settings-hub-smoke.php"
+php "$ROOT/tests/sharing-smoke.php"
+php "$ROOT/tests/organization-smoke.php"
+php "$ROOT/tests/library-query-smoke.php"
+php "$ROOT/tests/library-markers-smoke.php"
+php "$ROOT/tests/library-bulk-smoke.php"
+php "$ROOT/tests/library-empty-states-smoke.php"
+php "$ROOT/tests/library-overview-smoke.php"
+php "$ROOT/tests/menu-order-smoke.php"
+bash -n "$ROOT/tools/build-release"
+echo 'Notes source checks: PASS'

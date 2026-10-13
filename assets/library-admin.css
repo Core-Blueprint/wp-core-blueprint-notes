@@ -1,0 +1,367 @@
+/* Library-specific composition only; Base owns shared button/panel/control visuals. */
+.cb-notes-library {
+    --cb-notes-library-sidebar: 244px;
+    max-width: 1480px;
+}
+.cb-notes-library__heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--cb-space-4, 16px);
+    margin-block-end: var(--cb-space-5, 24px);
+}
+.cb-notes-library__heading .cb-core-intro { margin-block-end: 0; }
+.cb-notes-library__heading > .button { flex: 0 0 auto; }
+.cb-notes-library__layout {
+    display: grid;
+    grid-template-columns: minmax(0, var(--cb-notes-library-sidebar)) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--cb-space-5, 24px);
+}
+.cb-notes-library__sidebar,
+.cb-notes-library__main { min-width: 0; }
+.cb-notes-library__nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--cb-space-1, 4px);
+}
+.cb-notes-library__nav h2,
+.cb-notes-library__results-heading h2 {
+    margin: 0 0 var(--cb-space-3, 12px);
+    font-size: 1rem;
+    line-height: 1.4;
+}
+/* Keep Quick access and Notebooks visually separate. */
+.cb-notes-library__nav h2:not(:first-child) { margin-block-start: var(--cb-space-4, 16px); }
+.cb-notes-library__nav-link {
+    display: block;
+    padding: 9px 12px;
+    border-radius: var(--cb-radius-sm, 6px);
+    color: var(--cb-text);
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+.cb-notes-library__nav-link:hover,
+.cb-notes-library__nav-link:focus-visible {
+    background: var(--cb-surface-3);
+    color: var(--cb-text-strong);
+}
+.cb-notes-library__nav-link.is-active {
+    background: var(--cb-tint-accent);
+    color: var(--cb-text-strong);
+    font-weight: 600;
+    box-shadow: inset 3px 0 var(--cb-accent);
+}
+.cb-notes-library a:focus-visible,
+.cb-notes-library summary:focus-visible {
+    outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
+    outline-offset: 2px;
+}
+.cb-notes-library__organize {
+    display: inline-block;
+    margin-block-start: var(--cb-space-4, 16px);
+    font-size: 0.875rem;
+}
+.cb-notes-library__search {
+    margin: 0 0 var(--cb-space-5, 24px);
+}
+.cb-notes-library__search-row {
+    display: flex;
+    align-items: end;
+    gap: var(--cb-space-3, 12px);
+}
+.cb-notes-library__search-field {
+    flex: 1 1 25ch;
+    min-width: 0;
+}
+.cb-notes-library__search label,
+.cb-notes-library__filter-grid label {
+    display: block;
+    margin-block-end: 5px;
+    font-weight: 600;
+}
+.cb-notes-library__search input[type="search"] { width: 100%; max-width: none; }
+.cb-notes-library__advanced { margin-block-start: var(--cb-space-3, 12px); }
+.cb-notes-library__advanced summary {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--cb-text);
+}
+.cb-notes-library__advanced > .button { margin-block-start: var(--cb-space-3, 12px); }
+.cb-notes-library__filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--cb-space-3, 12px);
+    margin-block-start: var(--cb-space-3, 12px);
+}
+.cb-notes-library__filter-grid select { width: 100%; max-width: 100%; }
+.cb-notes-library__results-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--cb-border);
+}
+.cb-notes-library__results-heading > span {
+    color: var(--cb-text-muted);
+    white-space: nowrap;
+}
+.cb-notes-library__notes {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.cb-notes-library__note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cb-space-3, 12px);
+    padding-block: var(--cb-space-3, 12px);
+    margin: 0;
+    border-bottom: 1px solid var(--cb-border);
+}
+.cb-notes-library__identity {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-3, 12px);
+    min-width: 0;
+}
+.cb-notes-library__results-title {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-3, 12px);
+}
+/* The heading used to inherit the sidebar's 12px bottom margin.
+   Remove it only inside the selectable results title so the heading and
+   checkbox share the same vertical centre. Sidebar section spacing stays. */
+.cb-notes-library__results-heading .cb-notes-library__results-title h2 {
+    margin: 0;
+}
+.cb-notes-library__select,
+.cb-notes-library__select-all {
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+}
+.cb-notes-library__select input,
+.cb-notes-library__select-all input { margin: 0; }
+.cb-notes-library__note-content { min-width: 0; }
+
+/* Bulk selection exists only with active JavaScript. Native WP/Base CSS may
+ * otherwise override [hidden] with display:flex or display:block. */
+.cb-core-wrap .cb-notes-library__select[hidden],
+.cb-core-wrap .cb-notes-library__select-all[hidden],
+.cb-core-wrap .cb-notes-library__bulk[hidden],
+.cb-core-wrap .cb-notes-library__bulk-result[hidden] { display: none; }
+.cb-notes-library__select:not([hidden]),
+.cb-notes-library__select-all:not([hidden]) { display: inline-flex; }
+.cb-notes-library__bulk {
+    margin-block: var(--cb-space-3, 12px);
+    padding: var(--cb-space-3, 12px);
+    background: var(--cb-surface-2);
+}
+.cb-notes-library__bulk-top,
+.cb-notes-library__bulk-options,
+.cb-notes-library__bulk-edit {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--cb-space-3, 12px);
+}
+.cb-notes-library__bulk-top {
+    justify-content: space-between;
+    margin-block-end: var(--cb-space-3, 12px);
+}
+/* One command rail: label belongs to its select, all input/button bottoms align.
+   Canonical Base control token is the baseline; 2.75rem provides a usable
+   hit target without changing global Base sizing or row icon buttons. */
+.cb-notes-library__bulk-options {
+    --cb-notes-bulk-control-height: max(var(--cb-control-height, 32px), 2.75rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: var(--cb-space-4, 16px);
+}
+.cb-notes-library__bulk-edit { align-items: end; flex: 1 1 auto; }
+.cb-notes-library__bulk-field { display: grid; gap: var(--cb-space-2, 8px); min-width: 0; }
+.cb-notes-library__bulk-field label { font-weight: 600; }
+.cb-notes-library__bulk-field select { min-width: 12rem; max-width: 100%; }
+.cb-core-wrap .cb-notes-library__bulk-field[hidden] { display: none; }
+.cb-core-wrap .cb-notes-library__bulk-field select,
+.cb-core-wrap .cb-notes-library__bulk-edit button.cb-notes-library__bulk-apply,
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-notes-library__bulk-trash {
+    box-sizing: border-box;
+    block-size: var(--cb-notes-bulk-control-height);
+    min-block-size: var(--cb-notes-bulk-control-height);
+    margin-block: 0;
+}
+.cb-notes-library__bulk-trash { margin-inline-start: auto; }
+.cb-notes-library__bulk-result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cb-space-3, 12px);
+    margin-block: var(--cb-space-3, 12px);
+    color: var(--cb-text);
+}
+.cb-notes-library__note-title {
+    color: var(--cb-text-strong);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+.cb-notes-library__note-title:hover { color: var(--cb-accent); }
+.cb-notes-library__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-block-start: 5px;
+    font-size: 0.8125rem;
+    color: var(--cb-text-muted);
+}
+/* Keep timestamps quiet and expose classification on one scannable,
+   wrapping metadata rail. No additional layout columns or card heights. */
+.cb-notes-library__classification {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cb-space-1, 4px) var(--cb-space-2, 8px);
+    margin-block-start: var(--cb-space-1, 4px);
+    min-width: 0;
+    font-size: 0.8125rem;
+    color: var(--cb-text-muted);
+}
+.cb-notes-library__status,
+.cb-notes-library__label,
+.cb-notes-library__tag,
+.cb-notes-library__tag-more {
+    border-radius: var(--cb-radius-sm, 6px);
+    padding: 2px 6px;
+    background: var(--cb-surface-2);
+    overflow-wrap: anywhere;
+}
+.cb-notes-library__status { color: var(--cb-text-muted); }
+.cb-notes-library__label { color: var(--cb-text); }
+.cb-notes-library__meta-kind { font-weight: 600; color: var(--cb-text-muted); }
+.cb-notes-library__tag { color: var(--cb-text-muted); }
+.cb-notes-library__tag-more { color: var(--cb-text-strong); cursor: help; }
+.cb-notes-library__tag-more:focus-visible {
+    outline: 2px solid var(--cb-accent);
+    outline-offset: 2px;
+}
+.cb-notes-library__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+/* The Base button primitive is inline-flex. Keep HTML hidden authoritative
+   until JavaScript wires its Base danger-confirmation handler. */
+.cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__trash[hidden],
+.cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__marker[hidden] {
+    display: none;
+}
+/* Base owns size, surface, colors and focus. Flex-center Dashicon glyphs
+   in all four icon-only actions, rather than their font baseline. */
+.cb-notes-library__actions .cb-core-button--icon-only > .dashicons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+.cb-notes-library__actions .cb-core-button--icon-only > .dashicons::before {
+    display: block;
+    line-height: 1;
+}
+/*
+ * WordPress admin may apply .button focus/background declarations after the
+ * Base bundle. Reassert Base's public danger tokens with sufficient specificity
+ * only for this destructive action; no independent Notes color system.
+ * The Base danger variant remains the source of semantic styling.
+ */
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash {
+    background: transparent;
+    border: 1px solid var(--cb-danger);
+    color: var(--cb-danger);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:hover,
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:focus {
+    background: var(--cb-danger);
+    border-color: var(--cb-danger);
+    color: var(--cb-surface-1);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:focus-visible {
+    outline: 2px solid var(--cb-danger);
+    outline-offset: 2px;
+}
+.cb-core-wrap .cb-notes-library__actions button.cb-core-button.cb-core-button--danger.cb-notes-library__trash:disabled {
+    background: transparent;
+    color: var(--cb-danger);
+    opacity: 0.5;
+}
+/* Apply the same canonical danger tokens to the separate bulk-trash action.
+   WordPress .button specificity otherwise removes its destructive appearance. */
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash {
+    background: transparent;
+    border: 1px solid var(--cb-danger);
+    color: var(--cb-danger);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:hover,
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:focus {
+    background: var(--cb-danger);
+    border-color: var(--cb-danger);
+    color: var(--cb-surface-1);
+    box-shadow: none;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:focus-visible {
+    outline: 2px solid var(--cb-danger);
+    outline-offset: 2px;
+}
+.cb-core-wrap .cb-notes-library__bulk-options button.cb-core-button.cb-core-button--danger.cb-notes-library__bulk-trash:disabled {
+    background: transparent;
+    color: var(--cb-danger);
+    opacity: 0.5;
+}
+.cb-notes-library__empty { text-align: center; padding: var(--cb-space-6, 32px) 12px; }
+.cb-notes-library__empty-title { margin: 0; color: var(--cb-text-strong); font-size: 1rem; line-height: 1.4; }
+.cb-notes-library__empty p { color: var(--cb-text-muted); margin-block: var(--cb-space-3, 12px) var(--cb-space-4, 16px); }
+.cb-notes-library__feedback:not([hidden]) { margin-block: 0 var(--cb-space-3, 12px); color: var(--cb-danger); }
+.cb-notes-library__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-block-start: var(--cb-space-5, 24px);
+}
+@media (max-width: 1000px) {
+    .cb-notes-library__layout { grid-template-columns: minmax(0, 1fr); }
+    .cb-notes-library__nav { flex-direction: row; flex-wrap: wrap; }
+    .cb-notes-library__nav h2 { flex-basis: 100%; }
+    .cb-notes-library__nav-link.is-active { box-shadow: inset 0 -3px var(--cb-accent); }
+}
+@media (max-width: 680px) {
+    .cb-notes-library__heading { align-items: stretch; flex-direction: column; }
+    .cb-notes-library__heading > .button { width: fit-content; }
+    .cb-notes-library__filter-grid { grid-template-columns: minmax(0, 1fr); }
+    .cb-notes-library__note { align-items: flex-start; flex-direction: column; }
+    .cb-notes-library__actions { justify-content: flex-start; }
+    .cb-notes-library__bulk-options { grid-template-columns: minmax(0, 1fr); row-gap: var(--cb-space-4, 16px); }
+    .cb-notes-library__bulk-edit { flex-direction: column; align-items: stretch; }
+    .cb-notes-library__bulk-field select { width: 100%; min-width: 0; }
+    .cb-notes-library__bulk-trash { margin-inline-start: 0; justify-self: start; }
+    .cb-notes-library__identity { align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cb-notes-library * { scroll-behavior: auto; }
+}
