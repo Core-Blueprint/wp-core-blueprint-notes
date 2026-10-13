@@ -25,7 +25,7 @@ If the branch already exists locally, use git switch feature/notes-library-golde
 ## B. Installation
 
 1. Back up disposable staging and use no real confidential content.
-2. Install the rebuilt alpha6 ZIP as a replacement for alpha5 (or an earlier alpha) (not on production). Core Blueprint Base API 1.2+ must remain active.
+2. Install the rebuilt alpha6 ZIP as a replacement for alpha5 or an earlier alpha, on disposable staging only. Core Blueprint Base API 1.2+ must remain active.
 3. Open Notes → Library. Confirm it is the first Notes submenu entry, followed by All Notes, Add Note and Organize, with AI Access last for administrators. Confirm Notes → All Notes remains available as the native fallback. The Settings Hub workspace button must open Library.
 
 ## C. Library UX (B1–B4)
