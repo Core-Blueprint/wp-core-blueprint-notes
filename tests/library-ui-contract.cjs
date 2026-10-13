@@ -9,6 +9,7 @@ const query = fs.readFileSync(path.join(root, 'src/Library/Query.php'), 'utf8');
 const plugin = fs.readFileSync(path.join(root, 'src/Plugin.php'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'assets/library-admin.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'assets/library-admin.css'), 'utf8');
+const markers = fs.readFileSync(path.join(root, 'src/Library/Markers.php'), 'utf8');
 
 function verify(ok, description) {
     if (!ok) {
@@ -44,4 +45,14 @@ verify(page.includes('This notebook is empty') && page.includes('Your Library is
 verify(!/\bjQuery\b|\$\(/.test(js), 'no jQuery');
 verify(css.includes('var(--cb-surface-') && css.includes('var(--cb-border)'), 'semantic design tokens');
 verify(css.includes('@media (max-width: 680px)') && css.includes(':focus-visible'), 'responsive and keyboard focus');
+verify(page.includes('data-cb-notes-marker') && page.includes('aria-pressed='), 'P1 markers have accessible state and intent');
+verify(page.includes('Quick access') && page.includes('Favorites') && page.includes('Pinned'), 'P1 saved views are discoverable');
+verify(page.includes('wp_create_nonce(') && markers.includes("wp_verify_nonce($nonce"), 'P1 markers require per-note CSRF validation');
+verify(markers.includes("(int)$post->post_author === get_current_user_id()"), 'P1 owner cannot mark another owner note');
+verify(markers.includes("current_user_can('edit_post', $id)"), 'P1 marker also requires object capability');
+verify(markers.includes('posts_orderby') && markers.includes('cb_notes_pinned_first'), 'P1 pinned sorting is query scoped');
+verify(!markers.includes('register_post_meta(') && !markers.includes('show_in_rest'), 'P1 flags are not Gutenberg or public REST schemas');
+verify(query.includes("Markers::FAVORITE") && query.includes("Markers::PINNED"), 'P1 saved views filter by exact private metadata');
+verify(js.includes("window.fetch(endpoint") && js.includes("credentials: 'same-origin'"), 'P1 actions are authenticated async requests');
+verify(css.includes('cb-notes-library__marker[hidden]'), 'P1 actions remain hidden without JavaScript');
 console.log('PASS JS: tests/library-ui-contract.cjs');
