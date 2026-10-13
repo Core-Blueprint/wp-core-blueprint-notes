@@ -476,14 +476,22 @@ final class Catalog {
             __('Organize', 'core-blueprint-notes'),
             'cb_notes_edit', 'cb-notes-organize',
             [self::class, 'render_admin']);
+
+        if (self::$admin_hook !== '') {
+            \CoreBlueprint\Core\UI\AdminTheme::register_screen(self::$admin_hook, [
+                'foundations' => ['select-picker'],
+                'components' => ['buttons', 'cards', 'fields', 'form-controls', 'panels'],
+            ]);
+        }
     }
 
     public static function render_admin(): void {
         if (!self::can_organize()) {
             wp_die(esc_html__('Access denied.', 'core-blueprint-notes'));
         }
-        echo '<div class="wrap"><h1>' . esc_html__('Organize Notes', 'core-blueprint-notes') . '</h1>';
-        echo '<p>' . esc_html__('Your private notebooks, categories and tags. These labels are not visible to other users or on shared notes.', 'core-blueprint-notes') . '</p>';
+        echo '<div class="wrap cb-core-wrap cb-core-page cb-core-form-scope cb-notes-organize-page">';
+        echo '<h1 class="cb-core-title">' . esc_html__('Organize Notes', 'core-blueprint-notes') . '</h1>';
+        echo '<p class="cb-core-intro">' . esc_html__('Manage your personal notebooks, categories and tags. These labels stay private and are not included in shared notes.', 'core-blueprint-notes') . '</p>';
         echo '<div id="cb-notes-organization-root"></div></div>';
     }
 
@@ -492,6 +500,9 @@ final class Catalog {
             return;
         }
         \CoreBlueprint\Core\UI\Assets::enqueue_modals(\CoreBlueprint\Core\UI\Assets::MODAL_PRESENTATION_WP_NATIVE);
+        wp_enqueue_style('cb-notes-organize-layout',
+            plugins_url('assets/organization-admin.css', CB_NOTES_FILE),
+            [], CB_NOTES_VERSION);
         wp_enqueue_script('cb-notes-organize',
             plugins_url('assets/organization-admin.js', CB_NOTES_FILE),
             ['wp-element', 'wp-components', 'wp-api-fetch'],
