@@ -1,4 +1,5 @@
 'use strict';
+
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
@@ -15,30 +16,33 @@ const checks = [
     ['Notebook input uses Name not duplicated pane label', editor.includes("kind === 'notebook' ? 'Name' : 'Type'")],
     ['Gutenberg uses owner-only organization endpoint', editor.includes("'/core-blueprint-notes/v1/organization'")],
     ['Tags selector enforces max 12', editor.includes('selected.length < 12')],
-    ['Editor updates native WordPress post meta', editor.includes("dispatch.editPost({ meta:")],
-    ['Organization management supports create rename delete', admin.includes("mutate('create'") && admin.includes("mutate('rename'") && admin.includes("mutate('delete'")],
+    ['Editor updates native WordPress post meta', editor.includes('dispatch.editPost({ meta:')],
+    ['Organization supports create rename delete', admin.includes("mutate('create'") && admin.includes("mutate('rename'") && admin.includes("mutate('delete'")],
     ['Organization removal uses Base danger modal', admin.includes("confirmVariant: 'danger'") && admin.includes('confirmCheck: {')],
-    ['Organize screen declares Base AdminTheme compatibility', catalog.includes('AdminTheme::register_screen(self::$admin_hook')],
-    ['Semantic Base picker and components requested', catalog.includes("'foundations' => ['select-picker']") && catalog.includes("'components' => ['buttons', 'cards', 'fields', 'form-controls', 'panels']")],
-    ['Base layout scope and theme-aware CSS enqueued', catalog.includes('cb-core-wrap cb-core-page cb-core-form-scope cb-notes-organize-page') && catalog.includes("assets/organization-admin.css")],
-    ['Native select is isolated from React reconciliation', admin.includes('function KindPicker(props)') && admin.includes('useRef(null)') && admin.includes('container.appendChild(nativeSelect)')],
-    ['Base Select Picker enhancement enabled', admin.includes('nativeSelect.dataset.cbCoreSelectPicker') && admin.includes('window.cbCore.selectPicker.enhance(nativeSelect)')],
-    ['Select picker retains a native accessible fallback', admin.includes("nativeSelect.id = 'cb-notes-organize-kind'") && admin.includes("htmlFor: 'cb-notes-organize-kind'")],
-    ['Semantic Base cards and button variants used', admin.includes('cb-core-card__body') && admin.includes('cb-core-button--primary') && admin.includes('cb-core-button--danger')],
-    ['Create action has token spacing', layout.includes('.cb-notes-organize__create') && layout.includes('gap: var(--cb-space-4)')],
-    ['Organize layout is bounded and responsive', layout.includes('max-width: 960px') && layout.includes('max-width: 520px') && layout.includes('@media (max-width: 600px)')],
-    ['Picker escapes only its card while other Base cards stay clipped', admin.includes("props.id === 'select' ? ' cb-notes-organize__card--picker'") && layout.includes('.cb-notes-organize__card--picker {') && layout.includes('overflow: visible;') && layout.includes('z-index: 2;')],
-    ['No hardcoded colors or inline geometry remain', !admin.includes("style: {") && !layout.includes('#7774') && !layout.includes('!important')],
-    ['Organization never falls back if Base modal absent', admin.includes('The Core Blueprint confirmation is unavailable.')],
-    ['Persistent catalog uses per-owner user meta', catalog.includes("get_user_meta($user_id, self::USER_META, true)")],
+    ['Organize registers with Base AdminTheme', catalog.includes('AdminTheme::register_screen(self::$admin_hook')],
+    ['Base nav tabs, notices and form components requested', catalog.includes("'nav-tabs', 'notices'") && catalog.includes("'form-controls'")],
+    ['Base screen scope and theme-aware CSS loaded', catalog.includes('cb-core-wrap cb-core-page cb-core-form-scope cb-notes-organize-page') && catalog.includes('assets/organization-admin.css')],
+    ['Three visible, accessible native links replace dropdown', admin.includes("className: 'nav-tab'") && admin.includes("'aria-current': active ? 'page'") && admin.includes('aria-label') && !admin.includes('KindPicker')],
+    ['Tab URLs preserve WordPress admin query parameters', admin.includes('new URL(window.location.href)') && admin.includes("url.searchParams.set('section', section)") && admin.includes('sectionFromUrl')],
+    ['Direct tab navigation updates content without page reload', admin.includes('setKind(next)') && admin.includes('window.history.replaceState')],
+    ['Contextual Add new form is hidden by default', admin.includes('if (adding) {') && admin.includes("adding ? 'Cancel' : 'Add new'")],
+    ['Rename remains inline and accessible', admin.includes("label: 'Rename ' + item.name") && admin.includes("setEditing(item.id)")],
+    ['Canceling removal cannot mutate', admin.includes("if (accepted === true) mutate('delete'")],
+    ['Full page replaced with one Base card', admin.includes('cb-core-card__body') && !admin.includes('cb-notes-organize__card--picker')],
+    ['Success feedback is compact and screenreader-accessible', admin.includes('cb-notes-organize__feedback') && admin.includes("'aria-live': 'polite'") && !admin.includes("status: 'success'")],
+    ['Error uses semantic Base notice', admin.includes('cb-core-notice cb-core-notice--error') && admin.includes("role: 'alert'")],
+    ['Token layout is bounded, responsive and no picker overflow exception remains', layout.includes('max-width: 960px') && layout.includes('gap: var(--cb-space-4)') && layout.includes('@media (max-width: 600px)') && !layout.includes('overflow: visible;')],
+    ['No custom colors or per-element style overrides', !admin.includes('style: {') && !layout.includes('#7774') && !layout.includes('!important')],
+    ['Organize never falls back if Base modal absent', admin.includes('The Core Blueprint confirmation is unavailable.')],
+    ['Per-owner classification storage remains unchanged', catalog.includes('get_user_meta($user_id, self::USER_META, true)')],
     ['Organization REST requires Notes edit capability', catalog.includes("current_user_can('cb_notes_edit')")],
     ['Library filters require owner catalog', catalog.includes('self::catalog(get_current_user_id())')],
-    ['Post meta validated against owner catalog', catalog.includes('Unknown personal organization item.')],
-    ['No site-wide WP taxonomy is registered', !catalog.includes('register_taxonomy(')],
-    ['Public sharing does not include organization metadata', !snapshot.includes('cb_notes_organization') && !sharing.includes('organizationPath')],
+    ['Gutenberg post meta checked against owner catalog', catalog.includes('Unknown personal organization item.')],
+    ['No site-wide WP taxonomy registered', !catalog.includes('register_taxonomy(')],
+    ['Shared snapshots never include Notes organization metadata', !snapshot.includes('cb_notes_organization') && !sharing.includes('organizationPath')]
 ];
 checks.forEach(([label, pass]) => {
     assert.equal(pass, true, label);
     process.stdout.write('PASS: ' + label + '\n');
 });
-process.stdout.write('Notes alpha4 organization UI contract: PASS\n');
+process.stdout.write('Notes alpha4 tabbed organization UI contract: PASS\n');
