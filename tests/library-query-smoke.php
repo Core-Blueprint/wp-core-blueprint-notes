@@ -93,8 +93,25 @@ namespace {
     $titleSort = Query::args(42, Query::state([
         'cbn_view' => 'favorites', 'cbn_sort' => 'title',
     ], $catalog));
-    ensure($titleSort['cb_notes_pinned_first'] === false && isset($titleSort['orderby']['title']),
-        'explicit title sorting overrides pinned priority');
+    ensure($titleSort['cb_notes_pinned_first'] === false &&
+        $titleSort['orderby'] === ['title' => 'ASC', 'ID' => 'ASC'],
+        'explicit title A to Z overrides pinned priority');
+    $titleDesc = Query::args(42, Query::state(['cbn_sort' => 'title_desc'], $catalog));
+    ensure($titleDesc['cb_notes_pinned_first'] === false &&
+        $titleDesc['orderby'] === ['title' => 'DESC', 'ID' => 'DESC'] &&
+        $titleDesc['author'] === 42,
+        'explicit title Z to A uses stable descending SQL and still scopes owner');
+    $newest = Query::args(42, Query::state(['cbn_sort' => 'newest'], $catalog));
+    ensure($newest['cb_notes_pinned_first'] === false &&
+        $newest['orderby'] === ['modified' => 'DESC', 'ID' => 'DESC'],
+        'explicit newest first ignores pinned priority for strict date order');
+    $oldest = Query::args(42, Query::state(['cbn_sort' => 'oldest'], $catalog));
+    ensure($oldest['cb_notes_pinned_first'] === false &&
+        $oldest['orderby'] === ['modified' => 'ASC', 'ID' => 'ASC'],
+        'explicit oldest first sorts chronological ascending');
+    ensure($pinned['cb_notes_pinned_first'] === true &&
+        $pinned['orderby'] === ['modified' => 'DESC', 'ID' => 'DESC'],
+        'default pinned-first sorting remains unchanged');
     ensure(Query::state(['cbn_view' => 'foreign'], $catalog)['view'] === '',
         'unrecognized view normalizes to default');
     echo "PASS PHP: tests/library-query-smoke.php\n";
