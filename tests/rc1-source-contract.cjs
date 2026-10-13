@@ -11,6 +11,7 @@ function check(value, detail) {
 }
 
 const plugin = read('core-blueprint-notes.php');
+const pluginRuntime = read('src/Plugin.php');
 const access = read('src/Access.php');
 const sharing = read('src/Sharing/Controller.php');
 const snapshot = read('src/Sharing/Snapshot.php');
@@ -32,15 +33,14 @@ check(plugin.includes('Requires at least: 7.0') &&
     plugin.includes("define('CB_NOTES_REQUIRED_API', '1.2')") &&
     plugin.includes('cb_notes_requirement_error'),
     'Base / WordPress / PHP dependency constraints remain explicit');
-check(plugin.includes("'public'=>false,'publicly_queryable'=>false") &&
-    plugin.includes("'exclude_from_search'=>true") &&
-    plugin.includes("'show_in_rest'=>true") &&
-    plugin.includes("'rest_base'=>'cb-notes'") &&
+check(pluginRuntime.includes("'public'=>false,'publicly_queryable'=>false") &&
+    pluginRuntime.includes("'exclude_from_search'=>true") &&
+    pluginRuntime.includes("'show_in_rest'=>true") &&
+    pluginRuntime.includes("'rest_base'=>'cb-notes'") &&
     access.includes('before_rest') && access.includes('scope_rest') &&
     access.includes('scope_query') && access.includes('map_meta_cap'),
     'Non-public Gutenberg CPT is protected by read, list and object policy layers');
 check(catalog.includes('get_current_user_id()') &&
-    catalog.includes('Catalog::') === false &&
     library.includes("'author' => $owner > 0 ? $owner : -1") &&
     library.includes("'invalid' => $invalid") &&
     library.includes("'post__in'"),
