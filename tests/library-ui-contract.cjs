@@ -26,6 +26,12 @@ verify(page.includes('aria-current="page"'), 'accessible notebook state');
 verify(page.includes('type="search"') && page.includes('type="hidden" name="cbn_notebook"'), 'search and notebook filters');
 verify(page.includes('<details class="cb-notes-library__advanced"'), 'advanced filter disclosure');
 verify(page.includes('get_edit_post_link') && page.includes('get_delete_post_link'), 'native editing and trash actions');
+verify(page.includes('class="button cb-core-button cb-core-button--secondary cb-core-button--compact"'), 'Edit uses canonical Base secondary compact button');
+verify(page.includes('class="button cb-core-button cb-core-button--danger cb-core-button--compact cb-notes-library__trash" hidden'), 'Trash uses canonical Base danger compact button');
+verify(!page.includes('button-link cb-notes-library__trash'), 'no old text-link trash action');
+verify(css.includes('.cb-core-button.cb-notes-library__trash[hidden]') && css.includes('display: none;'), 'hidden trash remains hidden against Base inline-flex display');
+verify(!css.includes('.cb-notes-library__trash:hover') && !css.includes('.cb-notes-library__trash { color:'), 'Base owns danger appearance');
+
 verify(page.includes('data-cb-notes-trash-url') && page.includes(' hidden'), 'trash disabled without explicit JS confirmation');
 verify(query.includes("'author' => $owner > 0 ? $owner : -1"), 'SQL owner bound');
 verify(query.includes("'post__in'] = [0]"), 'fail-closed invalid filters');
