@@ -31,6 +31,8 @@
     font-size: 1rem;
     line-height: 1.4;
 }
+/* Keep Quick access and Notebooks visually separate. */
+.cb-notes-library__nav h2:not(:first-child) { margin-block-start: var(--cb-space-4, 16px); }
 .cb-notes-library__nav-link {
     display: block;
     padding: 9px 12px;
@@ -157,9 +159,12 @@
 }
 /* The Base button primitive is inline-flex. Keep HTML hidden authoritative
    until JavaScript wires its Base danger-confirmation handler. */
-.cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__trash[hidden] {
+.cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__trash[hidden],
+.cb-core-wrap .cb-notes-library__actions .cb-core-button.cb-notes-library__marker[hidden] {
     display: none;
 }
+/* Only layout the marker icon. Base owns button surfaces, colors and states. */
+.cb-notes-library__marker .dashicons { font-size: 18px; width: 18px; height: 18px; }
 .cb-notes-library__empty { text-align: center; padding: var(--cb-space-6, 32px) 12px; }
 .cb-notes-library__empty-title { margin: 0; color: var(--cb-text-strong); font-size: 1rem; line-height: 1.4; }
 .cb-notes-library__empty p { color: var(--cb-text-muted); margin-block: var(--cb-space-3, 12px) var(--cb-space-4, 16px); }
