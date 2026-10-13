@@ -196,6 +196,18 @@ final class Controller {
         }
     }
 
+    /** Trash/delete permanently disarms sharing, even if the Note is restored. */
+    public static function revoke_for_lifecycle(int $id): void {
+        $post = get_post($id);
+        if (!$post instanceof \WP_Post || $post->post_type !== Plugin::TYPE) {
+            return;
+        }
+        update_post_meta($id, self::MODE_META, 'private');
+        delete_post_meta($id, self::PUBLIC_META);
+        delete_post_meta($id, self::PUBLIC_KEY);
+        self::revoke_old_secure($id);
+    }
+
     /** Revoking local provider authority is immediate, even without Secure Share. */
     private static function revoke_old_secure(int $id): void {
         $old = get_post_meta($id, self::SECURE_META, true);
