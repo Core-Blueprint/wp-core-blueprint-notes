@@ -41,7 +41,7 @@
 - Response returns exact updated/failed IDs and counts, including partial failures; client identifies failed visible note names with safe text content and offers manual refresh to maintain correct server-side filters.
 - No changes to Secure Share, frozen snapshots, Gutenberg storage or Base design foundations.
 
-## Library Overview & P2 Toolbar Alignment (Alpha17)
+## Library Overview & P2 Toolbar Alignment (Alpha17–18)
 
 - Retains the single owner-scoped Library, sidebar, saved views, filters, 20-per-page query, native Gutenberg editing and four compact row actions.
 - Alpha18 removes the inherited bottom margin from the selectable Library result heading only, vertically centering the `Your notes` title with its checkbox. Sidebar headings keep their spacing.
@@ -58,7 +58,7 @@
 
 ## Validation gates
 
-For alpha17, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Confirm at least one WordPress runtime test for selecting visible Notes only, author/capability isolation, correct notebook/category destinations, partial failures, Base-confirmed Trash, share revocation and Light/Dark accessibility. Alpha13 P1 was visually and functionally accepted by the user. New P2 code remains a staging candidate until accepted. Mocked source checks do not replace WordPress runtime proof.
+For alpha18, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Confirm at least one WordPress runtime test for selecting visible Notes only, author/capability isolation, correct notebook/category destinations, partial failures, Base-confirmed Trash, share revocation and Light/Dark accessibility. Alpha13 P1 was visually and functionally accepted by the user. New P2 code remains a staging candidate until accepted. Mocked source checks do not replace WordPress runtime proof.
 
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
