@@ -38,7 +38,7 @@ check(page.includes("esc_html__('Title'") &&
 check(page.includes("['sort' => 'title', 'paged' => 1]") &&
     page.includes("['sort' => $modified_sort, 'paged' => 1]") &&
     page.includes('aria-sort="ascending"') &&
-    page.includes('aria-sort="descending"'),
+    page.includes("$modified_dir = $state['sort'] === 'oldest' ? 'ascending' : 'descending'"),
     'Title and Modified sorted with the existing supported query options');
 const tableRow = page.slice(
     page.indexOf('private static function render_table_row('),
