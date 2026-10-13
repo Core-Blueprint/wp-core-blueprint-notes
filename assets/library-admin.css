@@ -125,14 +125,28 @@
     align-items: center;
     gap: var(--cb-space-1, 4px);
 }
+/* Base owns the selected primary and inactive secondary surfaces. Match
+   the compact icon-only buttons already used by Library row actions. */
 .cb-notes-library__display-toggle .cb-notes-library__display-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     text-decoration: none;
 }
 .cb-notes-library__display-toggle .cb-notes-library__display-link.is-active {
-    background: var(--cb-tint-accent);
-    color: var(--cb-text-strong);
     border-color: var(--cb-accent);
-    font-weight: 600;
+}
+.cb-notes-library__display-toggle .cb-core-button--icon-only > .dashicons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+.cb-notes-library__display-toggle .cb-core-button--icon-only > .dashicons::before {
+    display: block;
+    line-height: 1;
 }
 .cb-notes-library__display-toggle .cb-notes-library__display-link:focus-visible {
     outline: 2px solid var(--cb-interactive-focus, var(--cb-accent));
@@ -169,20 +183,25 @@
     color: var(--cb-text-muted);
     background: var(--cb-surface-2);
 }
-.cb-notes-library__table thead th a {
+/* Underline only the sortable label, never the ASC/DESC glyph.
+   The arrow is an inline-block generated outside the underlined span. */
+.cb-core-wrap .cb-notes-library__table thead th a {
     color: var(--cb-text);
+    text-decoration: none;
+}
+.cb-notes-library__table thead th a .cb-notes-library__sort-label {
     text-decoration: underline;
     text-underline-offset: 3px;
 }
 .cb-notes-library__table thead th a:hover { color: var(--cb-accent); }
-.cb-notes-library__table thead th[aria-sort="ascending"] a::after {
-    content: "↑";
-    margin-inline-start: var(--cb-space-2, 8px);
-}
+.cb-notes-library__table thead th[aria-sort="ascending"] a::after,
 .cb-notes-library__table thead th[aria-sort="descending"] a::after {
-    content: "↓";
+    display: inline-block;
     margin-inline-start: var(--cb-space-2, 8px);
+    text-decoration: none;
 }
+.cb-notes-library__table thead th[aria-sort="ascending"] a::after { content: "↑"; }
+.cb-notes-library__table thead th[aria-sort="descending"] a::after { content: "↓"; }
 .cb-notes-library__table th:nth-child(1) { width: 23%; }
 .cb-notes-library__table th:nth-child(2) { width: 13%; }
 .cb-notes-library__table th:nth-child(3) { width: 12%; }
