@@ -184,9 +184,13 @@ final class Plugin {
             'note_id'=>$post_id,'status'=>sanitize_key($post->post_status),
         ]);
     }
-    public static function audit_trash(int $post_id): void {self::audit_lifecycle('trashed',$post_id);}
+    public static function audit_trash(int $post_id): void {
+        Controller::revoke_for_lifecycle($post_id);
+        self::audit_lifecycle('trashed',$post_id);
+    }
     public static function audit_restore(int $post_id): void {self::audit_lifecycle('restored',$post_id);}
     public static function audit_delete(int $post_id,\WP_Post $post): void {
+        Controller::revoke_for_lifecycle($post_id);
         if($post->post_type===self::TYPE)
             Audit::record('cbnotes.record.deleted','warning',['note_id'=>$post_id]);
     }
