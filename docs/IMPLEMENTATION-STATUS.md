@@ -49,7 +49,7 @@
 
 ## Validation gates
 
-For alpha10, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Acceptance focuses on independent Favorite/Pin toggling, saved views, pinned-first ordering, nonce and owner authorization, responsiveness and unchanged sharing boundaries. Earlier Alpha9 was reported stable by the user; the new alpha10 interface still requires its own staging acceptance. Mocked source checks do not replace WordPress runtime proof.
+For alpha14, run the canonical sourcegate and release ZIP build on the exact branch HEAD and record SHA-256. Confirm at least one WordPress runtime test for selecting visible Notes only, author/capability isolation, correct notebook/category destinations, partial failures, Base-confirmed Trash, share revocation and Light/Dark accessibility. Alpha13 P1 was visually and functionally accepted by the user. New P2 code remains a staging candidate until accepted. Mocked source checks do not replace WordPress runtime proof.
 
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
