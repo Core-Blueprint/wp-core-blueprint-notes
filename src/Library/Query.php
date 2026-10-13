@@ -44,7 +44,7 @@ final class Query {
         $view = self::text($input, 'cbn_view', 16);
         $view = in_array($view, ['favorites', 'pinned'], true) ? $view : '';
         $sort = self::text($input, 'cbn_sort', 16);
-        $sort = in_array($sort, ['modified', 'oldest', 'title'], true) ? $sort : 'modified';
+        $sort = in_array($sort, ['modified', 'newest', 'oldest', 'title', 'title_desc'], true) ? $sort : 'modified';
         $page = $input['cbn_paged'] ?? 1;
         $page = is_scalar($page) ? max(1, min(9999, (int)$page)) : 1;
         $invalid = ($notebook !== '' && $notebook !== 'unfiled' && !self::catalog_has($catalog, 'notebook', $notebook))
@@ -76,7 +76,9 @@ final class Query {
             's' => (string)$state['search'],
             'orderby' => match ($state['sort']) {
                 'oldest' => ['modified' => 'ASC', 'ID' => 'ASC'],
-                'title' => ['title' => 'ASC', 'ID' => 'DESC'],
+                'title' => ['title' => 'ASC', 'ID' => 'ASC'],
+                'title_desc' => ['title' => 'DESC', 'ID' => 'DESC'],
+                'newest' => ['modified' => 'DESC', 'ID' => 'DESC'],
                 default => ['modified' => 'DESC', 'ID' => 'DESC'],
             },
         ];
