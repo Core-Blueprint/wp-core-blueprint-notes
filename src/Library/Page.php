@@ -542,8 +542,17 @@ final class Page {
         foreach ($catalog['notebook'] as $notebook) {
             self::nav_link((string)$notebook['name'], $state, (string)$notebook['id']);
         }
-        echo '</nav><a class="cb-notes-library__organize" href="' . esc_url($organize_url) . '">'
-            . esc_html__('Manage notebooks and labels', 'core-blueprint-notes') . '</a></aside>';
+        // Organization is a supporting action, not another notebook.
+        // Keep the same authorized Admin destination outside the navigation list.
+        echo '</nav><div class="cb-notes-library__sidebar-footer">';
+        echo '<a class="cb-notes-library__organize-link" href="' . esc_url($organize_url) . '">'
+            . '<svg class="cb-notes-library__organize-icon" width="18" height="18" viewBox="0 0 24 24"'
+            . ' fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"'
+            . ' stroke-linejoin="round" aria-hidden="true" focusable="false">'
+            . '<path d="M3 4h7m4 0h7M3 12h3m4 0h11M3 20h11m4 0h3" />'
+            . '<path d="M10 2v4M6 10v4M14 18v4" />'
+            . '</svg><span>' . esc_html__('Organize notes', 'core-blueprint-notes')
+            . '</span></a></div></aside>';
         echo '<main class="cb-notes-library__main cb-core-panel" id="cb-notes-library-results">';
         echo '<p class="cb-notes-library__feedback" role="alert" aria-live="assertive" hidden></p>';
         self::render_filters($state, $catalog);
