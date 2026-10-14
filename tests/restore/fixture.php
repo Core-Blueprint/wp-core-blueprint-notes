@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+// WP-CLI eval-file executes this fixture through eval(); strict_types cannot
+// appear here as a top-level declaration. This is test-only code.
 
 use CB\Notes\Access;
 use CB\Notes\Organization\Catalog;
