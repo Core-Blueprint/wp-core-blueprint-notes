@@ -9,8 +9,17 @@ $db = getenv('CB_NOTES_ROLLBACK_DB');
 if (!in_array($db, [
     'core_blueprint_notes_rollback_source',
     'core_blueprint_notes_rollback_target',
-], true) || PHP_SAPI !== 'cli') {
-    throw new RuntimeException('Rollback test config permits only the two fixed disposable CLI databases.');
+], true) || !in_array(PHP_SAPI, ['cli', 'cli-server'], true)) {
+    throw new RuntimeException('Rollback test config permits only isolated CLI/loopback runtimes.');
+}
+if (PHP_SAPI === 'cli-server') {
+    if ($db !== 'core_blueprint_notes_rollback_target'
+        || ($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1'
+        || (string)($_SERVER['SERVER_PORT'] ?? '') !== '18778'
+        || ($_SERVER['HTTP_HOST'] ?? '') !== '127.0.0.1:18778') {
+        http_response_code(403);
+        exit('Only synthetic restored target on loopback is permitted');
+    }
 }
 define('DB_NAME', $db);
 define('DB_USER', 'root');
