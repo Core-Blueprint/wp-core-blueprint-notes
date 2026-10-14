@@ -47,7 +47,7 @@ The source E1 and restored target E2 used **the same WordPress home URL** and di
 
 ## Still open before RC1 promotion
 
-- The existing `tools/check-restore` (76-check ordinary SQL backup/restore) and `tools/check-http` (44-check A/B HTTP/REST/headers) remain **hard-pinned to Alpha24**, not Alpha25. Their earlier PASS results are historical evidence and **do not establish Alpha25 regressions**. Either add independently guarded Alpha25 copies or safely retarget these runners while preserving the original pinned baseline evidence. **NOT RUN on Alpha25.**
+- The guarded `tools/check-restore` (ordinary 76-check SQL backup/restore) and `tools/check-http` (44-check A/B HTTP/REST/headers) have now been **retargeted in source to the exact verified Alpha25 ZIP SHA-256**, with an Alpha25-only synthetic recovery-key fixture. Their safety source contracts were retargeted as well. **Both Alpha25 runtime reruns remain NOT RUN** until the operator runs them. Previous Alpha24 PASS results remain preserved as historical evidence; the independent historical security reproduction `tools/check-rollback-repro` still pins Alpha24.
 - Actual LiteSpeed / QUIC.cloud origin vs edge delivery, purge, 404-after-revocation and no-store headers: **NOT RUN**.
 - Independent host-level quarantine, config/file/SQL full rollback and post-restore key rotation: **NOT RUN**.
 - Real Secure Share provider (installed/absent), password/expiry, provider grant revoke/rollback: **NOT RUN**.
@@ -58,3 +58,26 @@ The source E1 and restored target E2 used **the same WordPress home URL** and di
 ## Governance
 
 This is a source/test evidence update only. It does not modify customer links, WordPress live databases, keys, Base, Secure Share, CDN or the packaged Alpha25 artifact. No merge, tag, deployment or publication.
+
+## Next operator-only local regression (as of 2026-10-14)
+
+On clean featurebranch, verify the exact HEAD and run:
+
+```bash
+cd ~/Downloads/wp-core-blueprint-notes
+git fetch origin
+git switch feature/notes-rc1-golden-hardening-v1
+git pull --ff-only origin feature/notes-rc1-golden-hardening-v1
+git rev-parse HEAD
+git status --short
+bash -n tools/check-restore
+bash -n tools/check-http
+node tests/restore-runner-contract.cjs
+node tests/http-runner-contract.cjs
+bash tools/check
+sha256sum dist/core-blueprint-notes-0.1.0-alpha25.zip
+bash tools/check-restore
+bash tools/check-http
+```
+
+Expected current Alpha25 package hash: `77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908`. **No prior Alpha25 PASS is claimed for these two reruns.** Runners use only their fixed disposable local test DB names, fail if already present, and retain their existing cleanup ownership/loopback safeguards. Preserve full output and stop on any fail. This evidence-only update and runner retargeting leave the frozen package's file contents unchanged.
