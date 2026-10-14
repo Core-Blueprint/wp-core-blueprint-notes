@@ -81,7 +81,7 @@ for (const gate of ['R01','R02','R03','R04','R05','R06','R07','R08','R09','R10',
     check(acceptance.includes(gate), 'Acceptance matrix missing ' + gate);
 }
 check(acceptance.includes('NOT RUN') &&
-    acceptance.includes('JavaScript') &&
+    acceptance.includes('wp-i18n') &&
     acceptance.includes('portability') &&
     acceptance.includes('uninstall'),
     'Unexecuted runtime/security/i18n/portability release blockers are explicitly recorded');
