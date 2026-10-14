@@ -64,6 +64,8 @@ A single invocation covers only one WP version. The first (default) is WP 7.0 an
 - R03 partial: two editors and anonymous exact REST read access, owner list scoping and no foreign body/title leaks.
 - R09 partial: read-only Abilities disabled by default, enabled per-user owner boundaries, administrator's distinct AI scope and no content in list projections.
 
+**Extended PHPUnit cases added, NOT YET RUN:** `NotesRuntimeMutationSharingIntegrationTest` expands R02/R03/R07 with three real WordPress scenarios: owner REST edits and cross-owner edit/delete refusal; revision and autosave REST permission checks; and public-share confirmation, frozen content, cross-owner revocation refusal, and final revocation. These are intentionally PHP/REST-dispatch-level tests. Do not mark R07/cache/revocation globally PASS without actual anonymous HTTP, cache/CDN and restore evidence. The previous WordPress 7.0 and 7.1.3 PASS (4 tests, 68 assertions each) applies **only to the earlier four-test suite**, not this expanded suite. The new seven-test target requires independent execution on both versions.
+
 **Still needed:** real authenticated HTTP/MCP adapter transport, revisions/autosaves and write endpoints, shared snapshots, caches and CDN, Secure Share provider, upgrade/restore, locales, UI/a11y, performance/scale and installation compatibility. A passing PHPUnit smoke **must not** mark entire R02/R03/R09 or RC-02 as PASS.
 
 ### Stage S: source and contract evidence
