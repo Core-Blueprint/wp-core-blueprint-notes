@@ -75,6 +75,9 @@ exact(resource, "Controller::SECURE_META", 'Provider must check Notes current se
 exact(resource, "Controller::MODE_META", 'Provider must recheck current Notes share mode.');
 for (const api of ['registerProvider(', 'issue(', 'revoke(']) {
     exact(ss, 'function ' + api, 'Secure Share facade missing ' + api);
+}
+exact(adapter, '::registerProvider(', 'Notes provider adapter must register with Secure Share.');
+for (const api of ['issue(', 'revoke(']) {
     exact(controller, '::' + api, 'Notes controller missing facade ' + api);
 }
 for (const field of ['provider:', 'resourceType:', 'resourceKey:', 'actions:',
