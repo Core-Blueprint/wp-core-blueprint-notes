@@ -146,6 +146,8 @@ $revokedGrant = Services::repository()->findById(new GrantId($snapshot['grant_id
 $must($revokedGrant !== null && $revokedGrant->revokedAt() !== null
     && $revokedGrant->revision() === 2,
     'Real Secure Share provider grant is revoked and revision advanced');
+$must(\CB\Notes\Sharing\SecureRevocationRecovery::pending_count() === 0,
+    'Successful real provider revocation leaves no queued recovery obligation');
 $refused(static function() use ($bearer): void {
     Services::accessService()->inspectBearer($bearer);
 }, 'Old bearer cannot authorize after provider revocation');
