@@ -155,11 +155,14 @@ final class Controller {
         }
 
         // Disarm existing sharing before issuing a replacement grant.
-        update_post_meta($post->ID, self::MODE_META, 'private');
+        if (!self::persist_meta($post->ID, self::MODE_META, 'private')) {
+            return self::error('Secure sharing failed. No new link is active in Notes.', 500);
+        }
         self::revoke_old_secure($post->ID);
         delete_post_meta($post->ID, self::PUBLIC_META);
         delete_post_meta($post->ID, self::PUBLIC_KEY);
         $snapshotKey = bin2hex(random_bytes(16));
+        $issued = null;
         try {
             $requestClass = \CB\SecureShare\PublicApi\ShareRequest::class;
             $facade = \CB\SecureShare\PublicApi\SecureShare::class;
@@ -170,7 +173,9 @@ final class Controller {
                 'created' => gmdate('c'),
                 'grant_id' => '', 'revision' => 0,
             ];
-            update_post_meta($post->ID, self::SECURE_META, $pending);
+            if (!self::persist_meta($post->ID, self::SECURE_META, $pending)) {
+                throw new \RuntimeException('Could not persist a pending secure snapshot.');
+            }
             $issued = $facade::issue(new $requestClass(
                 provider: 'core-blueprint-notes',
                 resourceType: 'note',
@@ -183,21 +188,29 @@ final class Controller {
             ));
             $pending['grant_id'] = $issued->grantId();
             $pending['revision'] = $issued->revision();
-            update_post_meta($post->ID, self::SECURE_META, $pending);
+            if (!self::persist_meta($post->ID, self::SECURE_META, $pending)
+                || !self::persist_meta($post->ID, self::MODE_META, 'secure')) {
+                throw new \RuntimeException('Could not finalize the secure share.');
+            }
             delete_post_meta($post->ID, self::PUBLIC_META);
             delete_post_meta($post->ID, self::PUBLIC_KEY);
-            update_post_meta($post->ID, self::MODE_META, 'secure');
             self::record('secure', $post->ID);
             $result = self::read($request);
             // Bearer can only be copied on initial creation, never persisted or logged.
             $result['invitation_url'] = $issued->invitationUrl();
             return $result;
         } catch (\Throwable $error) {
-            // Fail closed after error, including a possibly issued-but-uncommitted grant.
-            update_post_meta($post->ID, self::MODE_META, 'private');
-            delete_post_meta($post->ID, self::PUBLIC_META);
-            delete_post_meta($post->ID, self::PUBLIC_KEY);
-            delete_post_meta($post->ID, self::SECURE_META);
+            // The provider may already have granted a bearer even if the local
+            // finalization failed. Revoke it using the in-memory result before
+            // discarding the pending snapshot. Never log the grant or URL.
+            if ($issued !== null) {
+                try {
+                    $facade::revoke($issued->grantId(), $issued->revision());
+                } catch (\Throwable $revoke_error) {
+                    error_log('[Core Blueprint Notes] Uncommitted Secure Share grant needs operator review.');
+                }
+            }
+            self::disarm_sharing($post->ID);
             return self::error('Secure sharing failed. No new link is active in Notes.', 500);
         }
     }
