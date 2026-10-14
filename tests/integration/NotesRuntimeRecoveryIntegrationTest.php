@@ -57,6 +57,22 @@ final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
         ] );
         self::assertGreaterThan( 0, $note );
 
+        // Verify the actual native REST contract before submitting a
+        // Gutenberg-style metadata update. A 200 without persisted meta is a
+        // product defect, not a passing UI contract.
+        $type = get_post_type_object( Plugin::TYPE );
+        $controller = $type->get_rest_controller();
+        self::assertNotNull( $controller );
+        $schema = $controller->get_item_schema();
+        self::assertArrayHasKey( 'meta', $schema['properties'],
+            'WordPress did not expose the meta property for Notes CPT.' );
+        foreach ( [ Catalog::NOTEBOOK, Catalog::CATEGORY, Catalog::TAGS ] as $key ) {
+            self::assertArrayHasKey( $key, $schema['properties']['meta']['properties'],
+                'Registered Notes meta key is missing from the REST schema: ' . $key );
+            self::assertTrue( current_user_can( 'edit_post_meta', $note, $key ),
+                'Notes owner lacks effective metadata write permission for ' . $key );
+        }
+
         // Gutenberg's canonical native REST post-meta write, not direct
         // mutation of the catalog bypassing its owner/ID validator.
         $assignment = new WP_REST_Request( 'POST', '/wp/v2/cb-notes/' . $note );
@@ -67,7 +83,13 @@ final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
         ] );
         $assigned = rest_do_request( $assignment );
         self::assertSame( 200, $assigned->get_status(), 'Owner must be able to assign their own catalog IDs.' );
-        self::assertSame( $notebook['id'], get_post_meta( $note, Catalog::NOTEBOOK, true ) );
+        $assigned_body = $assigned->get_data();
+        self::assertIsArray( $assigned_body );
+        self::assertArrayHasKey( 'meta', $assigned_body,
+            'WordPress response omitted registered Notes classification meta entirely.' );
+        self::assertSame( $notebook['id'], get_post_meta( $note, Catalog::NOTEBOOK, true ),
+            'REST write returned 200 but notebook postmeta is empty; REST response meta: ' .
+            wp_json_encode( $assigned_body['meta'] ) );
         self::assertSame( $category['id'], get_post_meta( $note, Catalog::CATEGORY, true ) );
         self::assertSame( [ $tag['id'] ], get_post_meta( $note, Catalog::TAGS, true ) );
 
@@ -154,7 +176,10 @@ final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
         self::assertNotFalse( update_post_meta( $note, Controller::PUBLIC_META, $snapshot ) );
         self::assertNotFalse( update_post_meta( $note, Controller::PUBLIC_KEY, $key ) );
         self::assertNotFalse( wp_untrash_post( $note ) );
-        self::assertSame( 'private', get_post_status( $note ) );
+        // WordPress intentionally restores trashed posts as drafts (WP 5.6+).
+        // Draft Notes remain non-public; stale sharing state must still be gone.
+        self::assertSame( 'draft', get_post_status( $note ) );
+        self::assertFalse( is_post_publicly_viewable( get_post( $note ) ) );
         self::assertSame( 'private', get_post_meta( $note, Controller::MODE_META, true ) );
         self::assertSame( '', (string) get_post_meta( $note, Controller::PUBLIC_KEY, true ) );
         self::assertSame( '', (string) get_post_meta( $note, Controller::PUBLIC_META, true ) );
