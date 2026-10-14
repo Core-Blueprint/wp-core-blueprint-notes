@@ -123,7 +123,11 @@ request() {
             -o "$WORK/$label.body" -w '%{http_code}' "$ORIGIN$endpoint")" ;;
         *) fail "Invalid identity." ;;
     esac
-    [[ "$status" == "$expect" ]] || fail "HTTP $label expected $expect, got $status (response redacted)."
+    if [[ "$expect" == denied ]]; then
+        [[ "$status" =~ ^4[0-9][0-9]$ ]] || fail "HTTP $label expected a denied 4xx, got $status (response redacted)."
+    else
+        [[ "$status" == "$expect" ]] || fail "HTTP $label expected $expect, got $status (response redacted)."
+    fi
     COUNT=$((COUNT + 1))
 }
 not_containing() {
@@ -134,9 +138,23 @@ request owner 200 a "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
 grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/owner.body" || fail "Owner cannot read own note."
 COUNT=$((COUNT + 1))
 request b_own 200 b "/wp-json/wp/v2/cb-notes/$NOTE_B?context=edit"
-request b_foreign 404 b "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
+request b_foreign denied b "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
 not_containing b_foreign 'NOTES_HTTP_FROZEN_A'
-request anon_exact 404 anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+# A foreign editor must not mutate A's private note through real authenticated HTTP.
+foreign_write_status="$(curl --noproxy '*' --silent --show-error --max-time 15 \
+    --user "$USER_B:$PASS_B" --request POST --header 'Content-Type: application/json' \
+    --data '{"title":"FORBIDDEN_HTTP_MUTATION"}' \
+    -o "$WORK/b_foreign_write.body" -w '%{http_code}' "$ORIGIN/wp-json/wp/v2/cb-notes/$NOTE_A")" ||
+    fail "Foreign REST write HTTP transport failed."
+[[ "$foreign_write_status" =~ ^4[0-9][0-9]$ ]] || fail "Foreign editor REST write unexpectedly succeeded."
+not_containing b_foreign_write 'NOTES_HTTP_FROZEN_A'
+COUNT=$((COUNT + 1))
+request owner_after_foreign_write 200 a "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
+if grep -Fq 'FORBIDDEN_HTTP_MUTATION' "$WORK/owner_after_foreign_write.body"; then
+    fail "Foreign REST mutation changed the owner's note."
+fi
+COUNT=$((COUNT + 1))
+request anon_exact denied anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
 not_containing anon_exact 'NOTES_HTTP_FROZEN_A'
 request anon_list 200 anon '/wp-json/wp/v2/cb-notes'
 not_containing anon_list 'NOTES_HTTP_FROZEN_A'
@@ -160,7 +178,7 @@ request frozen 200 anon "/cb-notes/shared/$KEY/"
 grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/frozen.body" || fail "Frozen snapshot changed."
 COUNT=$((COUNT + 1))
 not_containing frozen 'NOTES_HTTP_NEW_PRIVATE_A'
-request anon_edit 404 anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+request anon_edit denied anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
 not_containing anon_edit 'NOTES_HTTP_NEW_PRIVATE_A'
 CB_NOTES_HTTP_PHASE=revoke wp_site eval-file "$ROOT/tests/http/fixture.php"
 request revoked 404 anon "/cb-notes/shared/$KEY/"
