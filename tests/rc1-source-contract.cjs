@@ -16,6 +16,7 @@ const access = read('src/Access.php');
 const sharing = read('src/Sharing/Controller.php');
 const snapshot = read('src/Sharing/Snapshot.php');
 const recovery = read('src/Sharing/PublicShareGuard.php');
+const secureRecovery = read('src/Sharing/SecureRevocationRecovery.php');
 const catalog = read('src/Organization/Catalog.php');
 const abilities = read('src/Abilities.php');
 const library = read('src/Library/Query.php');
@@ -98,10 +99,19 @@ check(pluginRuntime.includes('Controller::revoke_for_lifecycle($post_id)') &&
     'Restored Notes must defensively revoke old share state');
 check(sharing.includes('self::persist_meta($post->ID, self::PUBLIC_META, $snapshot)') &&
     sharing.includes('self::disarm_sharing($post->ID)') &&
-    sharing.includes('$facade::revoke($issued->grantId(), $issued->revision())') &&
+    sharing.includes('SecureRevocationRecovery::revoke($issued->grantId(), $issued->revision())') &&
     sharingTest.includes('RC1: failed public-share write leaves no active link') &&
     sharingTest.includes('RC1: issued grant revoked when secure snapshot finalization fails'),
     'Public and Secure Share writes are checked, fail-closed and grant rollback is covered by source smoke');
+check(secureRecovery.includes('add_option($name, $record, \'\', false)') &&
+    secureRecovery.includes('SecureShare::revoke($id, $revision)') &&
+    secureRecovery.includes('$success !== true') &&
+    secureRecovery.includes('check_admin_referer(\'cb_notes_retry_revocations\')') &&
+    secureRecovery.includes('current_user_can(\'manage_options\')') &&
+    pluginRuntime.includes('SecureRevocationRecovery::register()') &&
+    read('src/Admin/SettingsPage.php').includes('SecureRevocationRecovery::pending_count()') &&
+    read('tests/secure-revocation-recovery-smoke.php').includes('Provider exception preserves recovery obligation'),
+    'Secure Share provider failures persist for bounded nonce-protected administrator recovery');
 check(build.includes('rm -f -- "$ZIP"') &&
     build.includes('zip -q -X "$ZIP" -@') &&
     build.includes('touch -t 202001010000.00') &&
