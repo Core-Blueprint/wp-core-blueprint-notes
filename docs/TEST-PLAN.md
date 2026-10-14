@@ -1,6 +1,6 @@
 # Core Blueprint Notes — Acceptance tests
 
-For the current `0.1.0-alpha3` candidate, use [ALPHA3-ACCEPTANCE.md](ALPHA3-ACCEPTANCE.md), which contains the complete single-batch installation, privacy, Public Share, Secure Share, Base modal, Gutenberg and regression checklist.
+For current `0.1.0-alpha26` integrated testing, use [RC1-GOLDEN-HARDENING-ACCEPTANCE.md](RC1-GOLDEN-HARDENING-ACCEPTANCE.md) and [RC1-ONE-BATCH-TEST-HANDOVER.md](RC1-ONE-BATCH-TEST-HANDOVER.md). The old [ALPHA3-ACCEPTANCE.md](ALPHA3-ACCEPTANCE.md) remains historical background, not current release authorization.
 
 The alpha2 Settings Hub and native Gutenberg acceptance checks are retained as regression requirements. The new alpha3 sharing model must **not** weaken any previously validated Base, Notes or Abilities behavior.
 
