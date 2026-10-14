@@ -1,6 +1,6 @@
 # Notes Alpha25: R08 Secure Share acceptance plan
 
-**Status (2026-10-14): R08.1 ACTUAL SOURCE COMPATIBILITY PASS; R08.2 real-provider CLI/SQL runner PREPARED, NOT RUN; R08.3 browser HTTPS gate NOT RUN.** This file is under tests/evidence and is intentionally omitted from the pinned Alpha25 ZIP.
+**Status (2026-10-14): R08.1 ACTUAL SOURCE COMPATIBILITY PASS; R08.2 real-provider CLI/SQL runtime PASS (25 checks; WP 7.0); R08.3 browser HTTPS gate NOT RUN.** This file is under tests/evidence and is intentionally omitted from the pinned Alpha25 ZIP.
 
 ## Actual first-party provider inspected
 
