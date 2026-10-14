@@ -57,24 +57,33 @@ function renderSharing(sharing, dirty) {
     return { text, buttons, hasButton, getButton, nodes };
 }
 
-let view = renderSharing({ mode: 'private', secure_available: false }, false);
+let view = renderSharing({ mode: 'private', secure_available: false, public_ready: true }, false);
 assert.match(view.text, /Sharing status:\s+Private/, 'Private state explained');
 assert.match(view.text, /Saving or publishing in Gutenberg keeps the note private/, 'Save does not share');
 assert.ok(view.hasButton('Make public…'), 'Explicit public share action retained');
 assert.equal(view.hasButton('Create secure link'), false, 'No Secure Share upsell when missing');
 
-view = renderSharing({ mode: 'private', secure_available: true }, true);
+view = renderSharing({ mode: 'private', secure_available: true, public_ready: true }, true);
 assert.match(view.text, /Save your changes before creating a shared copy/, 'Save first guidance');
 assert.equal(view.getButton('Make public…').props.disabled, true, 'Unsaved post cannot publish copy');
 assert.equal(view.getButton('Create secure link').props.disabled, true, 'Unsaved post cannot issue secure link');
 
-view = renderSharing({ mode: 'public', public_url: 'https://example.test/share' }, true);
+view = renderSharing({ mode: 'public', public_url: 'https://example.test/share', public_ready: true, public_valid: true }, true);
 assert.match(view.text, /Public copy active/, 'Public share state explained');
 assert.match(view.text, /Saving changes will not update the frozen shared copy/, 'Frozen snapshot explained');
 assert.match(view.text, /You can still stop sharing/, 'Revocation explained during unsaved edits');
 assert.ok(view.hasButton('Stop sharing'), 'Revocation remains available');
 assert.equal(view.getButton('Stop sharing').props.disabled, false, 'Revocation not blocked by dirty changes');
 assert.equal(view.hasButton('Make public…'), false, 'No duplicate public action while active');
+
+view = renderSharing({ mode: 'private', public_ready: false, secure_available: false }, false);
+assert.match(view.text, /Public sharing is unavailable until your site operator configures/, 'Missing epoch explains why public links are blocked');
+assert.equal(view.getButton('Make public…').props.disabled, true, 'Fail-closed Public button when recovery key is missing');
+
+view = renderSharing({ mode: 'public', public_ready: true, public_valid: false, public_url: null }, false);
+assert.match(view.text, /Public copy unavailable/, 'Legacy unsigned Public link cannot claim to be active');
+assert.match(view.text, /This previous public link is no longer valid/, 'Legacy revocation/reissue guidance given');
+assert.ok(view.hasButton('Stop sharing'), 'Revocation remains possible for legacy invalid mode');
 
 view = renderSharing({ mode: 'secure' }, false);
 assert.match(view.text, /Secure copy active/, 'Secure copy state explained');
