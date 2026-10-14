@@ -19,6 +19,7 @@ const catalog = read('src/Organization/Catalog.php');
 const abilities = read('src/Abilities.php');
 const library = read('src/Library/Query.php');
 const catalogTest = read('tests/organization-smoke.php');
+const sharingTest = read('tests/sharing-smoke.php');
 const build = read('tools/build-release');
 const acceptance = read('docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md');
 const readme = read('README.md');
@@ -71,6 +72,12 @@ check(catalog.includes('self::restore_references($applied)') &&
     catalogTest.includes('RC1: first cleared assignment rolled back') &&
     catalogTest.includes('RC1: both assignments restored after catalog save failure'),
     'Destructive personal catalog removal preflights and compensates failed writes');
+check(sharing.includes('self::persist_meta($post->ID, self::PUBLIC_META, $snapshot)') &&
+    sharing.includes('self::disarm_sharing($post->ID)') &&
+    sharing.includes('$facade::revoke($issued->grantId(), $issued->revision())') &&
+    sharingTest.includes('RC1: failed public-share write leaves no active link') &&
+    sharingTest.includes('RC1: issued grant revoked when secure snapshot finalization fails'),
+    'Public and Secure Share writes are checked, fail-closed and grant rollback is covered by source smoke');
 check(build.includes('rm -f -- "$ZIP"') &&
     build.includes('zip -q -X "$ZIP" -@') &&
     build.includes('touch -t 202001010000.00') &&
