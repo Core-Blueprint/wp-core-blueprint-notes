@@ -18,6 +18,7 @@ const snapshot = read('src/Sharing/Snapshot.php');
 const catalog = read('src/Organization/Catalog.php');
 const abilities = read('src/Abilities.php');
 const library = read('src/Library/Query.php');
+const catalogTest = read('tests/organization-smoke.php');
 const build = read('tools/build-release');
 const acceptance = read('docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md');
 const readme = read('README.md');
@@ -64,6 +65,12 @@ check(sharing.includes("'Note not found.' => __('Note not found.', 'core-bluepri
     !/\b(?:__|esc_html__|esc_attr__)\s*\(\s*\$/.test(sharing) &&
     !/\b(?:__|esc_html__|esc_attr__)\s*\(\s*\$/.test(catalog),
     'Sharing errors and classification filter labels use static gettext keys');
+check(catalog.includes('self::restore_references($applied)') &&
+    catalog.includes('isset($cleaned) && !self::restore_references($cleaned)') &&
+    catalog.includes('$changes = []') &&
+    catalogTest.includes('RC1: first cleared assignment rolled back') &&
+    catalogTest.includes('RC1: both assignments restored after catalog save failure'),
+    'Destructive personal catalog removal preflights and compensates failed writes');
 check(build.includes('rm -f -- "$ZIP"') &&
     build.includes('zip -q -X "$ZIP" -@') &&
     build.includes('touch -t 202001010000.00') &&
