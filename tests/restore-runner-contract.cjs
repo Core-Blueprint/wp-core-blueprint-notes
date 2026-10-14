@@ -13,16 +13,16 @@ const fixture = read('tests/restore/fixture.php');
 if (/^\s*declare\s*\(\s*strict_types\s*=/m.test(fixture)) {
     throw new Error('Notes restore gate: wp eval-file fixture must not declare strict_types');
 }
-const expectedSha = '77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908';
+const artifactPreflight = read('tools/check-alpha26-artifact');
 checkFixtureVersion();
 function checkFixtureVersion() {
-    if (!fixture.includes("CB_NOTES_VERSION !== '0.1.0-alpha25'") ||
-        !fixture.includes('Restore requires installed Alpha25 Notes.')) {
-        throw new Error('Notes restore gate: synthetic SQL fixture must require installed Alpha25');
+    if (!fixture.includes("CB_NOTES_VERSION !== '0.1.0-alpha26'") ||
+        !fixture.includes('Restore requires installed Alpha26 Notes.')) {
+        throw new Error('Notes restore gate: synthetic SQL fixture must require installed Alpha26');
     }
     if (!runner.includes('wordpress-config-alpha25.php') ||
         !read('tests/restore/wordpress-config-alpha25.php').includes("define('CB_NOTES_SHARE_EPOCH_KEY'")) {
-        throw new Error('Notes restore gate: Alpha25 restore requires independent synthetic epoch key');
+        throw new Error('Notes restore gate: Alpha26 restore requires independent synthetic epoch key');
     }
 }
 
@@ -37,9 +37,12 @@ for (const name of [
     check(runner.includes(name) && config.includes(name) && fixture.includes(name),
         'Both isolated names must be hardcoded and present in all components: ' + name);
 }
-check(runner.includes('EXPECTED_ZIP_SHA="' + expectedSha + '"') &&
+check(runner.includes('EXPECTED_ZIP_SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"') &&
+    artifactPreflight.includes('notes-alpha26-verified.txt') &&
+    artifactPreflight.includes('sha256sum "$ZIP"') &&
+    artifactPreflight.includes('git -C "$ROOT" rev-parse HEAD') &&
     runner.includes('actual_sha') && runner.includes('sha256sum "$ZIP"'),
-    'Restore must pin exact operator-confirmed artifact');
+    'Restore must consume a double-built exact-head Alpha26 artifact');
 check(runner.includes("grep -Fxq -- \"$name\"") &&
     runner.includes('Database already exists, refusing to modify it'),
     'Existing database names must cause a hard stop');
