@@ -92,5 +92,5 @@ See [RC1-RESTORE-SHARING-EPOCH-DESIGN.md](RC1-RESTORE-SHARING-EPOCH-DESIGN.md) f
 
 - **CONFIRMED P0/security blocker:** older-backup restore resurrects authorization of previously revoked Public sharing keys. Fail-closed protection, cache and optional real-provider behavior remain unresolved.
 - **No false closure:** the 76-check SQL restore PASS and 44-check localhost HTTP PASS retain their status, but neither covers this scenario.
-- **No implementation GO:** do not modify user data, live hosting, Base, sharing metadata, CDN or provider, and do not merge or promote to RC1 on the basis of this proposal.
+- **Implementation GO received for Notes featurebranch only:** Alpha25 now stages an HMAC-signed Public recovery guard and a dedicated old-backup HTTP negative runner. Neither a runtime PASS nor production deployment has been authorized; do not alter real site data, hosting keys, Base, CDN or provider. Separate merge/release GO is required.
 - Product owner must sign off whether RC1 requires an automated rollback-resistant barrier or a documented offline recovery/quarantine/reset workflow and the exact resulting acceptance test. Prefer an actually enforced barrier over a purely documentary warning.
