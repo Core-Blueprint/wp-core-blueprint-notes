@@ -7,6 +7,7 @@ define('CB_NOTES_SHARE_EPOCH_KEY', str_repeat('a', 64));
 $GLOBALS['current_user'] = 4;
 $GLOBALS['posts'] = [];
 $GLOBALS['notes_meta'] = [];
+$GLOBALS['revoke_options'] = [];
 $GLOBALS['capabilities'] = [
     4 => ['edit_post', 'cb_notes_edit', 'cb_notes_share_public', 'cb_notes_share_secure'],
     5 => ['edit_post', 'cb_notes_edit'],
@@ -65,6 +66,18 @@ function update_post_meta(int $id,string $key,mixed $value): bool {
 function delete_post_meta(int $id,string $key): bool {
     unset($GLOBALS['notes_meta'][$id][$key]); return true;
 }
+function add_option(string $key, mixed $value, string $deprecated = '', mixed $autoload = null): bool {
+    if (isset($GLOBALS['revoke_options'][$key])) return false;
+    $GLOBALS['revoke_options'][$key] = $value;
+    return true;
+}
+function get_option(string $key, mixed $default = false): mixed {
+    return $GLOBALS['revoke_options'][$key] ?? $default;
+}
+function delete_option(string $key): bool {
+    unset($GLOBALS['revoke_options'][$key]);
+    return true;
+}
 function is_wp_error(mixed $obj): bool { return $obj instanceof WP_Error; }
 function parse_blocks(string $html): array {
     if(str_contains($html,'UNSAFE')) return [['blockName'=>'core/embed','innerBlocks'=>[],'innerHTML'=>'']];
@@ -85,6 +98,7 @@ require dirname(__DIR__).'/src/Access.php';
 require dirname(__DIR__).'/src/Plugin.php';
 require dirname(__DIR__).'/src/Sharing/Snapshot.php';
 require dirname(__DIR__).'/src/Sharing/PublicShareGuard.php';
+require dirname(__DIR__).'/src/Sharing/SecureRevocationRecovery.php';
 require dirname(__DIR__).'/src/Integration/SecureProvider.php';
 require dirname(__DIR__).'/src/Sharing/Controller.php';
 function verify(bool $ok,string $message): void {
@@ -207,7 +221,7 @@ final class NotesFakeShareRequest {
 class_alias(NotesFakeShareRequest::class, 'CB\SecureShare\PublicApi\ShareRequest');
 final class NotesFakeIssuedGrant {
     public function __construct(private int $id) {}
-    public function grantId(): string { return 'grant-' . $this->id; }
+    public function grantId(): string { return sprintf('00000000-0000-4000-8000-%012x', $this->id); }
     public function revision(): int { return 1; }
     public function invitationUrl(): string { return 'https://example.test/secure/' . $this->id; }
 }
@@ -218,8 +232,9 @@ final class NotesFakeSecureShare {
     public static function issue(NotesFakeShareRequest $request): NotesFakeIssuedGrant {
         return new NotesFakeIssuedGrant(++self::$issues);
     }
-    public static function revoke(string $grantId, int $revision): void {
+    public static function revoke(string $grantId, int $revision): bool {
         self::$revocations[] = [$grantId, $revision];
+        return true;
     }
 }
 class_alias(NotesFakeSecureShare::class, 'CB\SecureShare\PublicApi\SecureShare');
