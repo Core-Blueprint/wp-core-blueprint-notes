@@ -512,7 +512,8 @@ final class Catalog {
             [], $presentation_revision);
         wp_enqueue_script('cb-notes-organize',
             plugins_url('assets/organization-admin.js', CB_NOTES_FILE),
-            ['wp-element', 'wp-components', 'wp-api-fetch'],
+            ['wp-element', 'wp-components', 'wp-api-fetch', 'wp-i18n'],
             $presentation_revision, true);
+        wp_set_script_translations('cb-notes-organize', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
     }
 }
