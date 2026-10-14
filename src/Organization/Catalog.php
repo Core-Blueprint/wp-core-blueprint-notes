@@ -271,16 +271,22 @@ final class Catalog {
             array_splice($items[$kind], $index, 1);
         }
         if (!update_user_meta($owner, self::USER_META, $items)) {
+            if (isset($cleaned) && !self::restore_references($cleaned)) {
+                return self::error('cb_notes_organization_recovery',
+                    'Organization save failed and note assignments could not all be restored. Review the site backup before retrying.', 500);
+            }
             return self::error('cb_notes_organization_storage', 'Could not save organization changes.', 500);
         }
         return $items;
     }
 
     /**
-     * Before catalog deletion, remove exact references in a bounded owner-only
-     * batch. Refuse a large operation rather than leaving a partial unknown scope.
+     * Collect exact owner-scoped mutations before touching any post meta.
+     * WordPress has no atomic multi-row post-meta API; compensate completed
+     * changes if a later write or the catalog save fails.
+     * @return array<int,array{id:int,key:string,previous:mixed,next:mixed}>|\WP_Error
      */
-    private static function clear_references(int $owner, string $kind, string $id): true|\WP_Error {
+    private static function clear_references(int $owner, string $kind, string $id): array|\WP_Error {
         $key = self::META[$kind];
         $ids = get_posts([
             'post_type' => Plugin::TYPE, 'post_status' => [
@@ -301,29 +307,56 @@ final class Catalog {
             return self::error('cb_notes_organization_limit',
                 'This label belongs to more than 250 notes. Bulk removal needs an operator-reviewed batch.', 409);
         }
+        $changes = [];
         foreach ($ids as $post_id) {
-            $post = get_post((int)$post_id);
+            $post_id = (int) $post_id;
+            $post = get_post($post_id);
             if (!$post instanceof \WP_Post || $post->post_type !== Plugin::TYPE
-                || (int)$post->post_author !== $owner) {
+                || (int) $post->post_author !== $owner) {
                 return self::error('cb_notes_organization_scope', 'Could not verify note ownership.', 403);
             }
+            $previous = get_post_meta($post_id, $key, true);
             if ($kind === 'tag') {
-                $old = get_post_meta((int)$post_id, self::TAGS, true);
-                if (!is_array($old)) {
-                    continue;
+                if (!is_array($previous)) {
+                    return self::error('cb_notes_organization_storage',
+                        'Could not verify a note tag assignment.', 500);
                 }
-                $next = array_values(array_filter($old, static fn($value) => $value !== $id));
-                if ($next !== $old && !update_post_meta((int)$post_id, self::TAGS, $next)) {
-                    return self::error('cb_notes_organization_storage', 'Could not update a note tag assignment.', 500);
-                }
+                $next = array_values(array_filter(
+                    $previous, static fn($value) => $value !== $id
+                ));
             } else {
-                $before = get_post_meta((int)$post_id, $key, true);
-                if ($before === $id && !update_post_meta((int)$post_id, $key, '')) {
-                    return self::error('cb_notes_organization_storage', 'Could not clear a note assignment.', 500);
-                }
+                $next = $previous === $id ? '' : $previous;
+            }
+            if ($next !== $previous) {
+                $changes[] = ['id' => $post_id, 'key' => $key,
+                    'previous' => $previous, 'next' => $next];
             }
         }
-        return true;
+        $applied = [];
+        foreach ($changes as $change) {
+            if (!update_post_meta($change['id'], $change['key'], $change['next'])) {
+                if (!self::restore_references($applied)) {
+                    return self::error('cb_notes_organization_recovery',
+                        'Note assignments could not all be restored. Review the site backup before retrying.', 500);
+                }
+                return self::error('cb_notes_organization_storage',
+                    'Could not clear a note assignment.', 500);
+            }
+            $applied[] = $change;
+        }
+        return $applied;
+    }
+
+    /** Restore only the changes this request completed, in reverse order. */
+    private static function restore_references(array $changes): bool {
+        $restored = true;
+        foreach (array_reverse($changes) as $change) {
+            if (!update_post_meta($change['id'], $change['key'], $change['previous'])
+                && get_post_meta($change['id'], $change['key'], true) !== $change['previous']) {
+                $restored = false;
+            }
+        }
+        return $restored;
     }
 
     /** Alpha1/2 text-only notebooks are imported for their owner in bounded batches. */
