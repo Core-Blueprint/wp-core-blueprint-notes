@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace CB\Notes\Admin;
 
 use CB\Notes\Plugin;
+use CB\Notes\Sharing\SecureRevocationRecovery;
 use CoreBlueprint\Core\Admin\SettingsRegistry;
 
 defined('ABSPATH') || exit;
@@ -113,6 +114,21 @@ final class SettingsPage {
             esc_url(admin_url('edit.php?post_type=' . Plugin::TYPE . '&page=cb-notes-library')) . '">' .
             esc_html__('Open Notes Library', 'core-blueprint-notes') . '</a></p>';
         echo '</section>';
+
+        // Secure Share can be optional/unavailable. Do not expose grant IDs,
+        // bearer credentials or note content to the administrator interface.
+        $pending = SecureRevocationRecovery::pending_count();
+        if ($pending > 0) {
+            echo '<section class="cb-core-panel">';
+            echo '<h2>' . esc_html__('Secure Share recovery', 'core-blueprint-notes') . '</h2>';
+            echo '<p>' . esc_html__('Some Secure Share grants still require provider-side revocation. Notes has already disabled local delivery. Resolve these before relying on the original links being fully revoked.', 'core-blueprint-notes') . '</p>';
+            echo '<p><strong>' . esc_html__('Pending revocations:', 'core-blueprint-notes') . '</strong> ' . esc_html((string)$pending) . '</p>';
+            echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+            echo '<input type="hidden" name="action" value="cb_notes_retry_revocations">';
+            wp_nonce_field('cb_notes_retry_revocations');
+            echo '<button class="button cb-core-button" type="submit">' . esc_html__('Retry provider revocations', 'core-blueprint-notes') . '</button>';
+            echo '</form></section>';
+        }
     }
 
     private static function metric(string $label, string $value): void {
