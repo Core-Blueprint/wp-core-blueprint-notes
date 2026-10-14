@@ -25,11 +25,11 @@ git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet ||
 for command_name in docker curl tar sha256sum wp flock php unzip; do
     command -v "$command_name" >/dev/null 2>&1 || fail "Missing $command_name"
 done
-# Rebuild from the clean checked-out source; never silently reuse Alpha24.
-bash "$ROOT/tools/build-release"
+# Consume only the exact Alpha26 artifact which already passed a double build.
+ARTIFACT_SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"
 [[ -f "$ZIP" ]] || fail "Alpha26 test ZIP was not produced."
 unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP integrity failure."
-ARTIFACT_SHA="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+[[ "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$ARTIFACT_SHA" ]] || fail "Verified artifact mismatch."
 [[ "$ARTIFACT_SHA" =~ ^[a-f0-9]{64}$ ]] || fail "Invalid Alpha26 hash."
 [[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
     fail "Unexpected MariaDB image."
