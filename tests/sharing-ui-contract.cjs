@@ -20,7 +20,7 @@ const checks = [
     ['Secure Share feature detected', sharing.includes('sharing.secure_available')],
     ['Optional Secure Share controls appear only when available', sharing.includes('if (sharing.secure_available) {')],
     ['Missing Secure Share has no placeholder or upsell', !sharing.includes('Secure Share is optional and currently unavailable.') && !sharing.includes("key: 'unavailable'")],
-    ['Notebook primary, sharing independently registered', notebook.includes("label: 'Notebook'") && notebook.includes("title: 'Organize'") && sharing.includes("name: 'cb-notes-sharing'")],
+    ['Notebook primary, sharing independently registered', notebook.includes("label: __('Notebook', 'core-blueprint-notes')") && notebook.includes("title: __('Organize', 'core-blueprint-notes')") && sharing.includes("name: 'cb-notes-sharing'")],
     ['Save and share separation clearly explained', sharing.includes('Saving or publishing in Gutenberg keeps the note private')],
     ['Active shared copies are explained', sharing.includes('Saving changes will not update the frozen shared copy')],
     ['Public mode requires server confirmation', controller.includes("get_param('confirmation') !== 'PUBLIC'")],
