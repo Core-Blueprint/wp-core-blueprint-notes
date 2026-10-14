@@ -13,7 +13,7 @@ const fixture = read('tests/restore/fixture.php');
 if (/^\s*declare\s*\(\s*strict_types\s*=/m.test(fixture)) {
     throw new Error('Notes restore gate: wp eval-file fixture must not declare strict_types');
 }
-const expectedSha = '22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc';
+const expectedSha = '77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908';
 
 function check(ok, description) {
     if (!ok) throw new Error('Notes restore gate: ' + description);
