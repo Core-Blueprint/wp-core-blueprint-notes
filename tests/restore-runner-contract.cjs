@@ -34,7 +34,9 @@ check(runner.includes("grep -Fxq -- \"$name\"") &&
 check(runner.includes('flock -x 9') && runner.includes('OWN_DBS=0') &&
     runner.includes('if [[ "$OWN_DBS" == "1" ]]'),
     'Runner uses exclusive lock and cleanup ownership');
-check(runner.indexOf('OWN_DBS=1') > runner.indexOf('-e \'CREATE DATABASE core_blueprint_notes_restore_source') &&
+const createDbAt = runner.indexOf('CREATE DATABASE core_blueprint_notes_restore_source');
+const cleanupOwnershipAt = runner.indexOf('OWN_DBS=1');
+check(createDbAt >= 0 && cleanupOwnershipAt > createDbAt &&
     runner.includes('NO automatic DROP; inspect dedicated names before retrying.'),
     'Runner must acquire cleanup ownership only after both CREATE statements succeed');
 check(runner.includes('mariadb-dump') &&
