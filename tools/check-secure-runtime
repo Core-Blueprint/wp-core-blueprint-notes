@@ -103,6 +103,9 @@ wp_test plugin activate core-blueprint --quiet
 wp_test plugin activate core-blueprint-notes --quiet
 wp_test plugin activate core-blueprint-secure-share --quiet
 CB_NOTES_R08_PHASE=integrated wp_test eval-file "$ROOT/tests/r08/fixture.php"
+wp_test plugin deactivate core-blueprint-notes --quiet
+wp_test plugin activate core-blueprint-notes --quiet
+CB_NOTES_R08_PHASE=lifecycle wp_test eval-file "$ROOT/tests/r08/lifecycle.php"
 printf 'Notes R08.2 real-provider runtime: PASS (isolated WP 7.0 CLI)\n'
 printf 'Notes Alpha26 ZIP SHA-256: %s\n' "$PIN"
 printf 'Secure Share source commit: %s\n' "$SS_HEAD"
