@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# R08.2: real provider + real WordPress SQL in a disposable CLI-only site.
+# NOT a substitute for the separate HTTPS/browser/secure-cookie gate.
+bash -n "$0"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="$HOME/Downloads/wp-core-blueprint"
+SECURE="$HOME/Downloads/wp-core-blueprint-secure-share-r08"
+SS_HEAD="88c15c45a4898dd1c43c1dfad1d7265f5b693350"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
+PIN="77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908"
+CONTAINER="cb-base-test-db"
+DB="core_blueprint_notes_r08_test"
+HOME_PATH="/tmp/core-blueprint-tests/notes-r08-secure-provider"
+fail() { printf 'Notes R08.2 BLOCKED: %s\n' "$*" >&2; exit 1; }
+umask 077
+[[ "$#" == 0 ]] || fail "No arguments allowed."
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    fail "Expected isolated Notes featurebranch."
+for source in "$ROOT" "$BASE" "$SECURE"; do
+    [[ -d "$source/.git" || -f "$source/.git" ]] || fail "Required local source checkout missing: $source"
+    git -C "$source" diff --quiet && git -C "$source" diff --cached --quiet ||
+        fail "Tracked source modifications present: $source"
+done
+[[ "$(git -C "$SECURE" rev-parse HEAD)" == "$SS_HEAD" ]] ||
+    fail "Secure Share checkout does not match the reviewed pinned source HEAD."
+[[ -f "$BASE/core-blueprint.php" && -f "$SECURE/core-blueprint-secure-share.php" ]] ||
+    fail "Expected Base and real Secure Share source are missing."
+for cmd in docker curl tar php wp unzip sha256sum flock node; do
+    command -v "$cmd" >/dev/null 2>&1 || fail "Missing required CLI: $cmd"
+done
+php -r 'exit(version_compare(PHP_VERSION,"8.4",">=") ? 0 : 1);' ||
+    fail "PHP 8.4+ is required."
+CB_NOTES_SECURE_SHARE_REPO="$SECURE" node "$ROOT/tests/secure-share-api-compat.cjs"
+[[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$PIN" ]] ||
+    fail "Expected immutable operator-verified Alpha25 ZIP checksum."
+unzip -t "$ZIP" >/dev/null || fail "Alpha25 ZIP invalid."
+[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
+    fail "Unexpected MariaDB container image."
+[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
+    fail "Disposable MariaDB is not running."
+docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' ||
+    fail "Disposable MariaDB is not at expected port 3307."
+[[ ! -L "$HOME_PATH" ]] || fail "Test root symlink prohibited."
+mkdir -p "$HOME_PATH"
+exec 9>"$HOME_PATH/.r08.lock"
+flock -x 9
+existing="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B -e 'SHOW DATABASES;')" ||
+    fail "Could not enumerate disposable DB names."
+if grep -Fxq -- "$DB" <<<"$existing"; then
+    fail "Dedicated R08 database already exists; refusing to change it."
+fi
+WORK="$(mktemp -d "$HOME_PATH/run.XXXXXXXX")"
+[[ "$WORK" == "$HOME_PATH"/run.* ]] || fail "Unexpected temporary directory."
+OWN_DB=0
+cleanup() {
+    local status=$?
+    trap - EXIT
+    if [[ "$OWN_DB" == 1 ]]; then
+        docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+            -e 'DROP DATABASE IF EXISTS core_blueprint_notes_r08_test;' >/dev/null ||
+            printf 'Notes R08.2 WARNING: inspect the one dedicated disposable database.\n' >&2
+    fi
+    if [[ -d "$WORK" && ! -L "$WORK" && "$WORK" == "$HOME_PATH"/run.* ]]; then
+        rm -rf -- "$WORK"
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+    -e 'CREATE DATABASE core_blueprint_notes_r08_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+    fail "CREATE failed; no automatic DROP on failed provisioning."
+OWN_DB=1
+
+SITE="$WORK/site"
+mkdir -p "$SITE"
+curl --fail --silent --show-error --location --max-time 120 \
+    'https://wordpress.org/wordpress-7.0.tar.gz' |
+    tar -xz --strip-components=1 -C "$SITE"
+[[ -f "$SITE/wp-settings.php" ]] || fail "WordPress 7.0 archive not extracted."
+plugins="$SITE/wp-content/plugins"
+mkdir -p "$plugins/core-blueprint" "$plugins/core-blueprint-notes" "$plugins/core-blueprint-secure-share"
+tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+    --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$plugins/core-blueprint" -xf -
+unzip -q "$ZIP" -d "$WORK/package"
+cp -a "$WORK/package/core-blueprint-notes/." "$plugins/core-blueprint-notes/"
+tar -C "$SECURE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+    --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$plugins/core-blueprint-secure-share" -xf -
+cp "$ROOT/tests/r08/wordpress-config.php" "$SITE/wp-config.php"
+
+wp_test() {
+    CB_NOTES_R08_DB="$DB" WP_CLI_CACHE_DIR="$WORK/wpcli-cache" \
+        wp --path="$SITE" --url='https://cb-notes-r08.invalid' "$@"
+}
+wp_test core install \
+    --url='https://cb-notes-r08.invalid' --title='Notes Secure Share Disposable' \
+    --admin_user='cbnotes_r08_admin' --admin_password='disposable-r08-only-not-reused' \
+    --admin_email='admin@r08.invalid' --skip-email --quiet
+wp_test plugin activate core-blueprint --quiet
+wp_test plugin activate core-blueprint-notes --quiet
+wp_test plugin activate core-blueprint-secure-share --quiet
+CB_NOTES_R08_PHASE=integrated wp_test eval-file "$ROOT/tests/r08/fixture.php"
+printf 'Notes R08.2 real-provider runtime: PASS (isolated WP 7.0 CLI)\n'
+printf 'Notes Alpha25 ZIP SHA-256: %s\n' "$PIN"
+printf 'Secure Share source commit: %s\n' "$SS_HEAD"
+printf 'HTTPS browser, cookies, CDN and provider-side old-backup rollback: NOT RUN\n'
+printf 'Cleaning up the single dedicated disposable R08 database and temporary site.\n'
