@@ -121,7 +121,7 @@ final class NotesRuntimePrivacyIntegrationTest extends WP_UnitTestCase {
         wp_set_current_user( $admin );
         self::assertTrue( Access::can_read( get_post( $mine ) ), 'Admin override is deliberate.' );
         self::assertWPError( Abilities::read_note( [ 'id' => $mine ] ),
-            'Admin override may not silently expand AI's author scope.' );
+            'Admin override may not silently expand AI access beyond the author scope.' );
 
         update_option( Plugin::AI_OPTION, false );
         self::assertFalse( Abilities::can_execute() );
