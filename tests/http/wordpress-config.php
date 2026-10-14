@@ -32,6 +32,7 @@ define('WP_DEBUG', true);
 define('DISABLE_WP_CRON', true);
 define('WP_HTTP_BLOCK_EXTERNAL', true);
 define('AUTOMATIC_UPDATER_DISABLED', true);
+define('CB_NOTES_SHARE_EPOCH_KEY', str_repeat('a', 64));
 $table_prefix = 'cbhttp_';
 if (!defined('ABSPATH')) define('ABSPATH', __DIR__ . '/');
 require_once ABSPATH . 'wp-settings.php';
