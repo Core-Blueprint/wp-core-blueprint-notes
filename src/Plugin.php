@@ -214,12 +214,14 @@ final class Plugin {
         }
         wp_enqueue_script('cb-notes-sharing',
             plugins_url('assets/sharing.js',CB_NOTES_FILE),
-            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch'],
+            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch','wp-i18n'],
             CB_NOTES_VERSION,true);
+        wp_set_script_translations('cb-notes-sharing', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
         wp_enqueue_script('cb-notes-editor',
             plugins_url('assets/editor.js',CB_NOTES_FILE),
-            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch'],
+            ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch','wp-i18n'],
             CB_NOTES_VERSION,true);
+        wp_set_script_translations('cb-notes-editor', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
     }
     public static function admin_menu(): void {
         $hook=add_submenu_page('edit.php?post_type='.self::TYPE,
