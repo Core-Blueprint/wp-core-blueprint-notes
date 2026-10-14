@@ -92,9 +92,12 @@ final class NotesRuntimePrivacyIntegrationTest extends WP_UnitTestCase {
 
     public function test_abilities_default_off_and_enabled_reads_only_owned_notes(): void {
         [ $a, $b, $mine, $other ] = $this->create_two_private_notes();
-        wp_set_current_user( $a );
+        // Grant the opted-in AI capability before creating the active WP_User
+        // context; otherwise its already-cached allcaps can remain stale.
         ( new WP_User( $a ) )->add_cap( 'cb_notes_use_ai' );
         ( new WP_User( $b ) )->add_cap( 'cb_notes_use_ai' );
+        wp_set_current_user( $a );
+        self::assertTrue( current_user_can( 'cb_notes_use_ai' ), 'Explicit test-user AI capability must be active.' );
 
         delete_option( Plugin::AI_OPTION );
         self::assertFalse( Abilities::can_execute(), 'Remote Notes access is disabled by default.' );
@@ -131,7 +134,12 @@ final class NotesRuntimePrivacyIntegrationTest extends WP_UnitTestCase {
     public function test_notes_rest_list_does_not_contain_another_owners_content(): void {
         [ $a, $b, $mine, $other ] = $this->create_two_private_notes();
         wp_set_current_user( $a );
-        $response = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/cb-notes' ) );
+        // WP REST collections default to status=publish; Notes intentionally
+        // persist as private, so exercise the authenticated editor listing.
+        $request = new WP_REST_Request( 'GET', '/wp/v2/cb-notes' );
+        $request->set_param( 'status', 'private' );
+        $request->set_param( 'context', 'edit' );
+        $response = rest_do_request( $request );
         self::assertSame( 200, $response->get_status() );
         $rows = $response->get_data();
         self::assertIsArray( $rows );
