@@ -30,7 +30,7 @@ R08 real HTTPS, provider persistence, password, expiry, revoke and rollback: NOT
 
 The initial `git worktree add origin/main` and subsequent `FETCH_HEAD` attempts did not establish a new checkout; the **already existing clean worktree** above is independently verified by the successful HEAD/status and SS4 checks. R08.1 is **CLOSED for source compatibility** only. This is not a runtime provider or external HTTPS PASS.
 
-## R08.2 guarded real-provider WordPress CLI/SQL test: PREPARED, NOT RUN
+## R08.2 guarded real-provider WordPress CLI/SQL test: PREPARATION HISTORY (NOW PASS)
 
 The test-only files `tests/r08/wordpress-config.php`, `tests/r08/fixture.php`, `tests/r08/runner-contract.cjs` and `tools/check-secure-runtime` are staged on the existing Notes hardening branch. Their safety-source contract is wired into `bash tools/check` without requiring optional Secure Share to be installed merely to run Notes source checks.
 
@@ -74,9 +74,9 @@ R08 real-provider source contract BLOCKED: Fixture must exercise password, expir
 
 An additional source review corrected the foreign-owner REST expectation: WordPress normally returns **403 Forbidden** to a logged-in user denied at `permission_callback` (the original R08 fixture incorrectly required 404). This is a test assertion correction, not a change to access control.
 
-**No genuine R08.2 runtime test has been executed.** Due to the chained `&&`, neither `bash tools/check` nor `bash tools/check-secure-runtime` was reached on this attempt. The immutable Alpha25 ZIP, Base, local Secure Share source/worktree and Notes product code were not changed. R08.2 remains OPEN pending actual test output.
+**At that earlier failed attempt, R08.2 was not executed.** Due to the chained `&&`, neither `bash tools/check` nor `bash tools/check-secure-runtime` was reached. A subsequent operator rerun **did complete successfully (25 checks PASS)**, separately recorded in `notes-r08-runtime-pass-2026-10-14.md`. The immutable Alpha25 ZIP, Base, local Secure Share source/worktree and Notes product code were not changed.
 
-## R08 real runtime cases (NOT RUN)
+## R08 residual runtime cases (HTTPS/browser/edge/rollback NOT RUN; CLI cases partially covered)
 
 | ID | Requirement | Expected |
 |---|---|---|
@@ -100,4 +100,4 @@ An additional source review corrected the foreign-owner REST expectation: WordPr
 - A concrete provider risk: `Controller::revoke_old_secure()` removes Notes' local secure metadata **before** provider revoke. An exception is logged without sensitive values, but a returned `false` may not be surfaced; Notes then denies delivery locally while a provider grant may still exist. R08 must distinguish both statuses and define a tested operator reconciliation path.
 - No live DNS, CDN changes, deployment, merge, CI/Actions, tags or release without separate GO.
 
-**Next:** run the opt-in real-source compatibility check, then build a separately guarded real-provider runtime fixture and HTTPS validation. R08 stays **NOT RUN** until concrete evidence is recorded. The Alpha25 SQL (76 checks), HTTP (44 checks) and epoch-rotation rollback tests remain PASS for their previously tested scope.
+**Next:** run the opt-in R08.3 source review `node tests/r08/https-security-source-contract.cjs`, then test a separate synthetic HTTPS browser journey and provider recovery. R08.1 and R08.2 have recorded PASS results, but R08.3 and the complete R08 release gate remain **NOT RUN / OPEN**. The Alpha25 SQL (76 checks), HTTP (44 checks) and epoch-rotation rollback tests remain PASS for their previously tested scope.
