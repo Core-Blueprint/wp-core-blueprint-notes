@@ -36,5 +36,7 @@ php "$ROOT/tests/library-empty-states-smoke.php"
 php "$ROOT/tests/library-overview-smoke.php"
 php "$ROOT/tests/library-display-smoke.php"
 php "$ROOT/tests/menu-order-smoke.php"
+bash -n "$ROOT/tools/check-integration"
+php "$ROOT/tests/integration-gate-contract-smoke.php"
 bash -n "$ROOT/tools/build-release"
 echo 'Notes source checks: PASS'
