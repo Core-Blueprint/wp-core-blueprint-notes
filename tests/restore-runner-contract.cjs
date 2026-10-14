@@ -59,7 +59,9 @@ check(fixture.includes("hash('sha256', $note_a->post_content)") &&
     'Post content, catalogs, revisions and Base approval are checked');
 check(fixture.includes("'revision_hashes_a' => $revision_hashes") &&
     fixture.includes('count($revisions_after) === count($expected_revisions)') &&
-    fixture.includes('wp_get_post_revision((int) $revision_id)') &&
+    fixture.includes('$revision_post_id = (int) $revision_id;') &&
+    fixture.includes('wp_get_post_revision($revision_post_id)') &&
+    !fixture.includes('wp_get_post_revision((int) $revision_id)') &&
     fixture.includes("hash('sha256', $revision->post_content) === $hash"),
     'SQL roundtrip verifies exact native revision IDs, counts and content');
 check(fixture.includes('Controller::PUBLIC_KEY') &&
