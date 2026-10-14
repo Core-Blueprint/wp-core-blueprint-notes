@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Runs two clean deterministic builds; records the exact source HEAD + ZIP hash.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"
+STAMP="$ROOT/dist/notes-alpha26-verified.txt"
+[[ "$#" == 0 ]] || { echo 'No inputs accepted' >&2; exit 1; }
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    { echo 'Wrong Notes branch' >&2; exit 1; }
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+    { echo 'Notes tracked source is modified' >&2; exit 1; }
+HEAD="$(git -C "$ROOT" rev-parse HEAD)"
+# Remove an old attestation before any new build.
+rm -f -- "$STAMP"
+bash "$ROOT/tools/build-release"
+SHA1="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+bash "$ROOT/tools/build-release"
+SHA2="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+[[ "$SHA1" == "$SHA2" && "$SHA2" =~ ^[a-f0-9]{64}$ ]] ||
+    { echo 'Alpha26 ZIP deterministic comparison failed' >&2; exit 1; }
+unzip -t "$ZIP" >/dev/null
+TMP="$(mktemp "$ROOT/dist/.alpha26-proof.XXXXXXXX")"
+trap 'rm -f -- "$TMP"' EXIT
+printf '%s\n%s\n' "$HEAD" "$SHA2" > "$TMP"
+chmod 0600 "$TMP"
+mv -f -- "$TMP" "$STAMP"
+echo "Notes Alpha26 deterministic builds: PASS"
+echo "Notes source HEAD: $HEAD"
+echo "Notes Alpha26 ZIP SHA-256: $SHA2"
+echo "Evidence: $STAMP"
