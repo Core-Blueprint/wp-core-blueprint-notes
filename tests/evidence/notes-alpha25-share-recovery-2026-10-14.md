@@ -47,7 +47,7 @@ The source E1 and restored target E2 used **the same WordPress home URL** and di
 
 ## Still open before RC1 promotion
 
-- The guarded `tools/check-restore` (ordinary 76-check SQL backup/restore) and `tools/check-http` (44-check A/B HTTP/REST/headers) have now been **retargeted in source to the exact verified Alpha25 ZIP SHA-256**, with an Alpha25-only synthetic recovery-key fixture. Their safety source contracts were retargeted as well. **Both Alpha25 runtime reruns remain NOT RUN** until the operator runs them. Previous Alpha24 PASS results remain preserved as historical evidence; the independent historical security reproduction `tools/check-rollback-repro` still pins Alpha24.
+- **2026-10-14 Alpha25 ordinary SQL and HTTP regression: BOTH PASS on real disposable WordPress 7.0.** The earlier Alpha24 fixture version mismatch was corrected, then the operator reran the pinned Alpha25 ZIP with a complete 39-check source fixture and 37-check target fixture plus the 44-check real localhost HTTP origin suite. Detailed evidence below. Historical Alpha24 results and reproduction remain separately recorded.
 - Actual LiteSpeed / QUIC.cloud origin vs edge delivery, purge, 404-after-revocation and no-store headers: **NOT RUN**.
 - Independent host-level quarantine, config/file/SQL full rollback and post-restore key rotation: **NOT RUN**.
 - Real Secure Share provider (installed/absent), password/expiry, provider grant revoke/rollback: **NOT RUN**.
@@ -90,3 +90,36 @@ bash tools/check-http
 ```
 
 Expected current Alpha25 package hash: `77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908`. **No prior Alpha25 PASS is claimed for these two reruns.** Runners use only their fixed disposable local test DB names, fail if already present, and retain their existing cleanup ownership/loopback safeguards. Preserve full output and stop on any fail. This evidence-only update and runner retargeting leave the frozen package's file contents unchanged.
+
+## Final verified ordinary Alpha25 SQL + HTTP runs (2026-10-14)
+
+Operator execution at Notes source HEAD `8225c773c9db9140f2ddedbf68c05101a847198a` using the same previously certified Alpha25 artifact SHA-256 `77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908`. Checks before test: `php -l tests/restore/fixture.php` PASS; `node tests/restore-runner-contract.cjs` PASS (static gate); `bash tools/check` ended with `Notes source checks: PASS`; `sha256sum -c` returned `dist/core-blueprint-notes-0.1.0-alpha25.zip: OK`.
+
+### Full SQL backup → distinct WordPress destination
+
+```text
+Notes restore source fixture: PASS (39 checks)
+Notes restore: dump complete source database and import into separate target
+Notes full SQL target verification: PASS (37 checks)
+Notes full SQL backup/restore: PASS (disposable source -> target)
+Notes restore SQL SHA-256: 0ed3687cec55f477fc88965355c6cbacce7e390bdf94576beba7318adca046b5
+Notes restore ZIP SHA-256: 77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908
+Notes restore: cleaning up the two dedicated test databases and temporary files
+```
+
+### Actual localhost HTTP/REST delivery and revocation
+
+```text
+Notes synthetic HTTP fixture: PASS (seed)
+Notes synthetic HTTP fixture: PASS (private edit)
+Notes synthetic HTTP fixture: PASS (revoked)
+Notes real loopback HTTP origin: PASS (44 checks, WP 7.0)
+Notes HTTP origin ZIP SHA-256: 77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908
+Notes HTTP: CDN, public hosting and real Secure Share provider NOT RUN
+```
+
+**Acceptance decision:** Source-gated 76-check SQL recovery **PASS** and 44-check actual origin HTTP security **PASS** on WordPress 7.0 + **Alpha25**. The already separate Alpha25 epoch-rotation old-link 404/new-link 200 test and WordPress 7.0/7.1.3 PHPUnit integration PASS remain valid. This does **not** close CDN/QUIC.cloud, browser security, real Secure Share, legacy upgrade UX or manual RC1 matrix.
+
+The `/usr/sbin/sendmail: not found` lines during synthetic `wp core install` were non-fatal; this run did not report independent post-cleanup database inspection. No live site, customer share, or production hosting secret was changed.
+
+**Evidence-only branch updates:** This file and following R08 planning files live under `tests/` and do not alter the locked Alpha25 package contents or its checksum. No merge, release or deployment was authorized.
