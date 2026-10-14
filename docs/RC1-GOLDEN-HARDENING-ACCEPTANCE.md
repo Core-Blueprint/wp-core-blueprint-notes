@@ -47,7 +47,7 @@ Record actual local HEAD and SHA-256. `?? dist/` is expected untracked output, b
 - [ ] All legacy source, UI, privacy/contract, i18n and package checks pass on the **same** branch HEAD.
 - [ ] Current plugin metadata requires WordPress 7.0+, PHP 8.4+, Core Blueprint Base; Core API minimum 1.2 enforced and optional Secure Share absent-safe.
 - [ ] Audit every WordPress CPT, exact REST, revisions/autosaves, search/queries, private labels, AI/Abilities, all share modes and cleanup hooks. Test surfaces outside the Notes Library too.
-- [ ] Fix PHP/JS gettext extraction and fail-safe locale formatting. **As of the initial Alpha24 audit, JavaScript editor, sharing, organizer and Library scripts still contain source-English literals without a WordPress `wp.i18n` extraction contract. Mark BLOCKED until fixed and validated.**
+- [ ] Fix PHP/JS gettext extraction and fail-safe locale formatting. **Initial audit found untranslated JS literals. On the hardening branch they are now statically gettext-extractable and all five enqueues declare wp-i18n, with source contracts. Still **BLOCKED** until real gettext extraction, six locale outputs/fallback safety and interactive runtime behavior are validated.**
 - [ ] Do not claim native WXR export preserves author-private catalog names and opaque relationships until experimentally verified; document full-site backup and export boundary.
 
 ### Stage R/I: disposable WordPress browser + API test matrix
