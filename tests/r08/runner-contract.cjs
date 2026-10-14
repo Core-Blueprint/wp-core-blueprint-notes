@@ -1,0 +1,63 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawnSync } = require('node:child_process');
+const root = path.resolve(__dirname, '../..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const runner = read('tools/check-secure-runtime');
+const fixture = read('tests/r08/fixture.php');
+const config = read('tests/r08/wordpress-config.php');
+function check(ok, label) {
+    if (!ok) throw new Error('R08 real-provider source contract BLOCKED: ' + label);
+}
+const syntax = spawnSync('bash', ['-n', path.join(root, 'tools/check-secure-runtime')], {
+    encoding: 'utf8', timeout: 10000,
+});
+check(!syntax.error && syntax.status === 0,
+    'Entire Bash script syntax must pass: ' + (syntax.stderr || 'unknown error').trim());
+check(runner.includes('bash -n "$0"') &&
+    runner.indexOf('bash -n "$0"') < runner.indexOf('CREATE DATABASE core_blueprint_notes_r08_test'),
+    'Whole-script Bash parse must precede disposable DB allocation');
+check(runner.includes('DB="core_blueprint_notes_r08_test"') &&
+    config.includes("core_blueprint_notes_r08_test") &&
+    fixture.includes("core_blueprint_notes_r08_test"),
+    'All components must pin the dedicated test-only DB');
+check(config.includes("PHP_SAPI !== 'cli'") &&
+    config.includes("define('WP_HTTP_BLOCK_EXTERNAL', true)") &&
+    config.includes("define('DISABLE_WP_CRON', true)"),
+    'Synthetic WordPress must be CLI-only and disallow HTTP egress');
+check(runner.includes('SS_HEAD="88c15c45a4898dd1c43c1dfad1d7265f5b693350"') &&
+    runner.includes('SECURE="$HOME/Downloads/wp-core-blueprint-secure-share-r08"') &&
+    runner.includes('git -C "$SECURE" rev-parse HEAD') &&
+    runner.includes('CB_NOTES_SECURE_SHARE_REPO="$SECURE" node'),
+    'Actual reviewed Secure Share clean worktree must be checked and used');
+check(runner.includes('core-blueprint-notes-0.1.0-alpha25.zip') &&
+    runner.includes('77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908') &&
+    runner.includes('sha256sum "$ZIP"') &&
+    runner.includes('unzip -t "$ZIP"'),
+    'Runner must use immutable operator-verified Alpha25 ZIP');
+check(runner.includes('flock -x 9') &&
+    runner.includes('Dedicated R08 database already exists; refusing to change it.') &&
+    runner.includes('OWN_DB=0') && runner.includes('OWN_DB=1') &&
+    runner.indexOf('OWN_DB=1') > runner.indexOf('CREATE DATABASE core_blueprint_notes_r08_test') &&
+    runner.includes('if [[ "$OWN_DB" == 1 ]]'),
+    'Runner must refuse existing DB and clean only its own newly created DB');
+check(runner.includes('wp_test plugin activate core-blueprint-secure-share --quiet') &&
+    runner.includes('CB_NOTES_R08_PHASE=integrated wp_test eval-file'),
+    'Real separate Secure Share plugin must be activated with a WP-CLI test fixture');
+check(fixture.includes('SecureInstaller::ready()') &&
+    fixture.includes('ProviderRegistry::get(') &&
+    fixture.includes('Services::repository()->findById') &&
+    fixture.includes('Services::accessService()->inspectBearer') &&
+    fixture.includes('$provider->deliver($context)'),
+    'Fixture must inspect real plugin schema, grant store, verified bearer and registered provider');
+check(fixture.includes('PasswordHasher::verify(') &&
+    fixture.includes('password-protected grant denies context') &&
+    fixture.includes('revokedAt() !== null') &&
+    fixture.includes('Old bearer cannot authorize after provider revocation') &&
+    fixture.includes('Cached old AccessContext cannot retrieve Notes after local revocation'),
+    'Fixture must exercise password, expiry-bound grant and revocation');
+check(runner.includes('HTTPS browser, cookies, CDN and provider-side old-backup rollback: NOT RUN') &&
+    fixture.includes('R08 HTTPS browser flow, cookies, CDN and provider rollback: NOT RUN'),
+    'No source test or CLI runtime may claim separate HTTPS browser acceptance');
+console.log('Notes R08 first-party provider runtime source contract: PASS (runtime NOT EXECUTED)');
