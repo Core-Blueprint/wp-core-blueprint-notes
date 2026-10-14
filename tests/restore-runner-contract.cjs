@@ -14,6 +14,18 @@ if (/^\s*declare\s*\(\s*strict_types\s*=/m.test(fixture)) {
     throw new Error('Notes restore gate: wp eval-file fixture must not declare strict_types');
 }
 const expectedSha = '77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908';
+checkFixtureVersion();
+function checkFixtureVersion() {
+    if (!fixture.includes("CB_NOTES_VERSION !== '0.1.0-alpha25'") ||
+        !fixture.includes('Restore requires installed Alpha25 Notes.')) {
+        throw new Error('Notes restore gate: synthetic SQL fixture must require installed Alpha25');
+    }
+    if (!runner.includes('wordpress-config-alpha25.php') ||
+        !read('tests/restore/wordpress-config-alpha25.php').includes("define('CB_NOTES_SHARE_EPOCH_KEY'")) {
+        throw new Error('Notes restore gate: Alpha25 restore requires independent synthetic epoch key');
+    }
+}
+
 
 function check(ok, description) {
     if (!ok) throw new Error('Notes restore gate: ' + description);
