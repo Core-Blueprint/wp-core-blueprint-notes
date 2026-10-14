@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="phpunit-notes-bootstrap.php" colors="true"
+    beStrictAboutTestsThatDoNotTestAnything="true" failOnRisky="true" failOnWarning="false">
+    <testsuites>
+        <testsuite name="notes-rc1-runtime-privacy">
+            <directory suffix="Test.php">integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
