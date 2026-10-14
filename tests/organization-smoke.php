@@ -46,9 +46,23 @@ function sanitize_text_field(string $s): string { return trim(strip_tags($s)); }
 function absint(mixed $v): int { return abs((int)$v); }
 function get_post(int $id): ?WP_Post { return $GLOBALS['posts'][$id] ?? null; }
 function get_post_meta(int $id, string $key, bool $single = true): mixed { return $GLOBALS['post_meta'][$id][$key] ?? ''; }
-function update_post_meta(int $id, string $key, mixed $value): bool { $GLOBALS['post_meta'][$id][$key] = $value; return true; }
+function update_post_meta(int $id, string $key, mixed $value): bool {
+    if (($GLOBALS['fail_post_once_id'] ?? 0) === $id) {
+        $GLOBALS['fail_post_once_id'] = 0;
+        return false;
+    }
+    $GLOBALS['post_meta'][$id][$key] = $value;
+    return true;
+}
 function get_user_meta(int $id, string $key, bool $single = true): mixed { return $GLOBALS['users'][$id][$key] ?? ''; }
-function update_user_meta(int $id, string $key, mixed $value): bool { $GLOBALS['users'][$id][$key] = $value; return true; }
+function update_user_meta(int $id, string $key, mixed $value): bool {
+    if ($GLOBALS['fail_user_meta_once'] ?? false) {
+        $GLOBALS['fail_user_meta_once'] = false;
+        return false;
+    }
+    $GLOBALS['users'][$id][$key] = $value;
+    return true;
+}
 function is_wp_error(mixed $value): bool { return $value instanceof WP_Error; }
 function is_admin(): bool { return true; }
 function wp_unslash(string $value): string { return $value; }
@@ -175,6 +189,36 @@ $legacy = get_post_meta(102, Catalog::NOTEBOOK);
 check(Catalog::contains(7, 'notebook', $legacy), 'alpha2 Notebook text migrated to personal catalog');
 check(Catalog::labels_for_post(102)['notebook'] === 'Legacy Projects', 'migrated label remains visible');
 check(count(Catalog::catalog(8)['notebook']) === 1, 'legacy migration cannot modify another user catalog');
+
+// RC1: destructive catalog operations are bounded and compensate failed writes.
+$GLOBALS['posts'][110] = new WP_Post(110, 'cb_note', 7);
+$GLOBALS['posts'][111] = new WP_Post(111, 'cb_note', 7);
+$created = change('create', 'category', 'Restore Candidate');
+check(is_array($created), 'RC1: recovery test label created');
+$restore_id = end($created['category'])['id'];
+update_post_meta(110, Catalog::CATEGORY, $restore_id);
+update_post_meta(111, Catalog::CATEGORY, $restore_id);
+$GLOBALS['fail_post_once_id'] = 111;
+$failed = change('delete', 'category', '', $restore_id);
+check($failed instanceof WP_Error && $failed->code === 'cb_notes_organization_storage',
+    'RC1: second post-meta write failure is surfaced');
+check(get_post_meta(110, Catalog::CATEGORY) === $restore_id
+    && get_post_meta(111, Catalog::CATEGORY) === $restore_id
+    && Catalog::contains(7, 'category', $restore_id),
+    'RC1: first cleared assignment rolled back and catalog label retained');
+$GLOBALS['fail_user_meta_once'] = true;
+$failed = change('delete', 'category', '', $restore_id);
+check($failed instanceof WP_Error && $failed->code === 'cb_notes_organization_storage',
+    'RC1: catalog user-meta save failure is surfaced');
+check(get_post_meta(110, Catalog::CATEGORY) === $restore_id
+    && get_post_meta(111, Catalog::CATEGORY) === $restore_id
+    && Catalog::contains(7, 'category', $restore_id),
+    'RC1: both assignments restored after catalog save failure');
+$deleted = change('delete', 'category', '', $restore_id);
+check(is_array($deleted) && !Catalog::contains(7, 'category', $restore_id)
+    && get_post_meta(110, Catalog::CATEGORY) === ''
+    && get_post_meta(111, Catalog::CATEGORY) === '',
+    'RC1: normal label removal still clears exact owner references');
 
 /* Base compatibility contract: verify the real registration call shape. */
 class NotesFakeAdminTheme {
