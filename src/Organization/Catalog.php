@@ -104,7 +104,31 @@ final class Catalog {
     }
 
     private static function error(string $code, string $message, int $status = 422): \WP_Error {
-        return new \WP_Error($code, $message, ['status' => $status]);
+        // Literal gettext keys are discoverable by the WordPress extractor.
+        // Keep stable error codes/status, never expose internal storage values.
+        $translated = match ($message) {
+            'Personal classifications belong to the note owner.' => __('Personal classifications belong to the note owner.', 'core-blueprint-notes'),
+            'Unknown personal organization item.' => __('Unknown personal organization item.', 'core-blueprint-notes'),
+            'Invalid personal tags.' => __('Invalid personal tags.', 'core-blueprint-notes'),
+            'Unknown personal tag.' => __('Unknown personal tag.', 'core-blueprint-notes'),
+            'Access denied.' => __('Access denied.', 'core-blueprint-notes'),
+            'Invalid organization action.' => __('Invalid organization action.', 'core-blueprint-notes'),
+            'Invalid item.' => __('Invalid item.', 'core-blueprint-notes'),
+            'Organization item not found.' => __('Organization item not found.', 'core-blueprint-notes'),
+            'A name is required.' => __('A name is required.', 'core-blueprint-notes'),
+            'This name already exists.' => __('This name already exists.', 'core-blueprint-notes'),
+            'Organization item limit reached.' => __('Organization item limit reached.', 'core-blueprint-notes'),
+            'Organization save failed and note assignments could not all be restored. Review the site backup before retrying.' => __('Organization save failed and note assignments could not all be restored. Review the site backup before retrying.', 'core-blueprint-notes'),
+            'Could not save organization changes.' => __('Could not save organization changes.', 'core-blueprint-notes'),
+            'Could not verify affected notes.' => __('Could not verify affected notes.', 'core-blueprint-notes'),
+            'This label belongs to more than 250 notes. Bulk removal needs an operator-reviewed batch.' => __('This label belongs to more than 250 notes. Bulk removal needs an operator-reviewed batch.', 'core-blueprint-notes'),
+            'Could not verify note ownership.' => __('Could not verify note ownership.', 'core-blueprint-notes'),
+            'Could not verify a note tag assignment.' => __('Could not verify a note tag assignment.', 'core-blueprint-notes'),
+            'Note assignments could not all be restored. Review the site backup before retrying.' => __('Note assignments could not all be restored. Review the site backup before retrying.', 'core-blueprint-notes'),
+            'Could not clear a note assignment.' => __('Could not clear a note assignment.', 'core-blueprint-notes'),
+            default => __('Organization action failed.', 'core-blueprint-notes'),
+        };
+        return new \WP_Error($code, $translated, ['status' => $status]);
     }
 
     public static function register_meta(): void {
