@@ -46,6 +46,10 @@ function get_post_meta(int $id,string $key,bool $single=true): mixed {
     return $GLOBALS['notes_meta'][$id][$key]??'';
 }
 function update_post_meta(int $id,string $key,mixed $value): bool {
+    if (($GLOBALS['fail_share_meta_once'] ?? '') === $key) {
+        $GLOBALS['fail_share_meta_once'] = '';
+        return false;
+    }
     $GLOBALS['notes_meta'][$id][$key]=$value; return true;
 }
 function delete_post_meta(int $id,string $key): bool {
@@ -105,6 +109,19 @@ verify(\CB\Notes\Sharing\Controller::change($staleContent) instanceof WP_Error,'
 $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
     'id'=>42, 'mode'=>'public', 'expected_modified_gmt'=>$note->post_modified_gmt, 'expected_mode'=>'private', 'expected_content_version'=>$version, 'confirmation'=>'PUBLIC'
 ]);
+foreach ([
+    \CB\Notes\Sharing\Controller::PUBLIC_META,
+    \CB\Notes\Sharing\Controller::PUBLIC_KEY,
+    \CB\Notes\Sharing\Controller::MODE_META,
+] as $failed_key) {
+    $GLOBALS['fail_share_meta_once'] = $failed_key;
+    $failed = \CB\Notes\Sharing\Controller::change($payload);
+    verify($failed instanceof WP_Error, 'RC1: failed public-share meta write rejected');
+    verify(get_post_meta(42, \CB\Notes\Sharing\Controller::MODE_META) === 'private'
+        && get_post_meta(42, \CB\Notes\Sharing\Controller::PUBLIC_KEY) === ''
+        && get_post_meta(42, \CB\Notes\Sharing\Controller::PUBLIC_META) === '',
+        'RC1: failed public-share write leaves no active link');
+}
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify(!($result instanceof WP_Error) && $result['mode']==='public','confirmed public frozen snapshot created');
 verify(str_contains((string)$result['public_url'],'/cb-notes/shared/'),'public URL uses isolated route');
