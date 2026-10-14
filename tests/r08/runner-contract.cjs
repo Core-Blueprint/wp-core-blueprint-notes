@@ -31,11 +31,12 @@ check(runner.includes('SS_HEAD="88c15c45a4898dd1c43c1dfad1d7265f5b693350"') &&
     runner.includes('git -C "$SECURE" rev-parse HEAD') &&
     runner.includes('CB_NOTES_SECURE_SHARE_REPO="$SECURE" node'),
     'Actual reviewed Secure Share clean worktree must be checked and used');
-check(runner.includes('core-blueprint-notes-0.1.0-alpha25.zip') &&
-    runner.includes('77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908') &&
+check(runner.includes('core-blueprint-notes-0.1.0-alpha26.zip') &&
+    runner.includes('PIN="$(bash "$ROOT/tools/check-alpha26-artifact")"') &&
     runner.includes('sha256sum "$ZIP"') &&
-    runner.includes('unzip -t "$ZIP"'),
-    'Runner must use immutable operator-verified Alpha25 ZIP');
+    runner.includes('unzip -t "$ZIP"') &&
+    read('tools/check-alpha26-artifact').includes('notes-alpha26-verified.txt'),
+    'Runner must use exact-head double-build-attested Alpha26 ZIP');
 check(runner.includes('flock -x 9') &&
     runner.includes('Dedicated R08 database already exists; refusing to change it.') &&
     runner.includes('OWN_DB=0') && runner.includes('OWN_DB=1') &&
