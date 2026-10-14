@@ -1,6 +1,6 @@
 # Notes RC1 | Disposable full-site backup and restore acceptance
 
-**Status: PLAN ONLY; NOT RUN.** Prepared 2026-10-14 after source, deterministic Alpha24 build and the WordPress 7.0/7.1.3 nine-test suites were reported PASS. Do not treat this plan as restore evidence.
+**Status: PASS for the isolated WordPress 7.0 full-site SQL roundtrip tested 2026-10-14.** The operator executed `bash tools/check-restore` against disposable WordPress 7.0 source/target installations; 39 source fixture checks and 37 target restore checks passed. This is not a claim for every host, WordPress version or migration scenario.
 
 ## Purpose and release boundary
 
@@ -11,7 +11,7 @@ Prove that a complete WordPress site/database restore preserves Notes private co
 - `core_blueprint_notes_restore_source`
 - `core_blueprint_notes_restore_target`
 
-Do not create or reset those databases until a separately reviewed, guarded runner exists. Do not pass customer/private notes, real tokens, real emails or API secrets through test fixtures, logs or Git. If a recovery archive contains database secrets or note content, store it with restrictive permissions, outside Git and the public WordPress webroot, and delete it on completion.
+The guarded `tools/check-restore` runner now exists and has run successfully. It refuses either pre-existing database and only claims automatic cleanup ownership after both dedicated databases are successfully created; no other database is a valid target. Do not pass customer/private notes, real tokens, real emails or API secrets through test fixtures, logs or Git. If a recovery archive contains database secrets or note content, store it with restrictive permissions, outside Git and the public WordPress webroot, and delete it on completion.
 
 ## Preparation gates
 
@@ -43,6 +43,29 @@ Do not create or reset those databases until a separately reviewed, guarded runn
 
 - **PASS** requires an actual source backup, separate target restore, validated content and authorization round trip, checksummed archive, and redacted evidence.
 - **FAIL** blocks RC1 and requires remediation.
-- **NOT RUN** remains the status until the run succeeds.
+- **PASS (2026-10-14)** applies to the exact completed WordPress 7.0 disposable SQL source-to-target test below. All other restore paths remain untested without their own evidence.
 
 Product decision still open: full-site backup/restore may satisfy the **technical RC1 disaster-recovery minimum**; a portable owner-controlled Notes export/import is a separate data-autonomy capability and should not be represented as shipped. No destructive uninstall behavior is part of this acceptance.
+
+## Recorded run: 2026-10-14, complete PASS
+
+Operator-supplied terminal evidence on Notes branch HEAD `467d52246f2189fe2dda12e6dca1ef0050132f81`:
+
+| Check | Recorded result |
+|---|---|
+| Static restore-runner contract, PHP syntax and full Notes source checks | PASS |
+| WordPress source/target | Two isolated WordPress **7.0** installations |
+| Database host | Disposable MariaDB **10.11.19** test container |
+| Synthetic source fixture | **PASS (39 checks)** |
+| Entire SQL dump/import to independent target database | Completed, followed by complete target verification |
+| Target restoration and privacy validation | **PASS (37 checks)** |
+| Whole test run | `Notes full SQL backup/restore: PASS (disposable source -> target)` |
+| Database dump SHA-256 | `20cb18c97b324fec94f5013b69cac01057471c9a7dc5891a1e40d83ae785dcce` |
+| Alpha24 ZIP SHA-256 | `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc` |
+| Teardown | Runner printed cleanup of its two dedicated databases and temporary files; independent post-cleanup inspection was not reported |
+
+The fixture checks the complete synthetic backup and restore data graph: private note owners and Gutenberg content hash, exact preserved revision IDs/counts/content hashes, per-user catalog names and opaque IDs, favorite/pin flags, view preference, trashed-note state, owner and non-owner WordPress REST access, anonymous denial, prior public share revocation, and rejection of the source-signed privileged administrator approval on the target trust domain.
+
+**Boundaries:** The source fixture revokes its test public share **before** the backup. This verifies that a revoked key stays revoked through the restore. It does **not** prove that restoring a *historical backup containing an active share* cannot re-expose that key. That risk needs its own explicit policy and negative test; delayed CDN/HTTP caches and a real Secure Share provider are also outside this SQL test. WordPress 7.1.3 was verified with nine PHPUnit tests, not this standalone SQL restore runner. Normal WXR export, cross-user-account portability, unknown hosting environments and multi-site restores are not certified.
+
+No source merge, RC1 promotion or deployment is authorized by this PASS alone.
