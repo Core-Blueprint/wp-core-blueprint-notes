@@ -53,17 +53,19 @@ final class Page {
         wp_enqueue_script(
             'cb-notes-library',
             plugins_url('assets/library-admin.js', CB_NOTES_FILE),
-            [],
+            ['wp-i18n'],
             CB_NOTES_VERSION,
             true
         );
+        wp_set_script_translations('cb-notes-library', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
         wp_enqueue_script(
             'cb-notes-library-bulk',
             plugins_url('assets/library-bulk.js', CB_NOTES_FILE),
-            ['cb-notes-library'],
+            ['cb-notes-library', 'wp-i18n'],
             CB_NOTES_VERSION,
             true
         );
+        wp_set_script_translations('cb-notes-library-bulk', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
     }
 
     public static function parameters(array $state): array {
