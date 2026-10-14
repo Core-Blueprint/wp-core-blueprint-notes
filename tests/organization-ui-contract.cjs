@@ -13,7 +13,7 @@ const snapshot = fs.readFileSync(path.join(root, 'src/Sharing/Snapshot.php'), 'u
 
 const checks = [
     ['Gutenberg offers one progressive Organize panel', editor.includes("wp.plugins.registerPlugin('cb-notes-organize'") && !editor.includes("['notebook', 'category', 'tag'].forEach(")],
-    ['Notebook primary with accessible Category and Tags controls', editor.includes("label: 'Notebook'") && editor.includes("label: 'Category'") && editor.includes("label: 'Add existing tag'")],
+    ['Notebook primary with accessible Category and Tags controls', editor.includes("label: __('Notebook', 'core-blueprint-notes')") && editor.includes("label: __('Category', 'core-blueprint-notes')") && editor.includes("label: __('Add existing tag', 'core-blueprint-notes')")],
     ['Gutenberg uses owner-only organization endpoint', editor.includes("'/core-blueprint-notes/v1/organization'")],
     ['Tags selector enforces max 12', editor.includes('chosenTags.length < 12') && editor.includes('selected.length < 12')],
     ['Editor updates native WordPress post meta', editor.includes('dispatch.editPost({ meta:')],
@@ -27,8 +27,8 @@ const checks = [
     ['Three visible, accessible native links replace dropdown', admin.includes("className: 'nav-tab'") && admin.includes("'aria-current': active ? 'page'") && admin.includes('aria-label') && !admin.includes('KindPicker')],
     ['Tab URLs preserve WordPress admin query parameters', admin.includes('new URL(window.location.href)') && admin.includes("url.searchParams.set('section', section)") && admin.includes('sectionFromUrl')],
     ['Direct tab navigation updates content without page reload', admin.includes('setKind(next)') && admin.includes('window.history.replaceState')],
-    ['Contextual Add new form is hidden by default', admin.includes('if (adding) {') && admin.includes("adding ? 'Cancel' : 'Add new'")],
-    ['Rename remains inline and accessible', admin.includes("label: 'Rename ' + item.name") && admin.includes("setEditing(item.id)")],
+    ['Contextual Add new form is hidden by default', admin.includes('if (adding) {') && admin.includes("adding ? __('Cancel', 'core-blueprint-notes') : __('Add new', 'core-blueprint-notes')")],
+    ['Rename remains inline and accessible', admin.includes("label: sprintf(__('Rename %s', 'core-blueprint-notes'), item.name)") && admin.includes("setEditing(item.id)")],
     ['Canceling removal cannot mutate', admin.includes("if (accepted === true) mutate('delete'")],
     ['Full page replaced with one Base card', admin.includes('cb-core-card__body') && !admin.includes('cb-notes-organize__card--picker')],
     ['Success feedback is compact and screenreader-accessible', admin.includes('cb-notes-organize__feedback') && admin.includes("'aria-live': 'polite'") && !admin.includes("status: 'success'")],
