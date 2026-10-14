@@ -72,10 +72,13 @@ cleanup() {
 trap cleanup EXIT
 
 printf 'Notes restore: create two empty, uniquely named disposable databases\n'
-OWN_DBS=1
+# Do not claim cleanup ownership until BOTH CREATE statements succeeded.
+# If creation partially fails or another process creates one of the names,
+# leave it for explicit inspection rather than DROP a database we may not own.
 docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb -uroot \
     -e 'CREATE DATABASE core_blueprint_notes_restore_source CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE core_blueprint_notes_restore_target CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
-    fail "Cannot provision dedicated databases."
+    fail "Could not create both new databases. NO automatic DROP; inspect dedicated names before retrying."
+OWN_DBS=1
 
 SRC="$RUN_DIR/site-source"
 DST="$RUN_DIR/site-target"
