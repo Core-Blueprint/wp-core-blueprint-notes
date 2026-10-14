@@ -42,5 +42,7 @@ bash -n "$ROOT/tools/check-restore"
 node "$ROOT/tests/restore-runner-contract.cjs"
 bash -n "$ROOT/tools/check-http"
 node "$ROOT/tests/http-runner-contract.cjs"
+bash -n "$ROOT/tools/check-rollback-repro"
+node "$ROOT/tests/rollback-runner-contract.cjs"
 bash -n "$ROOT/tools/build-release"
 echo 'Notes source checks: PASS'
