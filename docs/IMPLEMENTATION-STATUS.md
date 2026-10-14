@@ -8,8 +8,10 @@
 
 - One release-hardening branch inherits Alpha23 without merging it to main. The single-batch release boundary is documented in `docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Suite Overseer Notes roadmap.
 - Reconciles dynamic PHP gettext labels in Sharing and classification filters with literal, statically extractable strings.
+- All five JavaScript UI assets now use static `wp-i18n` keys, plural/formatting helpers, explicit script dependencies and `wp_set_script_translations`; older source-UI contracts updated, and `tests/rc1-js-i18n-contract.cjs` added. Locale catalogs and real locale/browser verification are **not complete**.
+- Label removal preflights the bounded owner-scoped set and compensates earlier post-meta writes when a later write or catalog save fails. Mocked regression injects each failure; concurrency and actual DB-failure recovery still require field evidence.
 - Build script creates a fresh deterministic ZIP from an allowlist, normalizes staged timestamps/modes and refuses symlinks or unexpected package files; two local builds must have identical SHA-256.
-- Open gates: user B/admin/anonymous WordPress runtime privacy, public and optional Secure Share cache/revocation, Base/PHP/WP compatibility, JS UI localization extraction, migration/data portability/uninstall decision, and user-accepted final RC1 artifact.
+- Open gates: user B/admin/anonymous WordPress runtime privacy, public and optional Secure Share cache/revocation, Base/PHP/WP compatibility, installed JS translations and locale-browser behavior, migration/data portability/uninstall decision, and user-accepted final RC1 artifact.
 
 ## Scope added in alpha4
 
