@@ -179,6 +179,11 @@ $payload=new WP_REST_Request('/core-blueprint-notes/v1/sharing/42',[
     'id'=>42, 'mode'=>'private', 'expected_modified_gmt'=>'stale-is-okay-for-revocation',
     'expected_mode'=>'obsolete', 'expected_content_version'=>'obsolete'
 ]);
+$GLOBALS['fail_share_meta_once'] = \CB\Notes\Sharing\Controller::MODE_META;
+$failed_stop = \CB\Notes\Sharing\Controller::change($payload);
+verify($failed_stop instanceof WP_Error && ($failed_stop->data['status'] ?? 0) === 500
+    && get_post_meta(42, \CB\Notes\Sharing\Controller::MODE_META) === 'public',
+    'RC1: failed Stop sharing write reports error, never false success');
 $result=\CB\Notes\Sharing\Controller::change($payload);
 verify($result['mode']==='private' && get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','private stops public URL authorization');
 verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'private mode invalidates previous share key');
