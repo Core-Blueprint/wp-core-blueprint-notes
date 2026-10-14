@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 // Local PHP development server router; test root is never a public vhost.
 $uri = (string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-$path = realpath(__DIR__ . '/../../' . ltrim($uri, '/'));
 $root = realpath(getenv('CB_NOTES_HTTP_SITE') ?: '');
+$path = $root === false ? false : realpath($root . '/' . ltrim($uri, '/'));
 if ($root === false || !str_contains($root, '/core-blueprint-notes-http/run.')) {
     http_response_code(403);
     exit('Invalid disposable site root');
