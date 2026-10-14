@@ -42,9 +42,9 @@ SH
 
 Record actual local HEAD and SHA-256. `?? dist/` is expected untracked output, but any other source modifications must be examined. If any command fails, STOP: do not install the archive.
 
-### New isolated Level 2 WordPress PHPUnit gate (NOT YET EXECUTED)
+### Isolated Level 2 WordPress PHPUnit gate (7-test suite VERIFIED; R10 extension NOT RUN)
 
-Alpha24 now includes a Notes-only integration provisioner and a first **real WordPress/PHPUnit** privacy smoke suite. These are *test-infrastructure changes only*, not product feature changes. They remain **NOT RUN** until the operator executes them and supplies the actual PHPunit output. The new source contract runs under `bash tools/check`.
+Alpha24 includes a Notes-only integration provisioner and real WordPress/PHPUnit privacy and sharing tests. These are *test-infrastructure changes only*, not product feature changes. Operator evidence on 2026-10-14 confirms **PASS: 7 tests, 142 assertions** on **WordPress 7.0** and separately **WordPress 7.1.3**, with the same clean source branch. The new source contract runs under `bash tools/check`.
 
 The runner `bash tools/check-integration` follows the established Work handbook pattern: it stages current Notes and Base source into a disposable directory, downloads an exact WordPress core and compatible wp-phpunit fixture, installs Base schema before booting Notes, and uses only the `core_blueprint_notes_test` database on the pre-existing `cb-base-test-db` MariaDB 10.11.19 container at `127.0.0.1:3307`. The runner resets **only this specifically named disposable database**. It does not touch the Base, Work, or operator WordPress databases. It refuses modified tracked source, a missing Base vendor PHPUnit installation and an unexpected DB image/port. No arbitrary DB name, host or temporary root may be supplied.
 
@@ -64,9 +64,9 @@ A single invocation covers only one WP version. The first (default) is WP 7.0 an
 - R03 partial: two editors and anonymous exact REST read access, owner list scoping and no foreign body/title leaks.
 - R09 partial: read-only Abilities disabled by default, enabled per-user owner boundaries, administrator's distinct AI scope and no content in list projections.
 
-**Extended PHPUnit cases added, NOT YET RUN:** `NotesRuntimeMutationSharingIntegrationTest` expands R02/R03/R07 with three real WordPress scenarios: owner REST edits and cross-owner edit/delete refusal; revision and autosave REST permission checks; and public-share confirmation, frozen content, cross-owner revocation refusal, and final revocation. These are intentionally PHP/REST-dispatch-level tests. Do not mark R07/cache/revocation globally PASS without actual anonymous HTTP, cache/CDN and restore evidence. The previous WordPress 7.0 and 7.1.3 PASS (4 tests, 68 assertions each) applies **only to the earlier four-test suite**, not this expanded suite. The new seven-test target requires independent execution on both versions.
+**Extended PHPUnit cases VERIFIED 2026-10-14:** `NotesRuntimeMutationSharingIntegrationTest` expands R02/R03/R07 with three real WordPress scenarios: owner REST edits and cross-owner edit/delete refusal; revision and autosave REST permission checks; and public-share confirmation, frozen content, cross-owner revocation refusal, and final revocation. Both WordPress 7.0 and 7.1.3 returned **OK (7 tests, 142 assertions)**. These are intentionally PHP/REST-dispatch-level tests. Do not mark R07/cache/revocation globally PASS without actual anonymous HTTP, cache/CDN and restore evidence.
 
-**Still needed:** real authenticated HTTP/MCP adapter transport, revisions/autosaves and write endpoints, shared snapshots, caches and CDN, Secure Share provider, upgrade/restore, locales, UI/a11y, performance/scale and installation compatibility. A passing PHPUnit smoke **must not** mark entire R02/R03/R09 or RC-02 as PASS.
+**R10 additional WordPress PHPUnit coverage ADDED, NOT RUN:** `NotesRuntimeRecoveryIntegrationTest` adds a real per-user catalog/postmeta recovery dependency test and a real Trash/Restore stale-public-grant revocation test. These new tests must be run on WordPress 7.0 and 7.1.3 and **must not be called full-site backup/restore acceptance**. They exercise in-place WordPress meta recovery only; full SQL dump and separate-install restore with consistent user ID mapping remain blocking RC-03 work. **Still needed:** real authenticated HTTP/MCP adapter transport, native HTTP/cache/CDN, actual Secure Share provider, end-to-end backup/restore, locales, UI/a11y, performance/scale and installation compatibility. A passing PHPUnit smoke **must not** mark entire R02/R03/R09 or RC-02 as PASS.
 
 ### Stage S: source and contract evidence
 
