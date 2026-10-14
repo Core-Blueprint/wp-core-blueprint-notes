@@ -44,6 +44,9 @@ namespace {
     function checked(mixed $current, mixed $expected, bool $echo = true): string {
         return $current === $expected ? 'checked="checked"' : '';
     }
+    function wp_nonce_field(string $action): void {
+        echo '<input type="hidden" name="_wpnonce" value="' . esc_attr($action) . '">';
+    }
     function settings_fields(string $group): void {
         echo '<input type="hidden" data-settings-group="' . esc_attr($group) . '">';
     }
@@ -103,6 +106,27 @@ namespace {
     check(str_contains($overview, 'Open Notes Library'), 'primary Library workspace linked');
     check(str_contains($overview, 'page=cb-notes-library'), 'Settings Hub link resolves to Library');
     check(str_contains($overview, 'Disabled'), 'read-only AI status shown disabled');
+
+    // Operator-only recovery status contains a count, never a grant UUID.
+    $GLOBALS['wpdb'] = new class {
+        public string $options = 'wp_options';
+        public function esc_like(string $value): string { return $value; }
+        public function prepare(string $query, mixed ...$values): string { return $query; }
+        public function get_var(string $query): int { return 2; }
+    };
+    $_GET['tab'] = 'overview';
+    ob_start();
+    SettingsPage::render();
+    $with_pending = (string)ob_get_clean();
+    check(str_contains($with_pending, 'Pending revocations:')
+        && str_contains($with_pending, 'cb_notes_retry_revocations'),
+        'Administrator sees bounded Secure Share retry action');
+    check(str_contains($with_pending, 'name="_wpnonce"')
+        && str_contains($with_pending, 'admin-post.php'),
+        'Recovery form includes WordPress nonce and admin-post destination');
+    check(!str_contains($with_pending, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        'Recovery UI does not expose provider identifiers');
+    unset($GLOBALS['wpdb']);
 
     $_GET['tab'] = 'ai-access';
     ob_start();
