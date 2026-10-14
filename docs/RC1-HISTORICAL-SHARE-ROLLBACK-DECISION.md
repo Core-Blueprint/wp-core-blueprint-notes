@@ -80,13 +80,13 @@ sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
 bash tools/check-rollback-repro
 ```
 
-**Observed:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore` (2026-10-14). This is experimental proof of the hazard, **not** evidence of security. The runner still does not test public HTTP, hosting or cache behavior. The next development batch must implement an approved fail-closed recovery barrier and a separate **negative** acceptance test requiring the historic key to remain denied after restore.
+**Observed:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore` (2026-10-14). This is experimental proof of the hazard, **not** evidence of security. The runner still does not test public HTTP, hosting or cache behavior. The Alpha25 featurebranch now contains a fail-closed HMAC Public share guard and a separate `tools/check-rollback-guard` negative acceptance runner. Both require successful actual runtime verification before mitigation can be marked PASS.
 
-## Reviewed implementation design (PROPOSED; PRODUCT GO REQUIRED)
+## Approved Alpha25 implementation on featurebranch (RUNTIME NOT YET PASS)
 
 See [RC1-RESTORE-SHARING-EPOCH-DESIGN.md](RC1-RESTORE-SHARING-EPOCH-DESIGN.md) for the concrete implementation boundary: an independently provisioned site epoch bound into newly issued Public snapshots, an explicit host-level quarantine and epoch rotation before an old backup is reopened, strict refusal of unsigned Alpha24 legacy grants, and separate real Secure Share provider revocation. The test gate must verify actual anonymous HTTP 404 on the historical backup **after** the protection has been implemented, not only the PHP authorization predicate.
 
-**Security limitation:** no plugin-only SQL or filesystem state can guarantee that revocations survive restoration of that exact old state. The operating procedure and trust anchor have to remain outside the rollback domain; if files and config are also rolled back, re-quarantine and rotate again before any public traffic. No changes to product/sharing behavior were made in this design-only batch.
+**Security limitation:** no plugin-only SQL or filesystem state can guarantee that revocations survive restoration of that exact old state. The operating procedure and trust anchor have to remain outside the rollback domain; if files and config are also rolled back, re-quarantine and rotate again before any public traffic. The Alpha25 featurebranch now implements signed Public share verification, which will intentionally invalidate unsigned Alpha24 URLs once actually installed; this is **not** a production deployment or a fully accepted recovery flow.
 
 ## Gate and product decisions
 
