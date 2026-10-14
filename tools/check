@@ -40,5 +40,7 @@ bash -n "$ROOT/tools/check-integration"
 php "$ROOT/tests/integration-gate-contract-smoke.php"
 bash -n "$ROOT/tools/check-restore"
 node "$ROOT/tests/restore-runner-contract.cjs"
+bash -n "$ROOT/tools/check-http"
+node "$ROOT/tests/http-runner-contract.cjs"
 bash -n "$ROOT/tools/build-release"
 echo 'Notes source checks: PASS'
