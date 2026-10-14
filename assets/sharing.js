@@ -4,6 +4,8 @@
     if (!wp || !wp.plugins || !wp.editPost || !wp.components || !wp.element || !wp.data || !wp.apiFetch) {
         return;
     }
+    var __ = wp.i18n && typeof wp.i18n.__ === 'function'
+        ? wp.i18n.__ : function (message) { return message; };
     var el = wp.element.createElement;
     var useState = wp.element.useState;
     var useEffect = wp.element.useEffect;
@@ -35,13 +37,13 @@
             var active = true;
             wp.apiFetch({ path: '/core-blueprint-notes/v1/sharing/' + id })
                 .then(function (result) { if (active) setSharing(result); })
-                .catch(function () { if (active) setError('Sharing settings are unavailable.'); });
+                .catch(function () { if (active) setError(__('Sharing settings are unavailable.', 'core-blueprint-notes')); });
             return function () { active = false; };
         }, [id]);
 
         function requestMode(mode, confirmation) {
             if (!sharing || busy || (mode !== 'private' && (editor.dirty || editor.saving))) {
-                setError('Save the note first, then review the sharing settings.');
+                setError(__('Save the note first, then review the sharing settings.', 'core-blueprint-notes'));
                 return Promise.resolve();
             }
             setBusy(true);
@@ -65,35 +67,35 @@
                     setPassword('');
                 })
                 .catch(function (failure) {
-                    setError(failure.message || 'Sharing could not be changed. Nothing new was published.');
+                    setError(failure.message || __('Sharing could not be changed. Nothing new was published.', 'core-blueprint-notes'));
                 })
                 .finally(function () { setBusy(false); });
         }
 
         function confirmPublic() {
             if (editor.dirty || editor.saving) {
-                setError('Save the note before making a public version.');
+                setError(__('Save the note before making a public version.', 'core-blueprint-notes'));
                 return;
             }
             var modal = window.cbCore && window.cbCore.modal;
             if (!modal || typeof modal.show !== 'function') {
-                setError('The required Core Blueprint confirmation modal is unavailable. Nothing was published.');
+                setError(__('The required Core Blueprint confirmation modal is unavailable. Nothing was published.', 'core-blueprint-notes'));
                 return;
             }
             modal.show({
-                title: 'Make this note public?',
-                body: 'A frozen copy of this note will be accessible to anyone with the public URL, without a login or password. Others can copy it even if you stop sharing later. Only supported text blocks are included. Later edits will not update this shared copy.',
+                title: __('Make this note public?', 'core-blueprint-notes'),
+                body: __('A frozen copy of this note will be accessible to anyone with the public URL, without a login or password. Others can copy it even if you stop sharing later. Only supported text blocks are included. Later edits will not update this shared copy.', 'core-blueprint-notes'),
                 confirmVariant: 'danger',
-                confirmLabel: 'Make public',
-                cancelLabel: 'Keep private',
+                confirmLabel: __('Make public', 'core-blueprint-notes'),
+                cancelLabel: __('Keep private', 'core-blueprint-notes'),
                 typedConfirm: 'PUBLIC',
                 confirmCheck: {
-                    label: 'I understand that anyone can access and copy the public version.'
+                    label: __('I understand that anyone can access and copy the public version.', 'core-blueprint-notes')
                 }
             }).then(function (accepted) {
                 if (accepted === true) return requestMode('public', 'PUBLIC');
             }).catch(function () {
-                setError('The required confirmation could not be completed. Nothing was published.');
+                setError(__('The required confirmation could not be completed. Nothing was published.', 'core-blueprint-notes'));
             });
         }
 
@@ -101,85 +103,85 @@
             if (!sharing || sharing.mode === 'private') return;
             var modal = window.cbCore && window.cbCore.modal;
             if (!modal || typeof modal.show !== 'function') {
-                setError('The confirmation modal is unavailable.');
+                setError(__('The confirmation modal is unavailable.', 'core-blueprint-notes'));
                 return;
             }
             modal.show({
-                title: 'Stop sharing this note?',
-                body: 'Existing public or secure links will stop delivering this note. Copies already made by recipients cannot be recalled.',
+                title: __('Stop sharing this note?', 'core-blueprint-notes'),
+                body: __('Existing public or secure links will stop delivering this note. Copies already made by recipients cannot be recalled.', 'core-blueprint-notes'),
                 confirmVariant: 'primary',
-                confirmLabel: 'Stop sharing'
+                confirmLabel: __('Stop sharing', 'core-blueprint-notes')
             }).then(function (accepted) {
                 if (accepted === true) return requestMode('private');
-            }).catch(function () { setError('Could not complete confirmation.'); });
+            }).catch(function () { setError(__('Could not complete confirmation.', 'core-blueprint-notes')); });
         }
 
         var mode = sharing && sharing.mode ? sharing.mode : 'private';
-        var status = !sharing ? 'Checking…' :
-            mode === 'public' ? 'Public copy active' :
-            mode === 'secure' ? 'Secure copy active' : 'Private';
+        var status = !sharing ? __('Checking…', 'core-blueprint-notes') :
+            mode === 'public' ? __('Public copy active', 'core-blueprint-notes') :
+            mode === 'secure' ? __('Secure copy active', 'core-blueprint-notes') : __('Private', 'core-blueprint-notes');
         var guidance = mode === 'private'
-            ? 'Saving or publishing in Gutenberg keeps the note private. Sharing requires a separate action below.'
-            : 'The original note stays private. Saving changes will not update the frozen shared copy. Use Stop sharing to revoke access.';
+            ? __('Saving or publishing in Gutenberg keeps the note private. Sharing requires a separate action below.', 'core-blueprint-notes')
+            : __('The original note stays private. Saving changes will not update the frozen shared copy. Use Stop sharing to revoke access.', 'core-blueprint-notes');
         var controls = [
-            el('p', { key: 'status' }, el('strong', null, 'Sharing status: '), status),
+            el('p', { key: 'status' }, el('strong', null, __('Sharing status: ', 'core-blueprint-notes')), status),
             el('p', { key: 'info', className: 'components-base-control__help' }, guidance)
         ];
         if (error) controls.push(el(wp.components.Notice, {
             key: 'error', status: 'error', isDismissible: true, onRemove: function () { setError(''); }
         }, error));
         if (!sharing) {
-            controls.push(el('p', { key: 'loading' }, 'Loading sharing settings…'));
+            controls.push(el('p', { key: 'loading' }, __('Loading sharing settings…', 'core-blueprint-notes')));
         } else {
             var blocked = busy || editor.dirty || editor.saving;
-            if (editor.dirty && mode === 'private') controls.push(el('p', { key: 'save' }, 'Save your changes before creating a shared copy.'));
-            if (editor.dirty && mode !== 'private') controls.push(el('p', { key: 'save' }, 'Unsaved edits are not visible to recipients. You can still stop sharing.'));
+            if (editor.dirty && mode === 'private') controls.push(el('p', { key: 'save' }, __('Save your changes before creating a shared copy.', 'core-blueprint-notes')));
+            if (editor.dirty && mode !== 'private') controls.push(el('p', { key: 'save' }, __('Unsaved edits are not visible to recipients. You can still stop sharing.', 'core-blueprint-notes')));
             if (mode === 'public' && sharing.public_url) {
                 controls.push(el(wp.components.TextControl, {
-                    key: 'public-link', label: 'Public URL', value: sharing.public_url,
+                    key: 'public-link', label: __('Public URL', 'core-blueprint-notes'), value: sharing.public_url,
                     readOnly: true, onChange: function () {}
                 }));
             }
             if (secretLink) {
                 controls.push(el(wp.components.TextControl, {
-                    key: 'secure-link', label: 'Secure invitation link (copy now)', value: secretLink,
+                    key: 'secure-link', label: __('Secure invitation link (copy now)', 'core-blueprint-notes'), value: secretLink,
                     readOnly: true, onChange: function () {}
                 }));
                 controls.push(el('p', { key: 'secret-warning' },
-                    'This secure invitation cannot be retrieved later. Keep it confidential.'));
+                    __('This secure invitation cannot be retrieved later. Keep it confidential.', 'core-blueprint-notes')));
             }
             if (mode !== 'private') {
                 controls.push(el(wp.components.Button, {
                     key: 'stop', variant: 'secondary', isBusy: busy, disabled: busy,
                     onClick: stopSharing
-                }, 'Stop sharing'));
+                }, __('Stop sharing', 'core-blueprint-notes')));
             } else {
                 controls.push(el(wp.components.Button, {
                     key: 'public', variant: 'secondary', isDestructive: true,
                     disabled: blocked, onClick: confirmPublic
-                }, 'Make public…'));
+                }, __('Make public…', 'core-blueprint-notes')));
                 if (sharing.secure_available) {
                     controls.push(el(wp.components.TextControl, {
-                        key: 'password', label: 'Password or PIN (optional)', type: 'password',
+                        key: 'password', label: __('Password or PIN (optional)', 'core-blueprint-notes'), type: 'password',
                         value: password, onChange: setPassword, autoComplete: 'new-password'
                     }));
                     controls.push(el(wp.components.SelectControl, {
-                        key: 'expiry', label: 'Secure link expires after',
+                        key: 'expiry', label: __('Secure link expires after', 'core-blueprint-notes'),
                         value: days, onChange: setDays,
                         options: [
-                            { label: '1 day', value: '1' },
-                            { label: '7 days', value: '7' },
-                            { label: '30 days', value: '30' }
+                            { label: __('1 day', 'core-blueprint-notes'), value: '1' },
+                            { label: __('7 days', 'core-blueprint-notes'), value: '7' },
+                            { label: __('30 days', 'core-blueprint-notes'), value: '30' }
                         ]
                     }));
                     controls.push(el(wp.components.Button, {
                         key: 'secure', variant: 'secondary', disabled: blocked,
                         onClick: function () { requestMode('secure'); }
-                    }, 'Create secure link'));
+                    }, __('Create secure link', 'core-blueprint-notes')));
                 }
             }
         }
-        return el(Panel, { name: 'cb-notes-sharing', title: 'Sharing' }, controls);
+        return el(Panel, { name: 'cb-notes-sharing', title: __('Sharing', 'core-blueprint-notes') }, controls);
     }
 
     wp.plugins.registerPlugin('cb-notes-sharing', { render: SharingPanel, icon: 'share' });
