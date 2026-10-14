@@ -32,7 +32,7 @@ There is **no global `cb_notebook` / `cb_note_tag` taxonomy** and no proprietary
 
 ## Export and recovery: explicit RC1 contract decision
 
-**Current supported recovery claim, pending real restore acceptance:** a complete, appropriately access-controlled WordPress database backup including `wp_posts`, revisions, `wp_postmeta`, `wp_users`, and `wp_usermeta` can preserve the Notes data graph when restored with a consistent user/author mapping and Base. Verify using a disposable restore, not a post-only WXR export.
+**Verified narrow RC1 recovery claim (2026-10-14):** an isolated WordPress 7.0 full-site SQL dump and import between two separately provisioned disposable WordPress sites preserved `wp_posts`/revisions, `wp_postmeta`, `wp_users`/`wp_usermeta`, private author mapping, Gutenberg blocks, owner catalogs, opaque IDs, preferences, revocation state and Base trust-boundary enforcement. The operator confirmed 39 source and 37 target checks PASS; see `RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md` for exact SHA-256 and limits. This is not proof of a standalone Notes WXR export/import, cross-account transfer, historic active-share rollback safety, WordPress 7.1.3 SQL import, or any production migration.
 
 **Not supported or claimed for RC1 without a new approved scope and round-trip test:**
 - Independent user-facing Notebook/Note export/import with stable ID remapping.
