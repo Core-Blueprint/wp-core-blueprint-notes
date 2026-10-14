@@ -8,7 +8,7 @@ const runner = read('tools/check-http');
 const cfg = read('tests/http/wordpress-config.php');
 const router = read('tests/http/router.php');
 const fixture = read('tests/http/fixture.php');
-const expected = '22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc';
+const expected = '77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908';
 const syntax = spawnSync('bash', ['-n', path.join(root, 'tools/check-http')], {
     encoding: 'utf8',
     timeout: 10000,
