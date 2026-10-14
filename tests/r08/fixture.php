@@ -31,7 +31,7 @@ $refused = static function (callable $fn, string $message) use ($must): void {
         $must(true, $message);
     }
 };
-$must(CB_NOTES_VERSION === '0.1.0-alpha25', 'Alpha25 code actually installed');
+$must(CB_NOTES_VERSION === '0.1.0-alpha26', 'Alpha26 code actually installed');
 $must(defined('CB_SECURE_SHARE_VERSION') && CB_SECURE_SHARE_VERSION === '0.1.0-dev',
     'Real Secure Share development plugin actually installed');
 $must(SecurePlugin::is_booted() && SecureProvider::available(),
