@@ -64,7 +64,7 @@ final class Controller {
         }
         $mode = self::mode($post->ID);
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
-        $publicValid = $mode === 'public' &&
+        $publicValid = $mode === 'public' && is_array($snapshot) &&
             self::public_snapshot_allowed($post, (string)($snapshot['key'] ?? ''), $snapshot);
         return [
             'mode' => $mode,
