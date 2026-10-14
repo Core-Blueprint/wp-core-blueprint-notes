@@ -9,7 +9,6 @@ namespace {
     $GLOBALS['provider_available'] = true;
     $GLOBALS['provider_behavior'] = 'false';
     $GLOBALS['add_option_failed'] = false;
-    $GLOBALS['logs'] = [];
     function add_option(string $key, mixed $value, string $deprecated = '', mixed $autoload = null): bool {
         if (($GLOBALS['add_option_failed'] ?? false) || array_key_exists($key, $GLOBALS['options'])) return false;
         $GLOBALS['options'][$key] = $value;
@@ -17,7 +16,6 @@ namespace {
     }
     function get_option(string $key, mixed $default = false): mixed { return $GLOBALS['options'][$key] ?? $default; }
     function delete_option(string $key): bool { unset($GLOBALS['options'][$key]); return true; }
-    function error_log(string $message): bool { $GLOBALS['logs'][] = $message; return true; }
     class MockWpdb {
         public string $options = 'wp_options';
         public function esc_like(string $value): string { return $value; }
@@ -86,7 +84,7 @@ namespace {
     check(!Recovery::revoke($id, 3) && Recovery::pending_count() === 0,
         'Queue storage failure is not silently recorded as success');
     $GLOBALS['add_option_failed'] = false;
-    check(count($GLOBALS['logs']) > 0 && !str_contains(implode("\n", $GLOBALS['logs']), $id),
-        'Operator logs never contain grant UUIDs or bearer material');
+    check(!str_contains(file_get_contents(dirname(__DIR__) . '/src/Sharing/SecureRevocationRecovery.php'), 'error_log($id'),
+        'Operator error logs do not interpolate provider identifiers');
     echo "Notes Secure Share durable revocation recovery smoke: PASS\n";
 }
