@@ -9,6 +9,27 @@
 - Use a dedicated disposable test site. Do **not** enable public access to real notes. Do not modify production DNS, cache policies or genuine provider grants to make a test pass.
 - **STOP** on anonymous/private content leakage, foreign-owner REST access, stale cached public content after revocation, unexpected live grant, non-private note visibility or absent required security headers.
 
+## Automated first stage: isolated localhost origin (ADDED; NOT RUN)
+
+The new `tools/check-http` script provisions only `core_blueprint_notes_http_test` in the canonical local MariaDB 10.11.19 test container and uses a temporary WordPress 7.0 site served by PHP's built-in web server bound to `127.0.0.1:18777`. It refuses an already existing test database, unexpected image/port, an occupied HTTP listener, modified tracked source, or a ZIP with SHA-256 other than `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc`. It runs only with synthetic Notes; its site configuration rejects non-loopback clients. Temporary synthetic Application Passwords authenticate editor A and editor B over local HTTP; the runner cleans its test server, database and private temporary files on exit.
+
+Covered: A owner HTTP REST read, B own read and denied cross-owner read/write, anonymous exact read and list, B's owner-scoped list, explicitly confirmed anonymous frozen public snapshot, origin security headers, private edit without snapshot mutation, repeated 404 after revocation and invalid share paths. This **does not** test a CDN, real HTTPS endpoint, hostile external clients, Secure Share provider or the historical active-key backup rollback case.
+
+**Execute only after source checks:**
+```bash
+cd ~/Downloads/wp-core-blueprint-notes
+bash -n tools/check-http
+php -l tests/http/wordpress-config.php
+php -l tests/http/router.php
+php -l tests/http/fixture.php
+node tests/http-runner-contract.cjs
+bash tools/check
+sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
+bash tools/check-http
+```
+
+A valid final `PASS` must come from `Notes real loopback HTTP origin: PASS (... checks, WP 7.0)`, not the static Node source contract. The full R03/R07 external HTTP/CDN matrix remains separately open.
+
 ## R03: Native REST and privacy over actual HTTP
 
 1. With editor A, create a synthetic private Gutenberg note and a private notebook/category/tag catalog.
