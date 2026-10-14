@@ -58,9 +58,13 @@ pass(runner.includes('request owner 200 a') &&
     runner.includes("'^x-wp-total:[[:space:]]*0[[:space:]]*$'") &&
     runner.includes("'^x-wp-total:[[:space:]]*1[[:space:]]*$'") &&
     runner.includes('Anonymous collection count must reveal zero Notes.') &&
-    runner.includes("B's collection total must include only B's own synthetic Note.") &&
+    runner.includes("B default publish-status REST collection must have total zero.") &&
+    runner.includes("B's explicit private REST collection must count exactly B's own Note.") &&
+    runner.includes("request b_list_private 200 b '/wp-json/wp/v2/cb-notes?context=edit&status=private'") &&
+    runner.includes("request b_list_default 200 b '/wp-json/wp/v2/cb-notes'") &&
+    runner.includes('"$WORK/b_list_private.body" "$NOTE_B"') &&
     runner.includes('foreign_write_status='),
-    'HTTP test requires independent owner/B/anonymous REST and foreign mutation denial');
+    'HTTP test requires independent owner/B/anonymous REST and foreign mutation denial, with explicit private filter');
 pass(runner.includes('request public 200 anon') &&
     runner.includes('request frozen 200 anon') &&
     runner.includes('request revoked 404 anon') &&
