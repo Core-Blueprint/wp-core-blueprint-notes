@@ -34,6 +34,9 @@ check(runner.includes("grep -Fxq -- \"$name\"") &&
 check(runner.includes('flock -x 9') && runner.includes('OWN_DBS=0') &&
     runner.includes('if [[ "$OWN_DBS" == "1" ]]'),
     'Runner uses exclusive lock and cleanup ownership');
+check(runner.indexOf('OWN_DBS=1') > runner.indexOf('-e \'CREATE DATABASE core_blueprint_notes_restore_source') &&
+    runner.includes('NO automatic DROP; inspect dedicated names before retrying.'),
+    'Runner must acquire cleanup ownership only after both CREATE statements succeed');
 check(runner.includes('mariadb-dump') &&
     runner.includes('"$SOURCE_DB" > "$SQL"') &&
     runner.includes('"$TARGET_DB" < "$SQL"'),
@@ -52,6 +55,11 @@ check(fixture.includes("hash('sha256', $note_a->post_content)") &&
     fixture.includes('wp_get_post_revisions($mine)') &&
     fixture.includes('PrivilegedAccessRegistry::is_approved($admin)'),
     'Post content, catalogs, revisions and Base approval are checked');
+check(fixture.includes("'revision_hashes_a' => $revision_hashes") &&
+    fixture.includes('count($revisions_after) === count($expected_revisions)') &&
+    fixture.includes('wp_get_post_revision((int) $revision_id)') &&
+    fixture.includes("hash('sha256', $revision->post_content) === $hash"),
+    'SQL roundtrip verifies exact native revision IDs, counts and content');
 check(fixture.includes('Controller::PUBLIC_KEY') &&
     fixture.includes('rest_do_request(') &&
     fixture.includes('wp_set_current_user(0)'),
