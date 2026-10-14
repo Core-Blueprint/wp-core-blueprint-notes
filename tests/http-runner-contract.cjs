@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const runner = read('tools/check-http');
@@ -8,9 +9,20 @@ const cfg = read('tests/http/wordpress-config.php');
 const router = read('tests/http/router.php');
 const fixture = read('tests/http/fixture.php');
 const expected = '22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc';
+const syntax = spawnSync('bash', ['-n', path.join(root, 'tools/check-http')], {
+    encoding: 'utf8',
+    timeout: 10000,
+});
+if (syntax.error || syntax.status !== 0) {
+    throw new Error('Notes HTTP source gate: complete shell syntax validation failed: ' +
+        (syntax.stderr || (syntax.error && syntax.error.message) || 'unknown error').trim());
+}
 function pass(condition, message) {
     if (!condition) throw new Error('Notes HTTP source gate: ' + message);
 }
+pass(runner.includes('bash -n "$0"') &&
+    runner.indexOf('bash -n "$0"') < runner.indexOf('CREATE DATABASE core_blueprint_notes_http_test'),
+    'HTTP runner must self-parse before any temporary database is created');
 pass(runner.includes('core_blueprint_notes_http_test') &&
     cfg.includes("core_blueprint_notes_http_test") &&
     fixture.includes("core_blueprint_notes_http_test"),
@@ -43,6 +55,8 @@ pass(runner.includes('request owner 200 a') &&
     runner.includes('request b_foreign denied b') &&
     runner.includes('request anon_exact denied anon') &&
     runner.includes('request anon_list 200 anon') &&
+    runner.includes("'^x-wp-total:[[:space:]]*0[[:space:]]*$'") &&
+    runner.includes("'^x-wp-total:[[:space:]]*1[[:space:]]*$'") &&
     runner.includes('Anonymous collection count must reveal zero Notes.') &&
     runner.includes("B's collection total must include only B's own synthetic Note.") &&
     runner.includes('foreign_write_status='),
@@ -53,6 +67,10 @@ pass(runner.includes('request public 200 anon') &&
     runner.includes('request revoked_again 404 anon') &&
     runner.includes('NOTES_HTTP_NEW_PRIVATE_A'),
     'HTTP test must exercise a frozen snapshot and multiple post-revocation 404s');
+pass((runner.match(/request public 200 anon/g) || []).length === 1 &&
+    (runner.match(/request frozen 200 anon/g) || []).length === 1 &&
+    (runner.match(/Notes real loopback HTTP origin: PASS/g) || []).length === 1,
+    'HTTP runner must contain exactly one complete test sequence and PASS claim');
 pass(runner.includes('^cache-control:.*no-store') &&
     runner.includes('^x-robots-tag:.*noindex') &&
     runner.includes('^content-security-policy:.*default-src'),
