@@ -107,8 +107,9 @@ if ($phase === 'target_denied') {
         'GET', '/core-blueprint-notes/v1/sharing/' . $post->ID
     ));
     $data = $read->get_data();
-    $must($read->get_status() === 200 && ($data['public_valid'] ?? true) === false
-        && ($data['public_url'] ?? 'not-null') === null,
+    $must($read->get_status() === 200 && is_array($data)
+        && array_key_exists('public_valid', $data) && $data['public_valid'] === false
+        && array_key_exists('public_url', $data) && $data['public_url'] === null,
         'Owner UI cannot advertise an invalid old Public URL');
     echo "Notes guarded rollback: restored old Public grant DENIED ({$checks} checks)\n";
     return;
