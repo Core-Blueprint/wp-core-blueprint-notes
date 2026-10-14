@@ -28,6 +28,11 @@ define('WP_ENVIRONMENT_TYPE', 'local');
 define('DISABLE_WP_CRON', true);
 define('WP_HTTP_BLOCK_EXTERNAL', true);
 define('AUTOMATIC_UPDATER_DISABLED', true);
+// Source E1 / restored target E2. Old Alpha24 ignores this new recovery
+// key; the new guard must reject E1 signatures after SQL import into E2.
+define('CB_NOTES_SHARE_EPOCH_KEY', str_repeat(
+    $db === 'core_blueprint_notes_rollback_source' ? 'a' : 'b', 64
+));
 $table_prefix = 'cbrollback_';
 if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
