@@ -154,5 +154,6 @@ $refused(static function() use ($bearer): void {
 $refused(static function() use ($provider, $context): void {
     $provider->deliver($context);
 }, 'Cached old AccessContext cannot retrieve Notes after local revocation');
+update_option('cb_notes_r08_lifecycle_note_id', $note, false);
 echo "Notes R08 first-party Secure Share CLI runtime: PASS ({$checks} checks)\n";
 echo "R08 HTTPS browser flow, cookies, CDN and provider rollback: NOT RUN\n";
