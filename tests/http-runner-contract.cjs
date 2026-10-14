@@ -43,6 +43,8 @@ pass(runner.includes('request owner 200 a') &&
     runner.includes('request b_foreign denied b') &&
     runner.includes('request anon_exact denied anon') &&
     runner.includes('request anon_list 200 anon') &&
+    runner.includes('Anonymous collection count must reveal zero Notes.') &&
+    runner.includes("B's collection total must include only B's own synthetic Note.") &&
     runner.includes('foreign_write_status='),
     'HTTP test requires independent owner/B/anonymous REST and foreign mutation denial');
 pass(runner.includes('request public 200 anon') &&
