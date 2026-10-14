@@ -8,7 +8,7 @@ const runner = read('tools/check-http');
 const cfg = read('tests/http/wordpress-config.php');
 const router = read('tests/http/router.php');
 const fixture = read('tests/http/fixture.php');
-const expected = '77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908';
+const proof = read('tools/check-alpha26-artifact');
 const syntax = spawnSync('bash', ['-n', path.join(root, 'tools/check-http')], {
     encoding: 'utf8',
     timeout: 10000,
@@ -36,9 +36,12 @@ pass(cfg.includes("PHP_SAPI, ['cli', 'cli-server']") &&
     cfg.includes("($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1'") &&
     cfg.includes("define('WP_HTTP_BLOCK_EXTERNAL', true)"),
     'HTTP WordPress config rejects external clients and external WordPress HTTP requests');
-pass(runner.includes('SHA="' + expected + '"') &&
+pass(runner.includes('SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"') &&
+    runner.includes('core-blueprint-notes-0.1.0-alpha26.zip') &&
+    proof.includes('notes-alpha26-verified.txt') &&
+    proof.includes('sha256sum "$ZIP"') &&
     runner.includes('sha256sum "$ZIP"') && runner.includes('unzip -t "$ZIP"'),
-    'Pinned original ZIP must be validated before any test DB creation');
+    'Double-build attested Alpha26 ZIP must be verified before any test DB creation');
 pass(runner.includes("grep -Fxq -- \"$DB\"") &&
     runner.includes('Existing HTTP test database: never overwrite.') &&
     runner.indexOf('OWN_DB=1') > runner.indexOf('CREATE DATABASE core_blueprint_notes_http_test'),
