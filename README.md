@@ -33,7 +33,7 @@ Tag/media/attachment visibility in third-party blocks is **not** supported for s
 
 ## RC1 single-batch hardening
 
-The `feature/notes-rc1-golden-hardening-v1` branch carries the accepted Alpha23 Library UI forward without an early merge and adds RC1 release-hardening. See [RC1 Golden acceptance](docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md) and the WP Suite Overseer Notes roadmap for the source/build/runtime/portability gates. The architecture RFC is a historical *proposal*: the shipped classification model is the owner-private `user_meta` catalog, not a global taxonomy. Data portability, uninstall behavior, JavaScript localization, multi-user WordPress security and CDN/integration acceptance remain open until evidenced.
+The `feature/notes-rc1-golden-hardening-v1` branch carries the accepted Alpha23 Library UI forward without an early merge and adds RC1 release-hardening. See [RC1 Golden acceptance](docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md) and the WP Suite Overseer Notes roadmap for the source/build/runtime/portability gates. The architecture RFC is a historical *proposal*: the shipped classification model is the owner-private `user_meta` catalog, not a global taxonomy. Data portability, uninstall behavior, installed JavaScript translations and runtime locale behavior, multi-user WordPress security and CDN/integration acceptance remain open until evidenced. Alpha24 adds gettext-extractable JavaScript strings, WordPress wp-i18n dependencies, and compensating label-deletion cleanup, but does not yet contain verified NL/DE/FR/ES/IT/PT language catalogs or a tested cross-user restore.
 
 ## Build and staging acceptance
 
