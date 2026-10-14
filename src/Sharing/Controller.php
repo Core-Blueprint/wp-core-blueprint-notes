@@ -130,9 +130,15 @@ final class Controller {
                 'modified' => (string)$post->post_modified_gmt,
                 'created' => gmdate('c'),
             ];
-            update_post_meta($post->ID, self::PUBLIC_META, $snapshot);
-            update_post_meta($post->ID, self::PUBLIC_KEY, $key);
-            update_post_meta($post->ID, self::MODE_META, 'public');
+            // Persist all three fields before advertising the public URL.
+            // A failed write disarms delivery; partially stored snapshots
+            // must never become independently reachable.
+            if (!self::persist_meta($post->ID, self::PUBLIC_META, $snapshot)
+                || !self::persist_meta($post->ID, self::PUBLIC_KEY, $key)
+                || !self::persist_meta($post->ID, self::MODE_META, 'public')) {
+                self::disarm_sharing($post->ID);
+                return self::error('Public sharing could not be saved. No new link is active.', 500);
+            }
             self::revoke_old_secure($post->ID);
             self::record('public', $post->ID);
             return self::read($request);
@@ -196,6 +202,20 @@ final class Controller {
         }
     }
 
+    /** Accept unchanged values: WordPress update_post_meta returns false for no-op updates. */
+    private static function persist_meta(int $id, string $key, mixed $value): bool {
+        return update_post_meta($id, $key, $value)
+            || get_post_meta($id, $key, true) === $value;
+    }
+
+    /** Fail-closed recovery for partial public or secure persistence. */
+    private static function disarm_sharing(int $id): void {
+        update_post_meta($id, self::MODE_META, 'private');
+        delete_post_meta($id, self::PUBLIC_META);
+        delete_post_meta($id, self::PUBLIC_KEY);
+        self::revoke_old_secure($id);
+    }
+
     /** Trash/delete permanently disarms sharing, even if the Note is restored. */
     public static function revoke_for_lifecycle(int $id): void {
         $post = get_post($id);
@@ -250,6 +270,7 @@ final class Controller {
             'Core Blueprint Secure Share is not available.' => __('Core Blueprint Secure Share is not available.', 'core-blueprint-notes'),
             'Secure links must expire within 1 to 30 days.' => __('Secure links must expire within 1 to 30 days.', 'core-blueprint-notes'),
             'Secure sharing failed. No new link is active in Notes.' => __('Secure sharing failed. No new link is active in Notes.', 'core-blueprint-notes'),
+            'Public sharing could not be saved. No new link is active.' => __('Public sharing could not be saved. No new link is active.', 'core-blueprint-notes'),
             default => __('Sharing is unavailable.', 'core-blueprint-notes'),
         };
         return new \WP_Error('cb_notes_sharing_unavailable', $translated, ['status' => $status]);
