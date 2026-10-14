@@ -25,6 +25,9 @@ const checks = [
     ['Active shared copies are explained', sharing.includes('Saving changes will not update the frozen shared copy')],
     ['Public mode requires server confirmation', controller.includes("get_param('confirmation') !== 'PUBLIC'")],
     ['Public shares fail closed on trash', controller.includes("'trash', 'auto-draft', 'inherit'")],
+    ['Missing recovery epoch blocks Public issuance', sharing.includes('disabled: blocked || !sharing.public_ready')],
+    ['Unsigned legacy Public link shows unavailable status', sharing.includes('mode === \'public\' && !sharing.public_valid')],
+    ['Revocation remains accessible even when an epoch is missing', sharing.includes("key: 'stop'") && sharing.includes('disabled: busy')],
     ['Notes publish status downgraded to private', access.includes("$data['post_status'] = 'private'")],
     ['Author gate for sharing', controller.includes("(int)$post->post_author === get_current_user_id()")],
 ];
