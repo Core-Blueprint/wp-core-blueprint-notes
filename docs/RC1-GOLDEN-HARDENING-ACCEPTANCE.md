@@ -102,7 +102,13 @@ Create two regular Notes editor accounts **A** and **B**, an actual site adminis
 
 **Security STOP:** any leak, unexpected anonymous/remote access, revocation failure, raw snapshot/body in logs, data loss, or broken activation. Never mark a NOT RUN cell PASS because a similar source smoke test passed.
 
-### Next gate: full-site SQL restore (PLAN ONLY)
+### Next gate: full-site SQL restore (RUN STARTED; NOT PASS)
+
+**2026-10-14 real disposable runner evidence:** operator confirmed Alpha24 ZIP `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc`, source checks and phpunit PASS. First source-site seed attempt failed because `wp eval-file` does not allow a top-level `declare(strict_types=1)` in evaluated PHP; fixed in test fixture. Second attempt passed that stage and genuine REST catalog mutations, but failed at `Create real native WordPress revision` because the fixture demanded a newly returned integer from `wp_save_post_revision()`. WordPress may return void when that exact content is already revisioned. The fixture now makes a real Gutenberg content edit and verifies actual stored revision IDs and content fingerprints across source and restored target SQL (not just a return value); the restore runner additionally owns database cleanup **only after both disposable databases are successfully created**. **Updated runner/test gate NOT YET EXECUTED. No full SQL export/import PASS has been observed.** Missing `/usr/sbin/sendmail` warnings are nonfatal in this synthetic CLI-only fixture.
+
+The restore gate remains blocked until the entire runner completes and checks Base trust isolation and both users' privacy after import.
+
+### Next gate details: full-site SQL restore (PLAN DOCUMENTED)
 
 An isolated, fail-closed restore rehearsal has been specified in [RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md](RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md). It requires a complete synthetic source WordPress site/database backup, a separately provisioned target database/site, user/author/catalog identity checks, Base trust-domain review, and privacy/sharing revocation checks. **NOT RUN:** no SQL dump, actual second-site import or external token-revocation proof has been executed. `tools/check-integration` is not the backup/restore runner because it resets its sole PHPUnit database on every run.
 
