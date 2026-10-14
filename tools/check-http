@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Disposable, loopback-only actual HTTP/REST runner. No production/CDN calls.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="$HOME/Downloads/wp-core-blueprint"
+DB="core_blueprint_notes_http_test"
+CONTAINER="cb-base-test-db"
+ORIGIN="http://127.0.0.1:18777"
+HOME_TEST="/tmp/core-blueprint-tests/core-blueprint-notes-http"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha24.zip"
+SHA="22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc"
+fail() { printf 'Notes HTTP BLOCKED: %s\n' "$*" >&2; exit 1; }
+umask 077
+[[ "$#" == 0 ]] || fail "No CLI args supported."
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] || fail "Wrong branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Notes tracked source modified."
+[[ -f "$BASE/core-blueprint.php" ]] || fail "Canonical Base checkout required."
+git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet || fail "Base tracked source modified."
+for program in wp docker curl php unzip tar flock git sha256sum; do
+    command -v "$program" >/dev/null || fail "Missing $program."
+done
+[[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$SHA" ]] || fail "Unexpected Alpha24 ZIP."
+unzip -t "$ZIP" >/dev/null || fail "Corrupt ZIP."
+[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] || fail "Wrong DB container."
+[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == true ]] || fail "DB container not running."
+docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' || fail "Wrong DB port."
+[[ ! -L "$HOME_TEST" ]] || fail "Unsafe test directory symlink."
+mkdir -p "$HOME_TEST"
+exec 9>"$HOME_TEST/.http.lock"
+flock -x 9
+if curl --noproxy '*' -sS -o /dev/null --connect-timeout 1 --max-time 2 "$ORIGIN/" 2>/dev/null; then
+    fail "Loopback HTTP port already in use."
+fi
+DBS="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B -e 'SHOW DATABASES;')" || fail "Cannot enumerate DBs."
+if grep -Fxq -- "$DB" <<< "$DBS"; then fail "Existing HTTP test database: never overwrite."; fi
+WORK="$(mktemp -d "$HOME_TEST/run.XXXXXXXX")"
+[[ "$WORK" == "$HOME_TEST"/run.* ]] || fail "Unexpected run directory."
+OWN_DB=0
+SERVER_PID=
+cleanup() {
+    local status=$?
+    trap - EXIT
+    if [[ -n "$SERVER_PID" ]]; then
+        kill "$SERVER_PID" >/dev/null 2>&1 || true
+        wait "$SERVER_PID" >/dev/null 2>&1 || true
+    fi
+    if [[ "$OWN_DB" == 1 ]]; then
+        docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+            -e 'DROP DATABASE IF EXISTS core_blueprint_notes_http_test;' >/dev/null ||
+            printf 'Notes HTTP WARNING: inspect only the fixed test DB.\n' >&2
+    fi
+    if [[ -d "$WORK" && ! -L "$WORK" && "$WORK" == "$HOME_TEST"/run.* ]]; then rm -rf -- "$WORK"; fi
+    exit "$status"
+}
+trap cleanup EXIT
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+    -e 'CREATE DATABASE core_blueprint_notes_http_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+    fail "CREATE failed; do not auto-delete partially created database."
+OWN_DB=1
+SITE="$WORK/site"
+mkdir -p "$SITE"
+curl --fail --silent --show-error --location --max-time 120 \
+    'https://wordpress.org/wordpress-7.0.tar.gz' | tar -xz --strip-components=1 -C "$SITE"
+[[ -f "$SITE/wp-settings.php" ]] || fail "WordPress archive failed."
+mkdir -p "$SITE/wp-content/plugins/core-blueprint" "$SITE/wp-content/plugins/core-blueprint-notes"
+tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' --exclude='./tools' \
+    --exclude='./dist' --exclude='./.github' -cf - . | tar -C "$SITE/wp-content/plugins/core-blueprint" -xf -
+unzip -q "$ZIP" -d "$WORK/package"
+cp -a "$WORK/package/core-blueprint-notes/." "$SITE/wp-content/plugins/core-blueprint-notes/"
+rm -rf -- "$WORK/package"
+cp "$ROOT/tests/http/wordpress-config.php" "$SITE/wp-config.php"
+export CB_NOTES_HTTP_DB_NAME="$DB"
+export CB_NOTES_HTTP_SITE="$SITE"
+export CB_NOTES_HTTP_MANIFEST="$WORK/fixture.json"
+export WP_CLI_CACHE_DIR="$WORK/wp-cli-cache"
+wp_site() { wp --path="$SITE" --url="$ORIGIN" "$@"; }
+wp_site core install --url="$ORIGIN" --title="Notes Synthetic HTTP" \
+    --admin_user="cbnotes_http_admin" --admin_password="synthetic-http-admin-only" \
+    --admin_email="admin@cb-notes-http.invalid" --skip-email --quiet
+wp_site plugin activate core-blueprint --quiet
+wp_site plugin activate core-blueprint-notes --quiet
+wp_site rewrite structure '/%postname%/' --quiet
+wp_site rewrite flush --quiet
+CB_NOTES_HTTP_PHASE=seed wp_site eval-file "$ROOT/tests/http/fixture.php"
+[[ -s "$CB_NOTES_HTTP_MANIFEST" ]] || fail "Missing synthetic fixture manifest."
+field() {
+    php -r '$d=json_decode(file_get_contents($argv[1]),true);foreach(explode(".",$argv[2]) as $k){if(!is_array($d)||!array_key_exists($k,$d))exit(1);$d=$d[$k];}if(!is_scalar($d))exit(1);echo $d;' \
+        "$CB_NOTES_HTTP_MANIFEST" "$1"
+}
+NOTE_A="$(field note_a)"
+NOTE_B="$(field note_b)"
+KEY="$(field key)"
+USER_A="$(field a.login)"
+USER_B="$(field b.login)"
+PASS_A="$(field a.password)"
+PASS_B="$(field b.password)"
+[[ "$NOTE_A" =~ ^[1-9][0-9]*$ && "$NOTE_B" =~ ^[1-9][0-9]*$ && "$KEY" =~ ^[a-f0-9]{32}$ ]] ||
+    fail "Fixture identifiers invalid."
+php -S 127.0.0.1:18777 -t "$SITE" "$ROOT/tests/http/router.php" >"$WORK/server.log" 2>&1 &
+SERVER_PID=$!
+READY=0
+for attempt in $(seq 1 30); do
+    kill -0 "$SERVER_PID" 2>/dev/null || fail "Loopback server exited."
+    if curl --noproxy '*' -sS -o /dev/null --connect-timeout 1 --max-time 2 "$ORIGIN/wp-json/" 2>/dev/null; then
+        READY=1
+        break
+    fi
+    sleep 1
+done
+[[ "$READY" == 1 ]] || fail "Loopback origin did not start."
+COUNT=0
+request() {
+    local label="$1" expect="$2" identity="$3" endpoint="$4" status
+    case "$identity" in
+        a) status="$(curl --noproxy '*' --silent --show-error --max-time 15 \
+            --user "$USER_A:$PASS_A" --path-as-is -D "$WORK/$label.headers" \
+            -o "$WORK/$label.body" -w '%{http_code}' "$ORIGIN$endpoint")" ;;
+        b) status="$(curl --noproxy '*' --silent --show-error --max-time 15 \
+            --user "$USER_B:$PASS_B" --path-as-is -D "$WORK/$label.headers" \
+            -o "$WORK/$label.body" -w '%{http_code}' "$ORIGIN$endpoint")" ;;
+        anon) status="$(curl --noproxy '*' --silent --show-error --max-time 15 \
+            --path-as-is -D "$WORK/$label.headers" \
+            -o "$WORK/$label.body" -w '%{http_code}' "$ORIGIN$endpoint")" ;;
+        *) fail "Invalid identity." ;;
+    esac
+    [[ "$status" == "$expect" ]] || fail "HTTP $label expected $expect, got $status (response redacted)."
+    COUNT=$((COUNT + 1))
+}
+not_containing() {
+    if grep -Fq -- "$2" "$WORK/$1.body"; then fail "Private note leaked in $1"; fi
+    COUNT=$((COUNT + 1))
+}
+request owner 200 a "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/owner.body" || fail "Owner cannot read own note."
+COUNT=$((COUNT + 1))
+request b_own 200 b "/wp-json/wp/v2/cb-notes/$NOTE_B?context=edit"
+request b_foreign 404 b "/wp-json/wp/v2/cb-notes/$NOTE_A?context=edit"
+not_containing b_foreign 'NOTES_HTTP_FROZEN_A'
+request anon_exact 404 anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+not_containing anon_exact 'NOTES_HTTP_FROZEN_A'
+request anon_list 200 anon '/wp-json/wp/v2/cb-notes'
+not_containing anon_list 'NOTES_HTTP_FROZEN_A'
+php -r '$d=json_decode(file_get_contents($argv[1]),true);if(!is_array($d)||count($d)!==0)exit(1);' \
+    "$WORK/anon_list.body" || fail "Anonymous list not empty."
+COUNT=$((COUNT + 1))
+request b_list 200 b '/wp-json/wp/v2/cb-notes'
+not_containing b_list 'NOTES_HTTP_FROZEN_A'
+request public 200 anon "/cb-notes/shared/$KEY/"
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/public.body" || fail "No frozen snapshot through HTTP origin."
+COUNT=$((COUNT + 1))
+not_containing public 'NOTES_HTTP_PRIVATE_B'
+for header in '^cache-control:.*no-store' '^x-robots-tag:.*noindex' \
+    '^referrer-policy:.*no-referrer' '^x-content-type-options:.*nosniff' \
+    '^x-frame-options:.*deny' '^content-security-policy:.*default-src'; do
+    grep -Eiq "$header" "$WORK/public.headers" || fail "Missing HTTP security header $header"
+    COUNT=$((COUNT + 1))
+done
+CB_NOTES_HTTP_PHASE=edit wp_site eval-file "$ROOT/tests/http/fixture.php"
+request frozen 200 anon "/cb-notes/shared/$KEY/"
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/frozen.body" || fail "Frozen snapshot changed."
+COUNT=$((COUNT + 1))
+not_containing frozen 'NOTES_HTTP_NEW_PRIVATE_A'
+request anon_edit 404 anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+not_containing anon_edit 'NOTES_HTTP_NEW_PRIVATE_A'
+CB_NOTES_HTTP_PHASE=revoke wp_site eval-file "$ROOT/tests/http/fixture.php"
+request revoked 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked 'NOTES_HTTP_FROZEN_A'
+request revoked_again 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked_again 'NOTES_HTTP_FROZEN_A'
+request malformed 404 anon '/cb-notes/shared/not-a-key/'
+printf 'Notes real loopback HTTP origin: PASS (%s checks, WP 7.0)\n' "$COUNT"
+printf 'Notes HTTP origin ZIP SHA-256: %s\n' "$SHA"
+printf 'Notes HTTP: CDN, public hosting and real Secure Share provider NOT RUN\n'
