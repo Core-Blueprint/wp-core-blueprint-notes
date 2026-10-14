@@ -102,6 +102,12 @@ Create two regular Notes editor accounts **A** and **B**, an actual site adminis
 
 **Security STOP:** any leak, unexpected anonymous/remote access, revocation failure, raw snapshot/body in logs, data loss, or broken activation. Never mark a NOT RUN cell PASS because a similar source smoke test passed.
 
+### Next gate: full-site SQL restore (PLAN ONLY)
+
+An isolated, fail-closed restore rehearsal has been specified in [RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md](RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md). It requires a complete synthetic source WordPress site/database backup, a separately provisioned target database/site, user/author/catalog identity checks, Base trust-domain review, and privacy/sharing revocation checks. **NOT RUN:** no SQL dump, actual second-site import or external token-revocation proof has been executed. `tools/check-integration` is not the backup/restore runner because it resets its sole PHPUnit database on every run.
+
+**2026-10-14 operator confirmation:** the final Alpha24 source check, two identical releasebuilds, ZIP integrity and hash comparison were all reported PASS. The exact final ZIP SHA-256 was not supplied in the conversation and therefore remains **unrecorded/unpinned** in this acceptance log. This does not close the independent restore, CDN, Secure Share or browser gates.
+
 ## Release-scope decisions requiring operator signoff
 
 1. **Portability:** WordPress native CPT content and revisions remain canonical. Notebook/category/tag definitions use owner-private `user_meta`; normal post-only WXR does not automatically guarantee a valid round trip. Decide whether RC1 promises a tested full-site backup/restore route only, or needs a minimal scoped owner export. No new import UI without separate reviewed scope.
