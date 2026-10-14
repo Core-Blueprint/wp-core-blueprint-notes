@@ -64,8 +64,9 @@ wp_set_current_user($foreign);
 $deny = new WP_REST_Request('POST', $route);
 $deny->set_param('mode', 'secure');
 $deny->set_param('id', $note);
-$must(rest_do_request($deny)->get_status() === 404,
-    'Foreign owner cannot issue a Secure Share grant for another note');
+// WordPress REST returns 403 for an authenticated user denied by permission_callback.
+$must(rest_do_request($deny)->get_status() === 403,
+    'Foreign owner is forbidden from issuing a Secure Share grant for another note');
 wp_set_current_user($editor);
 $create = new WP_REST_Request('POST', $route);
 $create->set_param('id', $note);
