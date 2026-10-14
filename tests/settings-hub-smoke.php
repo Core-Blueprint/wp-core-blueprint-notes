@@ -71,6 +71,7 @@ namespace {
     }
 
     require dirname(__DIR__) . '/src/Plugin.php';
+    require dirname(__DIR__) . '/src/Sharing/SecureRevocationRecovery.php';
     require dirname(__DIR__) . '/src/Admin/SettingsPage.php';
 
     use CB\Notes\Admin\SettingsPage;
