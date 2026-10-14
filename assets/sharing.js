@@ -118,6 +118,7 @@
 
         var mode = sharing && sharing.mode ? sharing.mode : 'private';
         var status = !sharing ? __('Checking…', 'core-blueprint-notes') :
+            mode === 'public' && !sharing.public_valid ? __('Public copy unavailable', 'core-blueprint-notes') :
             mode === 'public' ? __('Public copy active', 'core-blueprint-notes') :
             mode === 'secure' ? __('Secure copy active', 'core-blueprint-notes') : __('Private', 'core-blueprint-notes');
         var guidance = mode === 'private'
@@ -134,6 +135,15 @@
             controls.push(el('p', { key: 'loading' }, __('Loading sharing settings…', 'core-blueprint-notes')));
         } else {
             var blocked = busy || editor.dirty || editor.saving;
+            if (!sharing.public_ready) {
+                controls.push(el(wp.components.Notice, {
+                    key: 'public-recovery', status: 'warning', isDismissible: false
+                }, __('Public sharing is unavailable until your site operator configures the independent recovery key. Private notes and Secure Share remain available.', 'core-blueprint-notes')));
+            } else if (mode === 'public' && !sharing.public_valid) {
+                controls.push(el(wp.components.Notice, {
+                    key: 'public-legacy', status: 'warning', isDismissible: false
+                }, __('This previous public link is no longer valid. Stop sharing, then create a new link if needed.', 'core-blueprint-notes')));
+            }
             if (editor.dirty && mode === 'private') controls.push(el('p', { key: 'save' }, __('Save your changes before creating a shared copy.', 'core-blueprint-notes')));
             if (editor.dirty && mode !== 'private') controls.push(el('p', { key: 'save' }, __('Unsaved edits are not visible to recipients. You can still stop sharing.', 'core-blueprint-notes')));
             if (mode === 'public' && sharing.public_url) {
@@ -158,7 +168,7 @@
             } else {
                 controls.push(el(wp.components.Button, {
                     key: 'public', variant: 'secondary', isDestructive: true,
-                    disabled: blocked, onClick: confirmPublic
+                    disabled: blocked || !sharing.public_ready, onClick: confirmPublic
                 }, __('Make public…', 'core-blueprint-notes')));
                 if (sharing.secure_available) {
                     controls.push(el(wp.components.TextControl, {
