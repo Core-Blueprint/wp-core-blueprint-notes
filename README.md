@@ -1,6 +1,6 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha25\` | **Status:** Share Recovery Guard test candidate (Alpha25), not Golden or production-ready.
+**Version:** \`0.1.0-alpha26\` | **Status:** Share Recovery Guard test candidate (Alpha25), not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
