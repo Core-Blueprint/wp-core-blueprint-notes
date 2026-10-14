@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# DISPOSABLE RECOVERY GUARD ACCEPTANCE. NEVER touches production/staging.
+# Entire script must parse before a test database is created.
+bash -n "$0"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="$HOME/Downloads/wp-core-blueprint"
+CONTAINER="cb-base-test-db"
+SOURCE_DB="core_blueprint_notes_rollback_source"
+TARGET_DB="core_blueprint_notes_rollback_target"
+TEST_ROOT="/tmp/core-blueprint-tests/core-blueprint-notes-rollback"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
+ORIGIN="http://127.0.0.1:18778"
+fail() { printf 'Notes rollback rehearsal BLOCKED: %s\n' "$*" >&2; exit 1; }
+umask 077
+[[ "$#" == 0 ]] || fail "No command-line arguments allowed."
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    fail "Unexpected branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+    fail "Notes tracked source modified."
+[[ -f "$BASE/core-blueprint.php" ]] || fail "Canonical Base checkout missing."
+git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet ||
+    fail "Base tracked source modified."
+for command_name in docker curl tar sha256sum wp flock php unzip; do
+    command -v "$command_name" >/dev/null 2>&1 || fail "Missing $command_name"
+done
+# Rebuild from the clean checked-out source; never silently reuse Alpha24.
+bash "$ROOT/tools/build-release"
+[[ -f "$ZIP" ]] || fail "Alpha25 test ZIP was not produced."
+unzip -t "$ZIP" >/dev/null || fail "Alpha25 ZIP integrity failure."
+ARTIFACT_SHA="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+[[ "$ARTIFACT_SHA" =~ ^[a-f0-9]{64}$ ]] || fail "Invalid Alpha25 hash."
+[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
+    fail "Unexpected MariaDB image."
+[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
+    fail "Test MariaDB is stopped."
+docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' ||
+    fail "Expected test MariaDB on port 3307."
+[[ ! -L "$TEST_ROOT" ]] || fail "Symlink at test root."
+mkdir -p "$TEST_ROOT"
+exec 9>"$TEST_ROOT/.rollback.lock"
+flock -x 9
+
+existing="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B -e 'SHOW DATABASES;')" ||
+    fail "Cannot list databases."
+for name in "$SOURCE_DB" "$TARGET_DB"; do
+    if grep -Fxq -- "$name" <<< "$existing"; then
+        fail "Disposable database already exists, refusing to touch: $name"
+    fi
+done
+WORK="$(mktemp -d "$TEST_ROOT/run.XXXXXXXX")"
+[[ "$WORK" == "$TEST_ROOT"/run.* ]] || fail "Unsafe temporary directory."
+OWN_DBS=0
+SERVER_PID=
+cleanup() {
+    local status=$?
+    trap - EXIT
+    if [[ -n "$SERVER_PID" ]]; then
+        kill "$SERVER_PID" >/dev/null 2>&1 || true
+        wait "$SERVER_PID" >/dev/null 2>&1 || true
+    fi
+    if [[ "$OWN_DBS" == 1 ]]; then
+        docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+            -e 'DROP DATABASE IF EXISTS core_blueprint_notes_rollback_source; DROP DATABASE IF EXISTS core_blueprint_notes_rollback_target;' \
+            >/dev/null ||
+            printf 'Notes rollback WARNING: inspect only the two disposable databases.\n' >&2
+    fi
+    if [[ -d "$WORK" && ! -L "$WORK" && "$WORK" == "$TEST_ROOT"/run.* ]]; then
+        rm -rf -- "$WORK"
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+    -e 'CREATE DATABASE core_blueprint_notes_rollback_source CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE core_blueprint_notes_rollback_target CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+    fail "CREATE failed; NO automatic DROP on partial provision."
+OWN_DBS=1
+SRC="$WORK/source"
+DST="$WORK/target"
+mkdir -p "$SRC" "$DST"
+curl --fail --silent --show-error --location --max-time 120 \
+    'https://wordpress.org/wordpress-7.0.tar.gz' |
+    tar -xz --strip-components=1 -C "$SRC"
+[[ -f "$SRC/wp-settings.php" ]] || fail "Disposable WordPress archive incomplete."
+cp -a "$SRC/." "$DST/"
+for site in "$SRC" "$DST"; do
+    mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
+    tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+        --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+        tar -C "$site/wp-content/plugins/core-blueprint" -xf -
+    unzip -q "$ZIP" -d "$WORK/package"
+    cp -a "$WORK/package/core-blueprint-notes/." "$site/wp-content/plugins/core-blueprint-notes/"
+    rm -rf -- "$WORK/package"
+    cp "$ROOT/tests/rollback/wordpress-config.php" "$site/wp-config.php"
+done
+
+wp_site() {
+    local which="$1"
+    shift
+    local path db url
+    case "$which" in
+        source) path="$SRC"; db="$SOURCE_DB"; url="$ORIGIN" ;;
+        target) path="$DST"; db="$TARGET_DB"; url="$ORIGIN" ;;
+        *) fail "Only source and target synthetic sites allowed." ;;
+    esac
+    CB_NOTES_ROLLBACK_DB="$db" WP_CLI_CACHE_DIR="$WORK/wpcli-cache" \
+        wp --path="$path" --url="$url" "$@"
+}
+wp_site source core install \
+    --url="$ORIGIN" --title="Notes Rollback Source" \
+    --admin_user="cbnotes_rollback_admin" --admin_password="disposable-rollback-test-only" \
+    --admin_email="admin@cb-notes-rollback.invalid" --skip-email --quiet
+wp_site source plugin activate core-blueprint --quiet
+wp_site source plugin activate core-blueprint-notes --quiet
+wp_site source rewrite structure '/%postname%/' --quiet
+wp_site source rewrite flush --quiet
+CB_NOTES_ROLLBACK_PHASE=seed wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+
+# Crucial: archive while the synthetic Public share is still active.
+SQL="$WORK/older-active-share.sql"
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb-dump -uroot \
+    --single-transaction --skip-lock-tables --default-character-set=utf8mb4 \
+    "$SOURCE_DB" > "$SQL" || fail "Synthetic SQL dump failed."
+[[ -s "$SQL" ]] || fail "SQL archive is empty."
+chmod 0600 "$SQL"
+SQL_SHA="$(sha256sum "$SQL" | cut -d' ' -f1)"
+
+CB_NOTES_ROLLBACK_PHASE=revoke wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+docker exec -i -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot "$TARGET_DB" < "$SQL" ||
+    fail "Synthetic target SQL import failed."
+[[ "$(sha256sum "$SQL" | cut -d' ' -f1)" == "$SQL_SHA" ]] ||
+    fail "Backup artifact modified while restoring."
+wp_site target option update home "$ORIGIN" --quiet
+wp_site target option update siteurl "$ORIGIN" --quiet
+CB_NOTES_ROLLBACK_PHASE=target_denied wp_site target eval-file "$ROOT/tests/rollback/fixture.php"
+CB_NOTES_ROLLBACK_PHASE=source_still_revoked wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+
+# Both source and target share the exact same home URL. Only epoch differs.
+# Start the restored target behind loopback and prove prior link is HTTP 404.
+if curl --noproxy '*' -sS -o /dev/null --connect-timeout 1 --max-time 2 "$ORIGIN/" 2>/dev/null; then
+    fail "Loopback port 18778 occupied."
+fi
+CB_NOTES_ROLLBACK_DB="$TARGET_DB" CB_NOTES_ROLLBACK_HTTP_SITE="$DST" \
+    php -S 127.0.0.1:18778 -t "$DST" "$ROOT/tests/rollback/router.php" >"$WORK/server.log" 2>&1 &
+SERVER_PID=$!
+READY=0
+for attempt in $(seq 1 30); do
+    kill -0 "$SERVER_PID" 2>/dev/null || fail "Restored loopback origin exited."
+    if curl --noproxy '*' -sS -o /dev/null --connect-timeout 1 --max-time 2 "$ORIGIN/wp-json/" 2>/dev/null; then
+        READY=1
+        break
+    fi
+    sleep 1
+done
+[[ "$READY" == 1 ]] || fail "Restored loopback origin did not start."
+
+SOURCE_MANIFEST="$(wp_site target option get cb_notes_rollback_manifest_v1 --format=json)"
+OLD_KEY="$(php -r '$d=json_decode($argv[1],true);if(!is_array($d))exit(1);echo $d["synthetic_key"]??"";' "$SOURCE_MANIFEST")"
+unset SOURCE_MANIFEST
+[[ "$OLD_KEY" =~ ^[a-f0-9]{32}$ ]] || fail "Missing synthetic old link."
+check_http() {
+    local expected="$1" token="$2" label="$3" code
+    code="$(curl --noproxy '*' --silent --show-error --max-time 10 -o "$WORK/$label.body" \
+        -D "$WORK/$label.headers" -w '%{http_code}' "$ORIGIN/cb-notes/shared/$token/")" ||
+        fail "Synthetic HTTP transport failed at $label."
+    [[ "$code" == "$expected" ]] || fail "HTTP $label expected $expected, received $code."
+    if [[ "$expected" == 200 ]]; then
+        grep -Fq 'ROLLBACK_SYNTHETIC_ONLY' "$WORK/$label.body" ||
+            fail "New grant did not deliver the synthetic frozen content."
+    else
+        ! grep -Fq 'ROLLBACK_SYNTHETIC_ONLY' "$WORK/$label.body" ||
+            fail "Historical synthetic content leaked at $label."
+    fi
+}
+check_http 404 "$OLD_KEY" 'restored_old_denied'
+export CB_NOTES_ROLLBACK_HTTP_MANIFEST="$WORK/keys.json"
+CB_NOTES_ROLLBACK_PHASE=target_reissue wp_site target eval-file "$ROOT/tests/rollback/fixture.php"
+NEW_KEY="$(php -r '$d=json_decode(file_get_contents($argv[1]),true);if(!is_array($d))exit(1);echo $d["new"]??"";' "$CB_NOTES_ROLLBACK_HTTP_MANIFEST")"
+[[ "$NEW_KEY" =~ ^[a-f0-9]{32}$ && "$NEW_KEY" != "$OLD_KEY" ]] ||
+    fail "Invalid newly signed synthetic link."
+check_http 404 "$OLD_KEY" 'revoked_old_still_denied'
+check_http 200 "$NEW_KEY" 'new_epoch_active'
+printf 'Notes historical share recovery guard: PASS (old HTTP 404; reissued HTTP 200)\n'
+printf 'Notes recovery test SQL SHA-256: %s\n' "$SQL_SHA"
+printf 'Notes Alpha25 test ZIP SHA-256: %s\n' "$ARTIFACT_SHA"
+printf 'CDN, full-host rollback and real Secure Share: NOT RUN\n'
+
