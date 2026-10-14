@@ -11,8 +11,8 @@ DB="core_blueprint_notes_http_test"
 CONTAINER="cb-base-test-db"
 ORIGIN="http://127.0.0.1:18777"
 HOME_TEST="/tmp/core-blueprint-tests/core-blueprint-notes-http"
-ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha24.zip"
-SHA="22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
+SHA="77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908"
 fail() { printf 'Notes HTTP BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
 [[ "$#" == 0 ]] || fail "No CLI args supported."
@@ -23,7 +23,7 @@ git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet || fail "Bas
 for program in wp docker curl php unzip tar flock git sha256sum; do
     command -v "$program" >/dev/null || fail "Missing $program."
 done
-[[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$SHA" ]] || fail "Unexpected Alpha24 ZIP."
+[[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$SHA" ]] || fail "Unexpected Alpha25 ZIP."
 unzip -t "$ZIP" >/dev/null || fail "Corrupt ZIP."
 [[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] || fail "Wrong DB container."
 [[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == true ]] || fail "DB container not running."
