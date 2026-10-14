@@ -191,7 +191,10 @@ $must(is_array($expected_revisions) && count($expected_revisions) >= 1,
 $must(count($revisions_after) === count($expected_revisions),
     'Every original WordPress revision was restored');
 foreach ($expected_revisions as $revision_id => $hash) {
-    $revision = wp_get_post_revision((int) $revision_id);
+    // Core wp_get_post_revision() takes the post argument by reference.
+    // A cast expression cannot be passed by reference; use a local ID.
+    $revision_post_id = (int) $revision_id;
+    $revision = wp_get_post_revision($revision_post_id);
     $must($revision instanceof WP_Post && (int) $revision->post_parent === $mine,
         'Original revision ID and note relationship were restored');
     $must(hash('sha256', $revision->post_content) === $hash,
