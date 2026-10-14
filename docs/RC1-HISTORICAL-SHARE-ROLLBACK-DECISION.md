@@ -35,6 +35,30 @@ Keep any recovery token/epoch outside public web paths, version it deliberately,
 6. Apply the documented recovery reset and verify 404 before unquarantining. With optional Secure Share, verify the provider grant also cannot deliver.
 7. Establish exact evidence, compatibility and cleanup. If link delivery becomes 200 at any point after it was revoked, mark **FAIL** and block RC1 until the failure is remediated.
 
+## Prepared isolated risk reproduction (SOURCE-ONLY; NOT YET RUN)
+
+A separate strictly synthetic runner, `tools/check-rollback-repro`, is now staged on `feature/notes-rc1-golden-hardening-v1`. It does **not** change Notes product code, WordPress production data, Base, the CDN, Secure Share or customer links. It uses two new fixed MariaDB databases (`core_blueprint_notes_rollback_source` and `core_blueprint_notes_rollback_target`) and two separately bootstrapped disposable WordPress 7.0 installations. It refuses existing database names and an incorrect container, branch or checksum; cleanup ownership is acquired only after both test databases have been created. Its synthetic CLI-only configuration cannot serve public HTTP traffic.
+
+This is intentionally a **vulnerability reproduction**, not a remediation or a safe-restore acceptance test. It seeds a synthetic private note and expressly authorizes its Public frozen snapshot, makes a SQL backup **while the share is active**, revokes the key in the current source database, restores the older backup into a separate target and checks whether Alpha24's local `Controller::public_snapshot_allowed()` permits the historic key there. It also confirms that the current source remains revoked. No bearer token is printed, and the SQL archive is held privately outside Git/webroot and removed at test completion.
+
+Run source-only validation first, then the isolated reproduction:
+
+```bash
+cd ~/Downloads/wp-core-blueprint-notes
+git fetch origin
+git switch feature/notes-rc1-golden-hardening-v1
+git pull --ff-only origin feature/notes-rc1-golden-hardening-v1
+bash -n tools/check-rollback-repro
+php -l tests/rollback/wordpress-config.php
+php -l tests/rollback/fixture.php
+node tests/rollback-runner-contract.cjs
+bash tools/check
+sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
+bash tools/check-rollback-repro
+```
+
+**Expected before mitigation:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore`. This means the hazard is experimentally confirmed, **not** that sharing is secure. A failed reproduction needs investigation, not a security PASS claim. This runner does not test public HTTP, hosting or cache behavior. The next development batch must implement an agreed fail-closed recovery barrier and a separate negative acceptance test that expects the historic key to remain denied after restore.
+
 ## Gate and product decisions
 
 - **OPEN P0/security design:** fail-closed handling of old-backup active sharing keys, including cache and optional real-provider behavior.
