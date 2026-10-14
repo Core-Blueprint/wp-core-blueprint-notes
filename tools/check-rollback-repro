@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# DISPOSABLE VULNERABILITY REPRODUCTION, NOT A PRODUCTION RECOVERY COMMAND.
+# Entire script must parse before a test database is created.
+bash -n "$0"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+BASE="$HOME/Downloads/wp-core-blueprint"
+CONTAINER="cb-base-test-db"
+SOURCE_DB="core_blueprint_notes_rollback_source"
+TARGET_DB="core_blueprint_notes_rollback_target"
+TEST_ROOT="/tmp/core-blueprint-tests/core-blueprint-notes-rollback"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha24.zip"
+PINNED_SHA="22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc"
+fail() { printf 'Notes rollback rehearsal BLOCKED: %s\n' "$*" >&2; exit 1; }
+umask 077
+[[ "$#" == 0 ]] || fail "No command-line arguments allowed."
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    fail "Unexpected branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+    fail "Notes tracked source modified."
+[[ -f "$BASE/core-blueprint.php" ]] || fail "Canonical Base checkout missing."
+git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet ||
+    fail "Base tracked source modified."
+for command_name in docker curl tar sha256sum wp flock php unzip; do
+    command -v "$command_name" >/dev/null 2>&1 || fail "Missing $command_name"
+done
+[[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$PINNED_SHA" ]] ||
+    fail "Expected exact validated Alpha24 ZIP."
+unzip -t "$ZIP" >/dev/null || fail "ZIP integrity failure."
+[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
+    fail "Unexpected MariaDB image."
+[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
+    fail "Test MariaDB is stopped."
+docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' ||
+    fail "Expected test MariaDB on port 3307."
+[[ ! -L "$TEST_ROOT" ]] || fail "Symlink at test root."
+mkdir -p "$TEST_ROOT"
+exec 9>"$TEST_ROOT/.rollback.lock"
+flock -x 9
+
+existing="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B -e 'SHOW DATABASES;')" ||
+    fail "Cannot list databases."
+for name in "$SOURCE_DB" "$TARGET_DB"; do
+    if grep -Fxq -- "$name" <<< "$existing"; then
+        fail "Disposable database already exists, refusing to touch: $name"
+    fi
+done
+WORK="$(mktemp -d "$TEST_ROOT/run.XXXXXXXX")"
+[[ "$WORK" == "$TEST_ROOT"/run.* ]] || fail "Unsafe temporary directory."
+OWN_DBS=0
+cleanup() {
+    local status=$?
+    trap - EXIT
+    if [[ "$OWN_DBS" == 1 ]]; then
+        docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+            -e 'DROP DATABASE IF EXISTS core_blueprint_notes_rollback_source; DROP DATABASE IF EXISTS core_blueprint_notes_rollback_target;' \
+            >/dev/null ||
+            printf 'Notes rollback WARNING: inspect only the two disposable databases.\n' >&2
+    fi
+    if [[ -d "$WORK" && ! -L "$WORK" && "$WORK" == "$TEST_ROOT"/run.* ]]; then
+        rm -rf -- "$WORK"
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot \
+    -e 'CREATE DATABASE core_blueprint_notes_rollback_source CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE core_blueprint_notes_rollback_target CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+    fail "CREATE failed; NO automatic DROP on partial provision."
+OWN_DBS=1
+SRC="$WORK/source"
+DST="$WORK/target"
+mkdir -p "$SRC" "$DST"
+curl --fail --silent --show-error --location --max-time 120 \
+    'https://wordpress.org/wordpress-7.0.tar.gz' |
+    tar -xz --strip-components=1 -C "$SRC"
+[[ -f "$SRC/wp-settings.php" ]] || fail "Disposable WordPress archive incomplete."
+cp -a "$SRC/." "$DST/"
+for site in "$SRC" "$DST"; do
+    mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
+    tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+        --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+        tar -C "$site/wp-content/plugins/core-blueprint" -xf -
+    unzip -q "$ZIP" -d "$WORK/package"
+    cp -a "$WORK/package/core-blueprint-notes/." "$site/wp-content/plugins/core-blueprint-notes/"
+    rm -rf -- "$WORK/package"
+    cp "$ROOT/tests/rollback/wordpress-config.php" "$site/wp-config.php"
+done
+
+wp_site() {
+    local which="$1"
+    shift
+    local path db url
+    case "$which" in
+        source) path="$SRC"; db="$SOURCE_DB"; url="http://cb-notes-rollback-source.invalid" ;;
+        target) path="$DST"; db="$TARGET_DB"; url="http://cb-notes-rollback-target.invalid" ;;
+        *) fail "Only source and target synthetic sites allowed." ;;
+    esac
+    CB_NOTES_ROLLBACK_DB="$db" WP_CLI_CACHE_DIR="$WORK/wpcli-cache" \
+        wp --path="$path" --url="$url" "$@"
+}
+wp_site source core install \
+    --url="http://cb-notes-rollback-source.invalid" --title="Notes Rollback Source" \
+    --admin_user="cbnotes_rollback_admin" --admin_password="disposable-rollback-test-only" \
+    --admin_email="admin@cb-notes-rollback.invalid" --skip-email --quiet
+wp_site source plugin activate core-blueprint --quiet
+wp_site source plugin activate core-blueprint-notes --quiet
+CB_NOTES_ROLLBACK_PHASE=seed wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+
+# Crucial: archive while the synthetic Public share is still active.
+SQL="$WORK/older-active-share.sql"
+docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb-dump -uroot \
+    --single-transaction --skip-lock-tables --default-character-set=utf8mb4 \
+    "$SOURCE_DB" > "$SQL" || fail "Synthetic SQL dump failed."
+[[ -s "$SQL" ]] || fail "SQL archive is empty."
+chmod 0600 "$SQL"
+SQL_SHA="$(sha256sum "$SQL" | cut -d' ' -f1)"
+
+CB_NOTES_ROLLBACK_PHASE=revoke wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+docker exec -i -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot "$TARGET_DB" < "$SQL" ||
+    fail "Synthetic target SQL import failed."
+[[ "$(sha256sum "$SQL" | cut -d' ' -f1)" == "$SQL_SHA" ]] ||
+    fail "Backup artifact modified while restoring."
+wp_site target option update home 'http://cb-notes-rollback-target.invalid' --quiet
+wp_site target option update siteurl 'http://cb-notes-rollback-target.invalid' --quiet
+CB_NOTES_ROLLBACK_PHASE=target_exposure wp_site target eval-file "$ROOT/tests/rollback/fixture.php"
+CB_NOTES_ROLLBACK_PHASE=source_still_revoked wp_site source eval-file "$ROOT/tests/rollback/fixture.php"
+
+printf 'Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore\n'
+printf 'Security mitigation has NOT been implemented or accepted.\n'
+printf 'Synthetic backup SHA-256: %s\n' "$SQL_SHA"
+printf 'Pinned Alpha24 ZIP SHA-256: %s\n' "$PINNED_SHA"
+printf 'Cleaning only the two dedicated test databases and disposable files.\n'
