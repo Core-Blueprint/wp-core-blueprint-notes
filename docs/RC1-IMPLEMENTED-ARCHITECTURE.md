@@ -1,7 +1,7 @@
 # Notes RC1 — implemented architecture and data lifecycle
 
 **Status:** source-backed RC1 hardening inventory, 2026-10-14. NOT runtime-certified.  
-**Candidate branch:** `feature/notes-rc1-golden-hardening-v1` (Alpha24; source tree not yet frozen).
+**Candidate branch:** `feature/notes-rc1-golden-hardening-v1` (Alpha26; source tree not yet frozen).
 
 This is the architecture **actually implemented**, distinct from the historical `ARCHITECTURE-V1-RFC.md` *proposal*. That original RFC's hierarchical `cb_notebook` taxonomy and export interface were **not shipped**.
 
@@ -49,3 +49,10 @@ The candidate's five JS entrypoints use literal WordPress gettext keys, formatti
 ## Security/release acceptance remains open
 
 Follow `RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Overseer RC-01...RC-05 matrix. A source check or mock does **not** prove WordPress multi-user access, REST/media/revisions, anonymous behavior, Secure Share delivery, public cache exclusions, restore or production readiness.
+
+
+## Alpha26 provider revocation and backup boundary
+
+Notes always disarms local provider delivery by switching share mode to `private` before retiring an old Secure Share grant. Alpha26 records the provider revocation obligation as a non-autoload option keyed by a hash of the canonical UUID; its value contains only grant UUID, expected revision and queue timestamp. If the real provider returns false, throws or is temporarily absent, the obligation stays pending. Site administrators can see a count and trigger a nonce-protected, bounded retry from Notes Settings. No invitation URL, bearer or password enters the queue. Full-host restoration, corrupted WordPress option storage and stale external provider backups still require independent operator recovery. Retrying does not prove HTTPS session/cookie invalidation; that is an R08.3 browser gate.
+
+Notes remains a WordPress-owned content model. Full SQL site recovery has operator evidence on Alpha25; account-only WXR cannot rebuild the owner-private classification catalog. The plugin contains no destructive uninstall routine; acceptance of retention/export/uninstall messaging remains an explicit RC-03 product signoff.
