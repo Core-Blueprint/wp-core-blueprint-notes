@@ -1,6 +1,6 @@
 # Core Blueprint Notes
 
-**Version:** \`0.1.0-alpha24\` | **Status:** RC1 hardening source candidate (Alpha24), not Golden or production-ready.
+**Version:** \`0.1.0-alpha25\` | **Status:** Share Recovery Guard test candidate (Alpha25), not Golden or production-ready.
 
 Core Blueprint Notes is a WordPress-native Gutenberg private knowledge workspace. Core Blueprint Base API 1.2+ is required. Secure Share is an optional integration, not a requirement.
 
@@ -40,8 +40,8 @@ The `feature/notes-rc1-golden-hardening-v1` branch carries the accepted Alpha23 
 \`\`\`bash
 bash tools/check
 bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha24.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
+unzip -t dist/core-blueprint-notes-0.1.0-alpha25.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha25.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes P2 bulk owner/nonce/catalog/lifecycle regression and UI interaction checks, Sharing, personal organization, Gutenberg organization and sharing guidance interactions, Library queries, marker security/interactions, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
