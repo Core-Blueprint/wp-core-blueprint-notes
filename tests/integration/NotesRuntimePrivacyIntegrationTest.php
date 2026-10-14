@@ -121,10 +121,47 @@ final class NotesRuntimePrivacyIntegrationTest extends WP_UnitTestCase {
         self::assertWPError( Abilities::read_note( [ 'id' => $mine ] ) );
 
         $admin = self::factory()->user->create( [ 'role' => 'administrator' ] );
+        $admin_user = get_userdata( $admin );
+        self::assertInstanceOf( WP_User::class, $admin_user );
+        self::assertContains( 'administrator', $admin_user->roles );
+        self::assertTrue(
+            (bool) get_role( 'administrator' )->has_cap( 'cb_notes_manage_all' ),
+            'Notes must register its admin role capability independently of Base approval.'
+        );
         wp_set_current_user( $admin );
-        self::assertTrue( Access::can_read( get_post( $mine ) ), 'Admin override is deliberate.' );
+        self::assertTrue(
+            \CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::is_privileged( $admin_user ),
+            'Base must classify this new administrator as privileged.'
+        );
+        self::assertTrue(
+            \CoreBlueprint\Core\Permissions\PrivilegedAccessPolicy::enforces_approval(),
+            'This integration fixture must exercise Base default Enforce mode.'
+        );
+        self::assertFalse(
+            \CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::is_approved( $admin_user ),
+            'A newly created administrator must not be trusted by default.'
+        );
+        self::assertFalse( current_user_can( 'cb_notes_manage_all' ),
+            'Base must restrict the unapproved administrator before Notes override is considered.' );
+        self::assertFalse( Access::can_read( get_post( $mine ) ),
+            'Unapproved administrator must not read another authors Notes.' );
+        self::assertWPError( Abilities::read_note( [ 'id' => $mine ] ) );
+
+        // Fixture-only signed approval: model the trusted operator's approval
+        // inside this disposable PHPUnit database, never in a running site.
+        self::assertTrue(
+            \CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::approve( $admin_user, 0, 'notes_test_fixture' )
+        );
+        self::assertTrue(
+            \CoreBlueprint\Core\Permissions\PrivilegedAccessRegistry::is_approved( $admin_user ),
+            'The test administrator must have a valid signed Base approval.'
+        );
+        self::assertTrue( current_user_can( 'cb_notes_manage_all' ),
+            'Base must restore the approved administrator capability.' );
+        self::assertTrue( Access::can_read( get_post( $mine ) ),
+            'Approved administrator can use the deliberate Notes management override.' );
         self::assertWPError( Abilities::read_note( [ 'id' => $mine ] ),
-            'Admin override may not silently expand AI access beyond the author scope.' );
+            'Admin management authority must never expand AI access beyond the author scope.' );
 
         update_option( Plugin::AI_OPTION, false );
         self::assertFalse( Abilities::can_execute() );
