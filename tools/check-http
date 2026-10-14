@@ -168,10 +168,89 @@ COUNT=$((COUNT + 1))
 grep -Eiq '^x-wp-total:[[:space:]]*0[[:space:]]*$' "$WORK/anon_list.headers" ||
     fail "Anonymous collection count must reveal zero Notes."
 COUNT=$((COUNT + 1))
-request b_list 200 b '/wp-json/wp/v2/cb-notes'
-not_containing b_list 'NOTES_HTTP_FROZEN_A'
-grep -Eiq '^x-wp-total:[[:space:]]*1[[:space:]]*$' "$WORK/b_list.headers" ||
-    fail "B's collection total must include only B's own synthetic Note."
+# WordPress REST defaults its collection to status=publish. The Notes CPT
+# is private-by-design: the default request should expose zero private notes,
+# while an authenticated editor must explicitly request private notes.
+request b_list_default 200 b '/wp-json/wp/v2/cb-notes'
+not_containing b_list_default 'NOTES_HTTP_FROZEN_A'
+not_containing b_list_default 'NOTES_HTTP_PRIVATE_B'
+php -r '$d=json_decode(file_get_contents($argv[1]),true);if(!is_array($d)||count($d)!==0)exit(1);' \
+    "$WORK/b_list_default.body" || fail "B default REST collection unexpectedly contains private Notes."
+COUNT=$((COUNT + 1))
+grep -Eiq '^x-wp-total:[[:space:]]*0[[:space:]]*
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/public.body" ||
+    fail "No frozen snapshot through HTTP origin."
+COUNT=$((COUNT + 1))
+not_containing public 'NOTES_HTTP_PRIVATE_B'
+for header in '^cache-control:.*no-store' '^x-robots-tag:.*noindex' \
+    '^referrer-policy:.*no-referrer' '^x-content-type-options:.*nosniff' \
+    '^x-frame-options:.*deny' '^content-security-policy:.*default-src'; do
+    grep -Eiq "$header" "$WORK/public.headers" ||
+        fail "Missing HTTP security header $header"
+    COUNT=$((COUNT + 1))
+done
+CB_NOTES_HTTP_PHASE=edit wp_site eval-file "$ROOT/tests/http/fixture.php"
+request frozen 200 anon "/cb-notes/shared/$KEY/"
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/frozen.body" ||
+    fail "Frozen snapshot changed."
+COUNT=$((COUNT + 1))
+not_containing frozen 'NOTES_HTTP_NEW_PRIVATE_A'
+request anon_edit denied anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+not_containing anon_edit 'NOTES_HTTP_NEW_PRIVATE_A'
+CB_NOTES_HTTP_PHASE=revoke wp_site eval-file "$ROOT/tests/http/fixture.php"
+request revoked 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked 'NOTES_HTTP_FROZEN_A'
+request revoked_again 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked_again 'NOTES_HTTP_FROZEN_A'
+request malformed 404 anon '/cb-notes/shared/not-a-key/'
+printf 'Notes real loopback HTTP origin: PASS (%s checks, WP 7.0)\n' "$COUNT"
+printf 'Notes HTTP origin ZIP SHA-256: %s\n' "$SHA"
+printf 'Notes HTTP: CDN, public hosting and real Secure Share provider NOT RUN\n'
+ "$WORK/b_list_default.headers" ||
+    fail "B default publish-status REST collection must have total zero."
+COUNT=$((COUNT + 1))
+request b_list_private 200 b '/wp-json/wp/v2/cb-notes?context=edit&status=private'
+not_containing b_list_private 'NOTES_HTTP_FROZEN_A'
+grep -Fq 'NOTES_HTTP_PRIVATE_B' "$WORK/b_list_private.body" ||
+    fail "B authenticated private REST list did not return B's own Note."
+COUNT=$((COUNT + 1))
+# A successful 200 is insufficient: the response must contain exactly B's
+# own note ID and no foreign rows, and its pagination total must be one.
+php -r '$d=json_decode(file_get_contents($argv[1]),true);if(!is_array($d)||count($d)!==1||(int)($d[0]["id"]??0)!==(int)$argv[2])exit(1);' \
+    "$WORK/b_list_private.body" "$NOTE_B" ||
+    fail "B private REST collection must contain exactly B's Note ID."
+COUNT=$((COUNT + 1))
+grep -Eiq '^x-wp-total:[[:space:]]*1[[:space:]]*
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/public.body" ||
+    fail "No frozen snapshot through HTTP origin."
+COUNT=$((COUNT + 1))
+not_containing public 'NOTES_HTTP_PRIVATE_B'
+for header in '^cache-control:.*no-store' '^x-robots-tag:.*noindex' \
+    '^referrer-policy:.*no-referrer' '^x-content-type-options:.*nosniff' \
+    '^x-frame-options:.*deny' '^content-security-policy:.*default-src'; do
+    grep -Eiq "$header" "$WORK/public.headers" ||
+        fail "Missing HTTP security header $header"
+    COUNT=$((COUNT + 1))
+done
+CB_NOTES_HTTP_PHASE=edit wp_site eval-file "$ROOT/tests/http/fixture.php"
+request frozen 200 anon "/cb-notes/shared/$KEY/"
+grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/frozen.body" ||
+    fail "Frozen snapshot changed."
+COUNT=$((COUNT + 1))
+not_containing frozen 'NOTES_HTTP_NEW_PRIVATE_A'
+request anon_edit denied anon "/wp-json/wp/v2/cb-notes/$NOTE_A"
+not_containing anon_edit 'NOTES_HTTP_NEW_PRIVATE_A'
+CB_NOTES_HTTP_PHASE=revoke wp_site eval-file "$ROOT/tests/http/fixture.php"
+request revoked 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked 'NOTES_HTTP_FROZEN_A'
+request revoked_again 404 anon "/cb-notes/shared/$KEY/"
+not_containing revoked_again 'NOTES_HTTP_FROZEN_A'
+request malformed 404 anon '/cb-notes/shared/not-a-key/'
+printf 'Notes real loopback HTTP origin: PASS (%s checks, WP 7.0)\n' "$COUNT"
+printf 'Notes HTTP origin ZIP SHA-256: %s\n' "$SHA"
+printf 'Notes HTTP: CDN, public hosting and real Secure Share provider NOT RUN\n'
+ "$WORK/b_list_private.headers" ||
+    fail "B's explicit private REST collection must count exactly B's own Note."
 COUNT=$((COUNT + 1))
 request public 200 anon "/cb-notes/shared/$KEY/"
 grep -Fq 'NOTES_HTTP_FROZEN_A' "$WORK/public.body" ||
