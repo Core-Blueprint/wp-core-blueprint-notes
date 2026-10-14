@@ -10,7 +10,7 @@ CONTAINER="cb-base-test-db"
 SOURCE_DB="core_blueprint_notes_rollback_source"
 TARGET_DB="core_blueprint_notes_rollback_target"
 TEST_ROOT="/tmp/core-blueprint-tests/core-blueprint-notes-rollback"
-ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"
 ORIGIN="http://127.0.0.1:18778"
 fail() { printf 'Notes rollback rehearsal BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
@@ -27,10 +27,10 @@ for command_name in docker curl tar sha256sum wp flock php unzip; do
 done
 # Rebuild from the clean checked-out source; never silently reuse Alpha24.
 bash "$ROOT/tools/build-release"
-[[ -f "$ZIP" ]] || fail "Alpha25 test ZIP was not produced."
-unzip -t "$ZIP" >/dev/null || fail "Alpha25 ZIP integrity failure."
+[[ -f "$ZIP" ]] || fail "Alpha26 test ZIP was not produced."
+unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP integrity failure."
 ARTIFACT_SHA="$(sha256sum "$ZIP" | cut -d' ' -f1)"
-[[ "$ARTIFACT_SHA" =~ ^[a-f0-9]{64}$ ]] || fail "Invalid Alpha25 hash."
+[[ "$ARTIFACT_SHA" =~ ^[a-f0-9]{64}$ ]] || fail "Invalid Alpha26 hash."
 [[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
     fail "Unexpected MariaDB image."
 [[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
@@ -184,6 +184,6 @@ check_http 404 "$OLD_KEY" 'revoked_old_still_denied'
 check_http 200 "$NEW_KEY" 'new_epoch_active'
 printf 'Notes historical share recovery guard: PASS (old HTTP 404; reissued HTTP 200)\n'
 printf 'Notes recovery test SQL SHA-256: %s\n' "$SQL_SHA"
-printf 'Notes Alpha25 test ZIP SHA-256: %s\n' "$ARTIFACT_SHA"
+printf 'Notes Alpha26 test ZIP SHA-256: %s\n' "$ARTIFACT_SHA"
 printf 'CDN, full-host rollback and real Secure Share: NOT RUN\n'
 
