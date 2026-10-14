@@ -9,7 +9,7 @@ SOURCE_DB="core_blueprint_notes_restore_source"
 TARGET_DB="core_blueprint_notes_restore_target"
 DB_CONTAINER="cb-base-test-db"
 DB_PASSWORD="root"
-EXPECTED_ZIP_SHA="77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908"
+EXPECTED_ZIP_SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"
 TEST_HOME="/tmp/core-blueprint-tests/core-blueprint-notes-restore"
 fail() { printf 'Notes restore BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
@@ -45,12 +45,12 @@ for name in "$SOURCE_DB" "$TARGET_DB"; do
         fail "Database already exists, refusing to modify it: $name"
     fi
 done
-ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
-[[ -f "$ZIP" ]] || fail "Alpha25 ZIP missing; run tools/build-release."
-unzip -t "$ZIP" >/dev/null || fail "Alpha25 ZIP is invalid."
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"
+[[ -f "$ZIP" ]] || fail "Alpha26 ZIP missing; run tools/build-release."
+unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP is invalid."
 actual_sha="$(sha256sum "$ZIP" | cut -d' ' -f1)"
 [[ "$actual_sha" == "$EXPECTED_ZIP_SHA" ]] ||
-    fail "Alpha25 ZIP checksum differs from the operator-verified build."
+    fail "Alpha26 ZIP checksum differs from the operator-verified build."
 printf 'Notes restore: source ZIP SHA-256 %s\n' "$actual_sha"
 
 RUN_DIR="$(mktemp -d "$TEST_HOME/run.XXXXXXXX")"
