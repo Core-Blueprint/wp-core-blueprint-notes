@@ -19,6 +19,8 @@ final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
         self::assertSame( '127.0.0.1:3307', (string) DB_HOST );
         Plugin::grant_roles();
         self::assertTrue( post_type_exists( Plugin::TYPE ) );
+        self::assertTrue( post_type_supports( Plugin::TYPE, 'custom-fields' ),
+            'Without CPT custom-fields support, native Gutenberg REST meta writes are omitted.' );
     }
 
     /**
