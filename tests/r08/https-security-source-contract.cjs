@@ -86,7 +86,7 @@ assertEvery(cookies, [
     "'samesite' => 'Strict'",
     'SessionHandle::sessionCookieName( $handle )',
     'self::sessionPath( $handle )',
-    "self::BOOTSTRAP_COOKIE = '__Secure-cb_ss_bootstrap'",
+    "private const BOOTSTRAP_COOKIE = '__Secure-cb_ss_bootstrap'",
 ], 'Narrowly scoped Secure HttpOnly Strict session cookies');
 assertEvery(headers, [
     'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0',
