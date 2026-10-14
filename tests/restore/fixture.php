@@ -88,8 +88,25 @@ if ($phase === 'seed') {
     update_post_meta($mine, '_cb_notes_favorite', '1');
     update_post_meta($mine, '_cb_notes_pinned', '1');
     update_user_meta($a->ID, 'cb_notes_library_display', 'table');
-    $revision = wp_save_post_revision($mine);
-    $must(is_int($revision) && $revision > 0, 'Create real native WordPress revision');
+
+    // WordPress may already have saved the unchanged initial content as a
+    // revision during the REST meta update. wp_save_post_revision() returns
+    // void for duplicates; a fresh ID is not the revision-history contract.
+    // Make a genuine content edit and test persisted revisions instead.
+    $content = '<!-- wp:paragraph --><p>DISPOSABLE A private knowledge fixture, revised</p><!-- /wp:paragraph -->';
+    $updated_note = wp_update_post(['ID' => $mine, 'post_content' => $content], true);
+    $must(is_int($updated_note) && $updated_note === $mine,
+        'Update synthetic Gutenberg note to create revision history');
+    wp_save_post_revision($mine);
+    $source_revisions = wp_get_post_revisions($mine);
+    $must(count($source_revisions) >= 1, 'Real native WordPress revision history exists');
+    $revision_hashes = [];
+    foreach ($source_revisions as $revision) {
+        $must($revision instanceof WP_Post, 'Revision is a real WordPress post');
+        $revision_hashes[(int) $revision->ID] = hash('sha256', $revision->post_content);
+    }
+    $must(hash('sha256', (string) get_post($mine)->post_content) === hash('sha256', $content),
+        'Edited Gutenberg blocks persisted before backup');
 
     $sharing_path = '/core-blueprint-notes/v1/sharing/' . $mine;
     $read = rest_do_request(new WP_REST_Request('GET', $sharing_path));
@@ -142,6 +159,7 @@ if ($phase === 'seed') {
         'notebook_a' => $an, 'category_a' => $ac, 'tag_a' => $at,
         'notebook_b' => $bn,
         'content_hash_a' => hash('sha256', $content),
+        'revision_hashes_a' => $revision_hashes,
     ], false);
     $must(is_array(get_option('cb_notes_restore_fixture')), 'Manifest stored in SQL backup');
     echo "Notes restore source fixture: PASS ({$checks} checks)\n";
@@ -166,7 +184,19 @@ $must($note_a->post_type === Plugin::TYPE && $note_b->post_type === Plugin::TYPE
 $must($note_a->post_status === 'private' && $note_b->post_status === 'private', 'Private status retained');
 $must((int) $note_a->post_author === $a->ID && (int) $note_b->post_author === $b->ID, 'Owner mapping remains correct');
 $must(hash('sha256', $note_a->post_content) === $manifest['content_hash_a'], 'Exact Gutenberg blocks preserved');
-$must(count(wp_get_post_revisions($mine)) >= 1, 'At least one revision restored');
+$revisions_after = wp_get_post_revisions($mine);
+$expected_revisions = $manifest['revision_hashes_a'] ?? null;
+$must(is_array($expected_revisions) && count($expected_revisions) >= 1,
+    'Source revision manifest survived SQL export/import');
+$must(count($revisions_after) === count($expected_revisions),
+    'Every original WordPress revision was restored');
+foreach ($expected_revisions as $revision_id => $hash) {
+    $revision = wp_get_post_revision((int) $revision_id);
+    $must($revision instanceof WP_Post && (int) $revision->post_parent === $mine,
+        'Original revision ID and note relationship were restored');
+    $must(hash('sha256', $revision->post_content) === $hash,
+        'Revision Gutenberg content survived the SQL restore');
+}
 
 wp_set_current_user($a->ID);
 $expected = ['notebook' => 'Company knowledge', 'category' => 'Governance', 'tags' => ['Recovery']];
