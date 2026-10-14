@@ -7,7 +7,7 @@
 ## RC1 integrated hardening (Alpha24)
 
 - One release-hardening branch inherits Alpha23 without merging it to main. The single-batch release boundary is documented in `docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Suite Overseer Notes roadmap.
-- Reconciles dynamic PHP gettext labels in Sharing and classification filters with literal, statically extractable strings.
+- Reconciles PHP gettext in Sharing, classification filters and all known Organize REST errors with literal, statically extractable strings; error codes and statuses unchanged.
 - All five JavaScript UI assets now use static `wp-i18n` keys, plural/formatting helpers, explicit script dependencies and `wp_set_script_translations`; older source-UI contracts updated, and `tests/rc1-js-i18n-contract.cjs` added. Locale catalogs and real locale/browser verification are **not complete**.
 - Public shares now validate snapshot/key/mode writes and disarm on partial persistence; restored notes defensively revoke stale public/secure grants; optional Secure Share checks pending/final writes and attempts to revoke issued-but-uncommitted grants. `tests/sharing-smoke.php` injects public and provider-finalization failures. Real Secure Share and CDN acceptance are still outstanding.
 - Label removal preflights the bounded owner-scoped set and compensates earlier post-meta writes when a later write or catalog save fails. Mocked regression injects each failure; concurrency and actual DB-failure recovery still require field evidence.
