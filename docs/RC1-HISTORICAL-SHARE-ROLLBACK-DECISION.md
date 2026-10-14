@@ -82,6 +82,12 @@ bash tools/check-rollback-repro
 
 **Observed:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore` (2026-10-14). This is experimental proof of the hazard, **not** evidence of security. The runner still does not test public HTTP, hosting or cache behavior. The next development batch must implement an approved fail-closed recovery barrier and a separate **negative** acceptance test requiring the historic key to remain denied after restore.
 
+## Reviewed implementation design (PROPOSED; PRODUCT GO REQUIRED)
+
+See [RC1-RESTORE-SHARING-EPOCH-DESIGN.md](RC1-RESTORE-SHARING-EPOCH-DESIGN.md) for the concrete implementation boundary: an independently provisioned site epoch bound into newly issued Public snapshots, an explicit host-level quarantine and epoch rotation before an old backup is reopened, strict refusal of unsigned Alpha24 legacy grants, and separate real Secure Share provider revocation. The test gate must verify actual anonymous HTTP 404 on the historical backup **after** the protection has been implemented, not only the PHP authorization predicate.
+
+**Security limitation:** no plugin-only SQL or filesystem state can guarantee that revocations survive restoration of that exact old state. The operating procedure and trust anchor have to remain outside the rollback domain; if files and config are also rolled back, re-quarantine and rotate again before any public traffic. No changes to product/sharing behavior were made in this design-only batch.
+
 ## Gate and product decisions
 
 - **CONFIRMED P0/security blocker:** older-backup restore resurrects authorization of previously revoked Public sharing keys. Fail-closed protection, cache and optional real-provider behavior remain unresolved.
