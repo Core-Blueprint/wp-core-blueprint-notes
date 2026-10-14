@@ -8,8 +8,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BASE="$HOME/Downloads/wp-core-blueprint"
 SECURE="$HOME/Downloads/wp-core-blueprint-secure-share-r08"
 SS_HEAD="88c15c45a4898dd1c43c1dfad1d7265f5b693350"
-ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha25.zip"
-PIN="77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"
+PIN="$(bash "$ROOT/tools/check-alpha26-artifact")"
 CONTAINER="cb-base-test-db"
 DB="core_blueprint_notes_r08_test"
 HOME_PATH="/tmp/core-blueprint-tests/notes-r08-secure-provider"
@@ -34,8 +34,8 @@ php -r 'exit(version_compare(PHP_VERSION,"8.4",">=") ? 0 : 1);' ||
     fail "PHP 8.4+ is required."
 CB_NOTES_SECURE_SHARE_REPO="$SECURE" node "$ROOT/tests/secure-share-api-compat.cjs"
 [[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$PIN" ]] ||
-    fail "Expected immutable operator-verified Alpha25 ZIP checksum."
-unzip -t "$ZIP" >/dev/null || fail "Alpha25 ZIP invalid."
+    fail "Expected immutable operator-verified Alpha26 ZIP checksum."
+unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP invalid."
 [[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
     fail "Unexpected MariaDB container image."
 [[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
@@ -104,7 +104,7 @@ wp_test plugin activate core-blueprint-notes --quiet
 wp_test plugin activate core-blueprint-secure-share --quiet
 CB_NOTES_R08_PHASE=integrated wp_test eval-file "$ROOT/tests/r08/fixture.php"
 printf 'Notes R08.2 real-provider runtime: PASS (isolated WP 7.0 CLI)\n'
-printf 'Notes Alpha25 ZIP SHA-256: %s\n' "$PIN"
+printf 'Notes Alpha26 ZIP SHA-256: %s\n' "$PIN"
 printf 'Secure Share source commit: %s\n' "$SS_HEAD"
 printf 'HTTPS browser, cookies, CDN and provider-side old-backup rollback: NOT RUN\n'
 printf 'Cleaning up the single dedicated disposable R08 database and temporary site.\n'
