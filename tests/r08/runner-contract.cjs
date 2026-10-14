@@ -62,6 +62,11 @@ check(fixture.includes('PasswordHasher::verify(') &&
     fixture.includes('Services::accessService()->inspectBearer($bearer)') &&
     fixture.includes('$provider->deliver($context)'),
     'Fixture must execute real password, expiry, context and provider revoke checks');
+check(runner.includes('wp_test plugin deactivate core-blueprint-notes --quiet') &&
+    runner.includes('wp_test plugin activate core-blueprint-notes --quiet') &&
+    runner.includes('CB_NOTES_R08_PHASE=lifecycle wp_test eval-file') &&
+    read('tests/r08/lifecycle.php').includes('SecureRevocationRecovery::pending_count() !== 0'),
+    'Real plugin lifecycle must preserve notes and complete provider revocations');
 check(runner.includes('HTTPS browser, cookies, CDN and provider-side old-backup rollback: NOT RUN') &&
     fixture.includes('R08 HTTPS browser flow, cookies, CDN and provider rollback: NOT RUN'),
     'No source test or CLI runtime may claim separate HTTPS browser acceptance');
