@@ -1,6 +1,6 @@
 # Notes RC1 | HTTP, CDN and sharing security acceptance
 
-**Status: PLAN ONLY, NOT RUN (2026-10-14).** The separate SQL restore runner passed, but it does not make public HTTP requests through a web server or CDN. This gate must use a controlled test WordPress installation and **only synthetic notes**. Use the existing accepted Alpha24 ZIP with its recorded SHA-256, not a newly built artifact with different documentation.
+**Status: LOCAL HTTP ORIGIN PASS (2026-10-14), CDN/real Secure Share NOT RUN.** A disposable WordPress 7.0 origin served actual HTTP requests through 127.0.0.1:18777. Operator evidence confirms **44 HTTP checks PASS** using the pinned Alpha24 ZIP. This does not establish acceptance for LiteSpeed/QUIC.cloud, external HTTPS, the real Secure Share provider, or historic-backup active-key rollback. Use only synthetic content.
 
 ## Test environment and STOP rules
 
@@ -9,7 +9,7 @@
 - Use a dedicated disposable test site. Do **not** enable public access to real notes. Do not modify production DNS, cache policies or genuine provider grants to make a test pass.
 - **STOP** on anonymous/private content leakage, foreign-owner REST access, stale cached public content after revocation, unexpected live grant, non-private note visibility or absent required security headers.
 
-## Automated first stage: isolated localhost origin (ADDED; NOT RUN)
+## Automated first stage: isolated localhost origin (PASS, 44 HTTP checks)
 
 The new `tools/check-http` script provisions only `core_blueprint_notes_http_test` in the canonical local MariaDB 10.11.19 test container and uses a temporary WordPress 7.0 site served by PHP's built-in web server bound to `127.0.0.1:18777`. It refuses an already existing test database, unexpected image/port, an occupied HTTP listener, modified tracked source, or a ZIP with SHA-256 other than `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc`. It runs only with synthetic Notes; its site configuration rejects non-loopback clients. Temporary synthetic Application Passwords authenticate editor A and editor B over local HTTP; the runner cleans its test server, database and private temporary files on exit.
 
@@ -17,7 +17,20 @@ Covered: A owner HTTP REST read, B own read and denied cross-owner read/write, a
 
 **2026-10-14 first operator run: BLOCKED before HTTP verification.** The initial script had a malformed Bash single-quoted regular expression and repeated script fragments in the REST collection-count section. `bash -n tools/check-http` failed near its output footer, and `bash tools/check` also exited before its final `Notes source checks: PASS` line; the old Node source contract was misleading because it looked only for substrings. Although the synthetic seed printed `PASS (seed)`, there is **no valid HTTP runtime PASS**. The runner has since been repaired by replacing the corrupt tail, adding an immediate whole-script Bash preflight **before any database allocation**, and requiring actual `bash -n` execution and unique test phases from the Node contract. **Updated source checks and real HTTP test are PENDING operator execution.** The recorded source-only SQL restore PASS is unaffected.
 
-**2026-10-14 second operator run: source gate PASS, real HTTP test BLOCKED at B collection total.** The full `bash tools/check` now concludes with `Notes source checks: PASS`, and the synthetic seed plus preliminary owner/B/anonymous HTTP checks passed. The HTTP test incorrectly expected B's private Note from the unfiltered `/wp-json/wp/v2/cb-notes` endpoint. WordPress 7.0 REST collection defaults to `status=publish`; Notes persists its entries as `private`. The corrected test **retains** the strict 0-result/0-total assertion on the default endpoint and separately requires `GET /wp-json/wp/v2/cb-notes?context=edit&status=private` as B to return exactly B's Note ID/content, no A body and `X-WP-Total: 1`. Contract tests now pin this distinction. **Updated HTTP runner NOT YET EXECUTED**; origin, CDN and provider acceptance remain open until real validation completes.
+**2026-10-14 second operator run: source gate PASS, real HTTP test BLOCKED at B collection total.** The full `bash tools/check` now concludes with `Notes source checks: PASS`, and the synthetic seed plus preliminary owner/B/anonymous HTTP checks passed. The HTTP test incorrectly expected B's private Note from the unfiltered `/wp-json/wp/v2/cb-notes` endpoint. WordPress 7.0 REST collection defaults to `status=publish`; Notes persists its entries as `private`. The corrected test **retains** the strict 0-result/0-total assertion on the default endpoint and separately requires `GET /wp-json/wp/v2/cb-notes?context=edit&status=private` as B to return exactly B's Note ID/content, no A body and `X-WP-Total: 1`. Contract tests now pin this distinction. **Historical failure, superseded by the final successful run below.**
+
+**2026-10-14 final operator execution: PASS.** Branch `feature/notes-rc1-golden-hardening-v1` at source HEAD `bbb4d21dbdb7efed2bc69876cf4a91e04c9d0297`: `bash -n tools/check-http` PASS, `node tests/http-runner-contract.cjs` PASS, `bash tools/check` fully ended with `Notes source checks: PASS`; `bash tools/check-http` completed with `Notes synthetic HTTP fixture: PASS (seed)`, `PASS (private edit)`, `PASS (revoked)`, then **`Notes real loopback HTTP origin: PASS (44 checks, WP 7.0)`**. The test covered synthetic owner REST read, owner B's denied read/write of A, anonymous exact/list denial, empty publish-default collection, B's correctly scoped explicit `context=edit&status=private` list/count, frozen anonymous public snapshot, no-store/noindex/CSP/security response headers, source edit keeping the snapshot frozen, and two repeated revoked-share HTTP 404 checks plus malformed-key denial. Tested PHP local-server **origin only**; no production, CDN or Secure Share provider interaction.
+
+| Evidence | Verified value |
+|---|---|
+| WordPress target | 7.0, temporary loopback PHP HTTP server |
+| Real HTTP assertions | **44 PASS** |
+| Synthetic fixture phases | Seed / private edit / revoke: **PASS** |
+| ZIP artifact SHA-256 | `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc` |
+| Teardown | Runner exited without cleanup error; independent post-run DB inspection not separately reported |
+| Remaining scope | External HTTPS/origin infrastructure, LiteSpeed/QUIC.cloud, real Secure Share, historical active-key backup rollback |
+
+**Important:** This closes only the *local HTTP-origin subset* of R03/R07. Browser, CDN and real-provider acceptance are still open. The static suite's *HTTP runner NOT EXECUTED* wording refers only to the source-contract phase and must not override the separate actual HTTP PASS evidence.
 
 **Execute only after source checks:**
 ```bash
@@ -68,4 +81,4 @@ A valid final `PASS` must come from `Notes real loopback HTTP origin: PASS (... 
 
 Record test site type, version/build, user category, scenario ID, sanitized HTTP status, expected/actual cache/robots headers, results before and after revocation, plus the exact Notes artifact SHA. Keep screenshots/response bodies synthetic and do not store bearer links.
 
-**PASS** only after actual HTTP origin and applicable CDN behaviors have been observed. **FAIL** on any privacy or revocation leak. **NOT RUN** remains until these procedures have actual recorded outcomes. This document is a test plan, not evidence of completed HTTP tests.
+**Local origin PASS** is recorded above. **Full R03/R07 external infrastructure PASS** still requires actual applicable CDN/LiteSpeed, HTTPS and relevant browser/provider scenarios. **FAIL** on any privacy or revocation leak. Do not interpret this local PASS as a global CDN, real Secure Share or historical-backup rollback security claim.
