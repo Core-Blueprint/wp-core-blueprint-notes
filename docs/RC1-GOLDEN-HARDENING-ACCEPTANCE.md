@@ -42,6 +42,30 @@ SH
 
 Record actual local HEAD and SHA-256. `?? dist/` is expected untracked output, but any other source modifications must be examined. If any command fails, STOP: do not install the archive.
 
+### New isolated Level 2 WordPress PHPUnit gate (NOT YET EXECUTED)
+
+Alpha24 now includes a Notes-only integration provisioner and a first **real WordPress/PHPUnit** privacy smoke suite. These are *test-infrastructure changes only*, not product feature changes. They remain **NOT RUN** until the operator executes them and supplies the actual PHPunit output. The new source contract runs under `bash tools/check`.
+
+The runner `bash tools/check-integration` follows the established Work handbook pattern: it stages current Notes and Base source into a disposable directory, downloads an exact WordPress core and compatible wp-phpunit fixture, installs Base schema before booting Notes, and uses only the `core_blueprint_notes_test` database on the pre-existing `cb-base-test-db` MariaDB 10.11.19 container at `127.0.0.1:3307`. The runner resets **only this specifically named disposable database**. It does not touch the Base, Work, or operator WordPress databases. It refuses modified tracked source, a missing Base vendor PHPUnit installation and an unexpected DB image/port. No arbitrary DB name, host or temporary root may be supplied.
+
+Run from the clean local Notes featurebranch:
+
+```bash
+cd ~/Downloads/wp-core-blueprint-notes
+bash tools/check
+bash tools/check-integration
+CB_TEST_WP_VERSION=7.1.3 bash tools/check-integration
+```
+
+A single invocation covers only one WP version. The first (default) is WP 7.0 and the second is WP 7.1.3. Both must be executed and evidenced independently. Tests are configured with `tests/phpunit-notes.xml.dist` and `tests/phpunit-notes-bootstrap.php` and do not require `wp-config.php` in an interactive website directory.
+
+**Initial PHPUnit coverage, not the complete R01–R13 matrix:**
+- R02 partial: native publish remains private and Gutenberg blocks round-trip.
+- R03 partial: two editors and anonymous exact REST read access, owner list scoping and no foreign body/title leaks.
+- R09 partial: read-only Abilities disabled by default, enabled per-user owner boundaries, administrator's distinct AI scope and no content in list projections.
+
+**Still needed:** real authenticated HTTP/MCP adapter transport, revisions/autosaves and write endpoints, shared snapshots, caches and CDN, Secure Share provider, upgrade/restore, locales, UI/a11y, performance/scale and installation compatibility. A passing PHPUnit smoke **must not** mark entire R02/R03/R09 or RC-02 as PASS.
+
 ### Stage S: source and contract evidence
 
 - [ ] All legacy source, UI, privacy/contract, i18n and package checks pass on the **same** branch HEAD.
