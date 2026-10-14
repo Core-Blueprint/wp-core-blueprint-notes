@@ -63,6 +63,7 @@ check(abilities.includes("get_option(Plugin::AI_OPTION,false)") &&
     'AI abilities are read-only and not externally exposed by default');
 check(sharing.includes("'Note not found.' => __('Note not found.', 'core-blueprint-notes')") &&
     catalog.includes("'notebook' => __('All notebooks', 'core-blueprint-notes')") &&
+    catalog.includes("'Could not clear a note assignment.' => __('Could not clear a note assignment.', 'core-blueprint-notes')") &&
     !/\b(?:__|esc_html__|esc_attr__)\s*\(\s*\$/.test(sharing) &&
     !/\b(?:__|esc_html__|esc_attr__)\s*\(\s*\$/.test(catalog),
     'Sharing errors and classification filter labels use static gettext keys');
