@@ -72,6 +72,9 @@ check(catalog.includes('self::restore_references($applied)') &&
     catalogTest.includes('RC1: first cleared assignment rolled back') &&
     catalogTest.includes('RC1: both assignments restored after catalog save failure'),
     'Destructive personal catalog removal preflights and compensates failed writes');
+check(pluginRuntime.includes('Controller::revoke_for_lifecycle($post_id)') &&
+    sharingTest.includes('RC1: restore hook never reactivates a stale public share'),
+    'Restored Notes must defensively revoke old share state');
 check(sharing.includes('self::persist_meta($post->ID, self::PUBLIC_META, $snapshot)') &&
     sharing.includes('self::disarm_sharing($post->ID)') &&
     sharing.includes('$facade::revoke($issued->grantId(), $issued->revision())') &&
