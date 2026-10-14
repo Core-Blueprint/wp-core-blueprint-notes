@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Fail closed unless the exact checked-out Alpha26 artifact was double built.
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"
+STAMP="$ROOT/dist/notes-alpha26-verified.txt"
+fail() { echo "Notes Alpha26 package BLOCKED: $*" >&2; exit 1; }
+[[ "$#" == 0 ]] || fail "No arguments permitted"
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    fail "Wrong branch"
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+    fail "Tracked source changed after the package was built"
+[[ -f "$ZIP" && ! -L "$ZIP" && -f "$STAMP" && ! -L "$STAMP" ]] ||
+    fail "Alpha26 ZIP/verification missing. Run tools/verify-alpha26-build first."
+[[ "$(wc -l < "$STAMP")" -eq 2 ]] || fail "Invalid verification record"
+HEAD="$(sed -n '1p' "$STAMP")"
+EXPECTED="$(sed -n '2p' "$STAMP")"
+[[ "$HEAD" =~ ^[a-f0-9]{40}$ && "$EXPECTED" =~ ^[a-f0-9]{64}$ ]] ||
+    fail "Malformed SHA-256 attestation"
+[[ "$HEAD" == "$(git -C "$ROOT" rev-parse HEAD)" ]] ||
+    fail "Source HEAD differs from independently verified build"
+[[ "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$EXPECTED" ]] ||
+    fail "Alpha26 ZIP digest mismatch"
+unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP integrity failure"
+printf '%s\n' "$EXPECTED"
