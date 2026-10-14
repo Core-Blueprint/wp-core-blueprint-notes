@@ -15,6 +15,8 @@ The new `tools/check-http` script provisions only `core_blueprint_notes_http_tes
 
 Covered: A owner HTTP REST read, B own read and denied cross-owner read/write, anonymous exact read and list, B's owner-scoped list, explicitly confirmed anonymous frozen public snapshot, origin security headers, private edit without snapshot mutation, repeated 404 after revocation and invalid share paths. This **does not** test a CDN, real HTTPS endpoint, hostile external clients, Secure Share provider or the historical active-key backup rollback case.
 
+**2026-10-14 first operator run: BLOCKED before HTTP verification.** The initial script had a malformed Bash single-quoted regular expression and repeated script fragments in the REST collection-count section. `bash -n tools/check-http` failed near its output footer, and `bash tools/check` also exited before its final `Notes source checks: PASS` line; the old Node source contract was misleading because it looked only for substrings. Although the synthetic seed printed `PASS (seed)`, there is **no valid HTTP runtime PASS**. The runner has since been repaired by replacing the corrupt tail, adding an immediate whole-script Bash preflight **before any database allocation**, and requiring actual `bash -n` execution and unique test phases from the Node contract. **Updated source checks and real HTTP test are PENDING operator execution.** The recorded source-only SQL restore PASS is unaffected.
+
 **Execute only after source checks:**
 ```bash
 cd ~/Downloads/wp-core-blueprint-notes
