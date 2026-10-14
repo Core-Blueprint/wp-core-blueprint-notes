@@ -1,11 +1,11 @@
-# Notes RC1 Golden — integrated acceptance (Alpha25 Share Recovery Guard candidate; Alpha24 historical baseline)
+# Notes RC1 Golden — integrated acceptance (Alpha26 hardening candidate; Alpha25/24 historical baselines)
 
-**2026-10-14 — ALPHA25 SHARE RECOVERY HARDENING IN PROGRESS. Not Golden, not RC1, not production ready.**
+**2026-10-14 — ALPHA26 INTEGRATED HARDENING CANDIDATE. Not Golden, not RC1, not production ready.**
 
 - Source: `christiaanbruinsma/wp-core-blueprint-notes`
 - Working branch: `feature/notes-rc1-golden-hardening-v1`
 - Derived from visually accepted Alpha23: `1d957031f90626614a68e1be3632903dc8410148`; **main is NOT yet merged with Alpha23**.
-- Current test-build package: `dist/core-blueprint-notes-0.1.0-alpha25.zip`; the pinned Alpha24 ZIP remains separate historical vulnerability evidence.
+- Current integrated test candidate: `dist/core-blueprint-notes-0.1.0-alpha26.zip` (not yet operator-validated). Alpha25 ZIP SHA-256 `77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908` remains separately validated; Alpha24 remains historical vulnerability evidence.
 - Governance roadmap: `wp-core-blueprint-overseer/extensions/notes/rc1-golden-roadmap.md`
 - Only operator approval permits a source merge; version/tag/distribution/deployment are separate decisions.
 
@@ -30,12 +30,12 @@ node tests/rc1-source-contract.cjs
 bash tools/check
 
 bash tools/build-release
-zip='dist/core-blueprint-notes-0.1.0-alpha24.zip'
+zip='dist/core-blueprint-notes-0.1.0-alpha26.zip'
 unzip -t "$zip"
-sha256sum "$zip" | tee /tmp/cb-notes-alpha24-build1.sha256
+sha256sum "$zip" | tee /tmp/cb-notes-alpha26-build1.sha256
 bash tools/build-release
-sha256sum "$zip" | tee /tmp/cb-notes-alpha24-build2.sha256
-diff -u /tmp/cb-notes-alpha24-build1.sha256 /tmp/cb-notes-alpha24-build2.sha256
+sha256sum "$zip" | tee /tmp/cb-notes-alpha26-build2.sha256
+diff -u /tmp/cb-notes-alpha26-build1.sha256 /tmp/cb-notes-alpha26-build2.sha256
 git status --short
 SH
 ```
@@ -93,7 +93,7 @@ Create two regular Notes editor accounts **A** and **B**, an actual site adminis
 | R05 | List/Table, sort A–Z/Z–A + recent/oldest, search, paging, favorites/pins | Same owner-scoped results, no metadata leaks, saved view preference | NOT RUN |
 | R06 | Bulk up to 20, invalid IDs/nonce, partial success, confirmed/cancelled Trash | No cross-owner writes; correct failures and share revocation | NOT RUN |
 | R07 | Public frozen snapshot; revoked/trashed/restored note, private REST & CDN | Public gated, no resurrection, HTTP cache/robots policy honored | PARTIAL: frozen snapshot, headers & 404 revocation on local HTTP origin PASS; CDN/remaining manual scenarios NOT RUN |
-| R08 | Secure Share absent/present, password, expiry, revocation and rollback | Soft absence; token isolated; no delivery after revocation | NOT RUN |
+| R08 | Secure Share absent/present, password, expiry, revocation and rollback | Soft absence; token isolated; no delivery after revocation | PARTIAL: Alpha25 25-check real-provider CLI PASS; Alpha26 and HTTPS/browser/rollback NOT RUN |
 | R09 | MCP/Abilities disabled and explicitly read-enabled, A/B and admin | No unauthorized exposure, no write abilities, bounded queries | NOT RUN |
 | R10 | Alpha migrations, label deletion, deactivation, backup and restore | No data loss; explicit validated catalog portability/uninstall decision | PARTIAL: full SQL source-to-target restore PASS (76 checks), other lifecycle cases NOT RUN |
 | R11 | Light/Dark, mobile/table scroll, 200% zoom, keyboard/focus, screen reader | Accessible, responsive and intact in both Base themes | NOT RUN |
@@ -150,3 +150,10 @@ The guarded test-only `tools/check-rollback-repro` runner and `tests/rollback/*`
 - [ ] Written operator approval of proposed `v1.0.0-rc1` promotion and **separate** merge/release/deployment GO.
 
 The final report must state both positives and `NOT RUN`/blocking outcomes. Until then this remains a development alpha, not a certified Golden RC1.
+
+
+## Alpha26 change gate (unexecuted candidate)
+
+Alpha26 introduces durable, per-grant, non-autoload Secure Share revocation recovery, an administrator-only, nonce-protected bounded retry action, and explicit failure instead of false success when a private-mode Stop sharing write fails. Source and release version are bumped to `0.1.0-alpha26`; historical Alpha25/24 artifacts must not be overwritten.
+
+**Required before RC1:** run `bash tools/verify-alpha26-build` to double-build and attest the ZIP to this exact HEAD; then WordPress 7.0 + 7.1.3 integration, full SQL restore, local HTTP origin, historical E1/E2 rollback recovery and real Secure Share runtime, followed by the R01–R13 browser/host/i18n/scale/manual gates. See `docs/RC1-ONE-BATCH-TEST-HANDOVER.md`. **No source-only test counts as browser, TLS or CDN evidence.**
