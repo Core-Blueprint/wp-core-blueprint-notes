@@ -62,6 +62,20 @@ bash tools/check-secure-runtime
 
 Expected result **only if the genuine PHP/WordPress/provider SQL test succeeds**: `Notes R08.2 real-provider runtime: PASS (isolated WP 7.0 CLI)`. If the isolated activation, schema readiness or any provider assertion fails, keep R08.2 **BLOCKED** and repair only the test or affected product after a reviewed patch. Do not infer that browser password gates and cookies have been verified from the CLI fixture, which supplies a vetted real provider context but bypasses interactive browser transport.
 
+## R08.2 source gate correction after first operator attempt (2026-10-14)
+
+Operator pulled Notes at `dda441a313cb2fcf2ed26a92aaf60f3a189e312e`. PHP lint for `tests/r08/wordpress-config.php` and `tests/r08/fixture.php`, plus full Bash syntax of `tools/check-secure-runtime`, were successful. The first standalone `node tests/r08/runner-contract.cjs` failed **before** starting any WordPress site or test database:
+
+```text
+R08 real-provider source contract BLOCKED: Fixture must exercise password, expiry-bound grant and revocation
+```
+
+**Cause:** test source gate used case-sensitive substring `password-protected grant denies context` but the fixture's actual assertion text starts `Password-protected` (capital P). The implementation was present. The test contract now checks the actual `Services::accessService()->context(...false/true)`, `PasswordHasher::verify()`, expiry, revoked state, revision advancement, bearer lookup and provider delivery calls rather than human-readable label spelling.
+
+An additional source review corrected the foreign-owner REST expectation: WordPress normally returns **403 Forbidden** to a logged-in user denied at `permission_callback` (the original R08 fixture incorrectly required 404). This is a test assertion correction, not a change to access control.
+
+**No genuine R08.2 runtime test has been executed.** Due to the chained `&&`, neither `bash tools/check` nor `bash tools/check-secure-runtime` was reached on this attempt. The immutable Alpha25 ZIP, Base, local Secure Share source/worktree and Notes product code were not changed. R08.2 remains OPEN pending actual test output.
+
 ## R08 real runtime cases (NOT RUN)
 
 | ID | Requirement | Expected |
