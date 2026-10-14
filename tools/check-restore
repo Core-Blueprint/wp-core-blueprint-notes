@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Two independently bootstrapped disposable WordPress sites.
+# Never touches staging, production or the Base/Work/Notes PHPUnit databases.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BASE_SOURCE="$HOME/Downloads/wp-core-blueprint"
+SOURCE_DB="core_blueprint_notes_restore_source"
+TARGET_DB="core_blueprint_notes_restore_target"
+DB_CONTAINER="cb-base-test-db"
+DB_PASSWORD="root"
+EXPECTED_ZIP_SHA="22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc"
+TEST_HOME="/tmp/core-blueprint-tests/core-blueprint-notes-restore"
+fail() { printf 'Notes restore BLOCKED: %s\n' "$*" >&2; exit 1; }
+umask 077
+
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+    fail "Expected dedicated Notes feature branch."
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+    fail "Notes has modified tracked files."
+[[ -f "$BASE_SOURCE/core-blueprint.php" ]] || fail "Expected local Base source."
+git -C "$BASE_SOURCE" diff --quiet && git -C "$BASE_SOURCE" diff --cached --quiet ||
+    fail "Base has modified tracked files."
+
+for command_name in docker curl tar sha256sum wp flock php unzip; do
+    command -v "$command_name" >/dev/null 2>&1 || fail "Missing $command_name"
+done
+[[ "$(docker inspect --format '{{.Config.Image}}' "$DB_CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
+    fail "Unexpected test MariaDB image."
+[[ "$(docker inspect --format '{{.State.Running}}' "$DB_CONTAINER")" == "true" ]] ||
+    fail "Test MariaDB is stopped."
+docker port "$DB_CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' ||
+    fail "Expected test MariaDB on port 3307."
+[[ ! -L "$TEST_HOME" ]] || fail "Symlink at test root."
+mkdir -p "$TEST_HOME"
+exec 9>"$TEST_HOME/.restore.lock"
+flock -x 9
+
+# Refuse existing databases (even disposable ones). Neither database name
+# is an input argument or environment override.
+databases="$(docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb -uroot -N -B -e 'SHOW DATABASES;')" ||
+    fail "Cannot inspect the test database server."
+for name in "$SOURCE_DB" "$TARGET_DB"; do
+    if grep -Fxq -- "$name" <<< "$databases"; then
+        fail "Database already exists, refusing to modify it: $name"
+    fi
+done
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha24.zip"
+[[ -f "$ZIP" ]] || fail "Alpha24 ZIP missing; run tools/build-release."
+unzip -t "$ZIP" >/dev/null || fail "Alpha24 ZIP is invalid."
+actual_sha="$(sha256sum "$ZIP" | cut -d' ' -f1)"
+[[ "$actual_sha" == "$EXPECTED_ZIP_SHA" ]] ||
+    fail "Alpha24 ZIP checksum differs from the operator-verified build."
+printf 'Notes restore: source ZIP SHA-256 %s\n' "$actual_sha"
+
+RUN_DIR="$(mktemp -d "$TEST_HOME/run.XXXXXXXX")"
+[[ "$RUN_DIR" == "$TEST_HOME"/run.* ]] || fail "Unexpected temporary path."
+OWN_DBS=0
+cleanup() {
+    local original_exit=$?
+    trap - EXIT
+    if [[ "$OWN_DBS" == "1" ]]; then
+        docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb -uroot \
+            -e 'DROP DATABASE IF EXISTS core_blueprint_notes_restore_source; DROP DATABASE IF EXISTS core_blueprint_notes_restore_target;' \
+            >/dev/null || printf 'Notes restore WARNING: cleanup failed; inspect the two named disposable databases.\n' >&2
+    fi
+    if [[ -d "$RUN_DIR" && "$RUN_DIR" == "$TEST_HOME"/run.* && ! -L "$RUN_DIR" ]]; then
+        rm -rf -- "$RUN_DIR"
+    fi
+    exit "$original_exit"
+}
+trap cleanup EXIT
+
+printf 'Notes restore: create two empty, uniquely named disposable databases\n'
+OWN_DBS=1
+docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb -uroot \
+    -e 'CREATE DATABASE core_blueprint_notes_restore_source CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; CREATE DATABASE core_blueprint_notes_restore_target CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+    fail "Cannot provision dedicated databases."
+
+SRC="$RUN_DIR/site-source"
+DST="$RUN_DIR/site-target"
+mkdir -p "$SRC" "$DST"
+printf 'Notes restore: preparing two isolated WordPress 7.0 directories\n'
+curl --fail --silent --show-error --location --max-time 120 \
+    'https://wordpress.org/wordpress-7.0.tar.gz' |
+    tar -xz --strip-components=1 -C "$SRC"
+cp -a "$SRC/." "$DST/"
+[[ -f "$SRC/wp-settings.php" && -f "$DST/wp-settings.php" ]] ||
+    fail "WordPress core package incomplete."
+
+for site in "$SRC" "$DST"; do
+    mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
+    tar -C "$BASE_SOURCE" \
+        --exclude='./.git' --exclude='./vendor' --exclude='./tests' --exclude='./tools' \
+        --exclude='./dist' --exclude='./.github' -cf - . |
+        tar -C "$site/wp-content/plugins/core-blueprint" -xf -
+    unzip -q "$ZIP" -d "$RUN_DIR/package-stage"
+    cp -a "$RUN_DIR/package-stage/core-blueprint-notes/." "$site/wp-content/plugins/core-blueprint-notes/"
+    rm -rf -- "$RUN_DIR/package-stage"
+    cp "$ROOT/tests/restore/wordpress-config.php" "$site/wp-config.php"
+done
+
+wp_site() {
+    local name="$1"; shift
+    local path db url
+    case "$name" in
+        source) path="$SRC"; db="$SOURCE_DB"; url="http://cb-notes-restore-source.invalid" ;;
+        target) path="$DST"; db="$TARGET_DB"; url="http://cb-notes-restore-target.invalid" ;;
+        *) fail "Only source and target WordPress runtimes are permitted." ;;
+    esac
+    CB_RESTORE_DB_NAME="$db" WP_CLI_CACHE_DIR="$RUN_DIR/wpcli-cache" \
+        wp --path="$path" --url="$url" "$@"
+}
+
+wp_site source core install \
+    --url="http://cb-notes-restore-source.invalid" --title="Notes Disposable Source" \
+    --admin_user="cbnotes_restore_admin" --admin_password="cbnotes-restore-disposable-password" \
+    --admin_email="admin@cb-notes-restore.invalid" --skip-email --quiet
+wp_site source plugin activate core-blueprint --quiet
+wp_site source plugin activate core-blueprint-notes --quiet
+CB_RESTORE_PHASE=seed wp_site source eval-file "$ROOT/tests/restore/fixture.php"
+
+printf 'Notes restore: dump complete source database and import into separate target\n'
+SQL="$RUN_DIR/source.sql"
+docker exec -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb-dump -uroot \
+    --single-transaction --skip-lock-tables --default-character-set=utf8mb4 \
+    "$SOURCE_DB" > "$SQL" || fail "Source database dump failed."
+[[ -s "$SQL" ]] || fail "Source database dump is empty."
+chmod 0600 "$SQL"
+SQL_SHA="$(sha256sum "$SQL" | cut -d' ' -f1)"
+docker exec -i -e MYSQL_PWD="$DB_PASSWORD" "$DB_CONTAINER" mariadb -uroot \
+    "$TARGET_DB" < "$SQL" || fail "Target database import failed."
+[[ "$(sha256sum "$SQL" | cut -d' ' -f1)" == "$SQL_SHA" ]] ||
+    fail "SQL archive was modified during restore."
+
+# Different URL and auth salts; imported privileged Base approvals must not
+# silently grant authority in this destination trust domain.
+wp_site target option update home "http://cb-notes-restore-target.invalid" --quiet
+wp_site target option update siteurl "http://cb-notes-restore-target.invalid" --quiet
+CB_RESTORE_PHASE=verify wp_site target eval-file "$ROOT/tests/restore/fixture.php"
+
+printf 'Notes full SQL backup/restore: PASS (disposable source -> target)\n'
+printf 'Notes restore SQL SHA-256: %s\n' "$SQL_SHA"
+printf 'Notes restore ZIP SHA-256: %s\n' "$actual_sha"
+printf 'Notes restore: cleaning up the two dedicated test databases and temporary files\n'
