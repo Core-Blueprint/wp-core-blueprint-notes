@@ -1,6 +1,9 @@
 /* Small progressive enhancement only. Search/filtering/paging remain server-side. */
 (function () {
     'use strict';
+    var __ = typeof wp !== 'undefined' && wp.i18n && typeof wp.i18n.__ === 'function'
+        ? wp.i18n.__ : function (message) { return message; };
+
 
     function report(message) {
         var feedback = document.querySelector('.cb-notes-library__feedback');
@@ -24,23 +27,23 @@
                 var confirmation = window.cbCore && window.cbCore.modal;
                 if (!confirmation || typeof confirmation.show !== 'function') {
                     button.hidden = true;
-                    report('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.');
+                    report(__('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.', 'core-blueprint-notes'));
                     return;
                 }
                 report('');
                 button.disabled = true;
                 confirmation.show({
-                    title: 'Move note to Trash?',
-                    body: 'This moves your private note to WordPress Trash. You can restore the note later, but any active share links will be revoked.',
+                    title: __('Move note to Trash?', 'core-blueprint-notes'),
+                    body: __('This moves your private note to WordPress Trash. You can restore the note later, but any active share links will be revoked.', 'core-blueprint-notes'),
                     confirmVariant: 'danger',
-                    confirmLabel: 'Move to Trash',
-                    cancelLabel: 'Cancel'
+                    confirmLabel: __('Move to Trash', 'core-blueprint-notes'),
+                    cancelLabel: __('Cancel', 'core-blueprint-notes')
                 }).then(function (accepted) {
                     if (accepted === true) {
                         window.location.assign(url);
                     }
                 }).catch(function () {
-                    report('Could not complete the confirmation. Nothing was moved to Trash.');
+                    report(__('Could not complete the confirmation. Nothing was moved to Trash.', 'core-blueprint-notes'));
                 }).finally(function () {
                     button.disabled = false;
                 });
@@ -88,7 +91,7 @@
                         typeof result.data.favorite !== 'boolean' ||
                         typeof result.data.pinned !== 'boolean') {
                         var message = result && result.data && result.data.message
-                            ? result.data.message : 'Could not save this note preference.';
+                            ? result.data.message : __('Could not save this note preference.', 'core-blueprint-notes');
                         throw new Error(message);
                     }
                     // Pin ordering and saved views require server pagination
@@ -108,7 +111,7 @@
                     button.title = label;
                 }).catch(function (failure) {
                     report(failure && failure.message
-                        ? failure.message : 'Could not update this note. Please try again.');
+                        ? failure.message : __('Could not update this note. Please try again.', 'core-blueprint-notes'));
                 }).finally(function () {
                     button.disabled = false;
                 });
