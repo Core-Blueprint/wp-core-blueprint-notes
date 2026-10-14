@@ -2,6 +2,16 @@
  * No cross-page selection or destructive fallback without Base confirmation. */
 (function () {
     'use strict';
+    var __ = typeof wp !== 'undefined' && wp.i18n && typeof wp.i18n.__ === 'function'
+        ? wp.i18n.__ : function (message) { return message; };
+    var sprintf = typeof wp !== 'undefined' && wp.i18n && typeof wp.i18n.sprintf === 'function'
+        ? wp.i18n.sprintf : function (format) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return format.replace(/%\d*\$?[sd]/g, function () { return String(args.shift()); });
+        };
+    var _n = typeof wp !== 'undefined' && wp.i18n && typeof wp.i18n._n === 'function'
+        ? wp.i18n._n : function (one, many, count) { return count === 1 ? one : many; };
+
 
     function init() {
         var root = document.querySelector('[data-cb-notes-bulk-nonce]');
@@ -39,7 +49,7 @@
 
         function draw() {
             var count = selected().length;
-            countLabel.textContent = count + (count === 1 ? ' selected' : ' selected');
+            countLabel.textContent = sprintf(_n('%d selected', '%d selected', count, 'core-blueprint-notes'), count);
             toolbar.hidden = count === 0;
             selectAll.checked = count === boxes.length;
             selectAll.indeterminate = count > 0 && count < boxes.length;
@@ -120,7 +130,7 @@
             }).then(function (response) { return response.json(); }).then(function (response) {
                 if (!response || response.success !== true || !response.data) {
                     throw new Error(response && response.data && response.data.message
-                        ? response.data.message : 'The selected notes could not be updated.');
+                        ? response.data.message : __('The selected notes could not be updated.', 'core-blueprint-notes'));
                 }
                 var outcome = response.data;
                 if (outcome.requested !== ids.length ||
@@ -128,12 +138,12 @@
                     outcome.updated !== outcome.updated_ids.length ||
                     outcome.failed !== outcome.failed_ids.length ||
                     outcome.updated + outcome.failed !== ids.length) {
-                    throw new Error('Unexpected bulk response. Refresh results before trying again.');
+                    throw new Error(__('Unexpected bulk response. Refresh results before trying again.', 'core-blueprint-notes'));
                 }
                 var returnedIds = outcome.updated_ids.concat(outcome.failed_ids).map(String);
                 if (new Set(returnedIds).size !== ids.length ||
                     !returnedIds.every(function (id) { return ids.indexOf(id) !== -1; })) {
-                    throw new Error('Unexpected note IDs in bulk response. Refresh results before retrying.');
+                    throw new Error(__('Unexpected note IDs in bulk response. Refresh results before retrying.', 'core-blueprint-notes'));
                 }
                 // Use existing, already-visible note labels for per-note failure
                 // feedback; never interpolate untrusted text as HTML.
@@ -141,8 +151,8 @@
                     var box = boxes.find(function (item) {
                         return item.getAttribute('data-cb-notes-select-id') === String(id);
                     });
-                    return box ? (box.getAttribute('aria-label') || ('Note #' + id))
-                        .replace(/^Select note: /, '') : ('Note #' + id);
+                    return box ? (box.getAttribute('aria-label') || (sprintf(__('Note #%s', 'core-blueprint-notes'), id)))
+                        .replace(/^Select note: /, '') : (sprintf(__('Note #%s', 'core-blueprint-notes'), id));
                 });
                 // Server already applied authorized operations. Do not invent a
                 // local sort, count, category label or pagination state.
@@ -151,12 +161,12 @@
                 notebook.value = '__choose__';
                 category.value = '__choose__';
                 draw();
-                showResult(outcome.updated + ' updated; ' + outcome.failed + ' failed.' +
-                    (failedNames.length ? ' Not updated: ' + failedNames.join(', ') + '.' : '') +
-                    ' Refresh results to see the latest Library.');
+                showResult(sprintf(__('%1$d updated; %2$d failed.', 'core-blueprint-notes'), outcome.updated, outcome.failed) +
+                    (failedNames.length ? ' ' + sprintf(__('Not updated: %s.', 'core-blueprint-notes'), failedNames.join(', ')) : '') +
+                    ' ' + __('Refresh results to see the latest Library.', 'core-blueprint-notes'));
             }).catch(function (error) {
                 showError(error && error.message
-                    ? error.message : 'Bulk action status unknown. Refresh before retrying.');
+                    ? error.message : __('Bulk action status unknown. Refresh before retrying.', 'core-blueprint-notes'));
             }).finally(function () {
                 busy = false;
                 draw();
@@ -186,19 +196,18 @@
             // Fail closed: dangerous bulk mutation *always* requires Base.
             var modal = window.cbCore && window.cbCore.modal;
             if (!modal || typeof modal.show !== 'function') {
-                showError('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.');
+                showError(__('The Core Blueprint confirmation is unavailable. Nothing was moved to Trash.', 'core-blueprint-notes'));
                 return;
             }
             busy = true;
             draw();
             showError('');
             modal.show({
-                title: 'Move selected notes to Trash?',
-                body: 'You selected ' + ids.length +
-                    ' private notes. You can restore them from WordPress Trash, but existing share links will be revoked.',
+                title: __('Move selected notes to Trash?', 'core-blueprint-notes'),
+                body: sprintf(__('You selected %d private notes. You can restore them from WordPress Trash, but existing share links will be revoked.', 'core-blueprint-notes'), ids.length),
                 confirmVariant: 'danger',
-                confirmLabel: 'Move to Trash',
-                cancelLabel: 'Cancel'
+                confirmLabel: __('Move to Trash', 'core-blueprint-notes'),
+                cancelLabel: __('Cancel', 'core-blueprint-notes')
             }).then(function (confirmed) {
                 if (confirmed === true) {
                     busy = false;
@@ -206,7 +215,7 @@
                 }
                 return null;
             }).catch(function () {
-                showError('Confirmation failed. Nothing was requested from Trash.');
+                showError(__('Confirmation failed. Nothing was requested from Trash.', 'core-blueprint-notes'));
             }).finally(function () {
                 busy = false;
                 draw();
