@@ -15,6 +15,7 @@ const pluginRuntime = read('src/Plugin.php');
 const access = read('src/Access.php');
 const sharing = read('src/Sharing/Controller.php');
 const snapshot = read('src/Sharing/Snapshot.php');
+const recovery = read('src/Sharing/PublicShareGuard.php');
 const catalog = read('src/Organization/Catalog.php');
 const abilities = read('src/Abilities.php');
 const library = read('src/Library/Query.php');
@@ -60,6 +61,20 @@ check(sharing.includes("$request->get_param('confirmation') !== 'PUBLIC'") &&
     snapshot.includes('private const ALLOWED') &&
     snapshot.includes('wp_kses(render_block('),
     'Sharing keeps typed acknowledgement, frozen allowlisted projection and lifecycle revocation');
+check(recovery.includes("private const KEY_CONSTANT = 'CB_NOTES_SHARE_EPOCH_KEY'") &&
+    recovery.includes("preg_match('/^[a-f0-9]{64}$/D'") &&
+    recovery.includes("hash_hmac('sha256'") &&
+    recovery.includes("hash_equals(") &&
+    recovery.includes("home_url('/')") &&
+    recovery.includes('return false; // Legacy Alpha24 snapshots are intentionally disarmed.') &&
+    !recovery.includes('get_option(') &&
+    sharing.includes('PublicShareGuard::sign(') &&
+    sharing.includes('PublicShareGuard::verify(') &&
+    sharing.includes('PublicShareGuard::ready()') &&
+    sharing.includes("'public_valid' => $publicValid") &&
+    sharing.includes("'public_ready' => PublicShareGuard::ready()") &&
+    sharing.includes("Public sharing requires an installation recovery key."),
+    'Alpha25 public shares require an independent signed epoch, reject legacy and never fall back to the DB');
 check(abilities.includes("get_option(Plugin::AI_OPTION,false)") &&
     abilities.includes("'readonly'=>true") &&
     abilities.includes("'mcp'=>['public'=>$enabled") &&
