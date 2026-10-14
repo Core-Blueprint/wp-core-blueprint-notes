@@ -3,6 +3,15 @@
     'use strict';
     if (!wp || !wp.element || !wp.components || !wp.apiFetch) return;
 
+    var __ = wp.i18n && typeof wp.i18n.__ === 'function'
+        ? wp.i18n.__ : function (message) { return message; };
+    var sprintf = wp.i18n && typeof wp.i18n.sprintf === 'function'
+        ? wp.i18n.sprintf : function (format) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return format.replace(/%\d*\$?[sd]/g, function () { return String(args.shift()); });
+        };
+    var _n = wp.i18n && typeof wp.i18n._n === 'function'
+        ? wp.i18n._n : function (one, many, count) { return count === 1 ? one : many; };
     var el = wp.element.createElement;
     var useState = wp.element.useState;
     var useEffect = wp.element.useEffect;
@@ -11,9 +20,9 @@
     if (!target) return;
 
     var kinds = {
-        notebook: { title: 'Notebooks', singular: 'notebook' },
-        category: { title: 'Categories', singular: 'category' },
-        tag: { title: 'Tags', singular: 'tag' }
+        notebook: { title: __('Notebooks', 'core-blueprint-notes'), singular: __('notebook', 'core-blueprint-notes') },
+        category: { title: __('Categories', 'core-blueprint-notes'), singular: __('category', 'core-blueprint-notes') },
+        tag: { title: __('Tags', 'core-blueprint-notes'), singular: __('tag', 'core-blueprint-notes') }
     };
     var path = '/core-blueprint-notes/v1/organization';
 
@@ -48,7 +57,7 @@
             wp.apiFetch({ path: path }).then(function (result) {
                 if (active) setCatalog(result);
             }).catch(function (failure) {
-                if (active) setError(failure.message || 'Could not load your personal labels.');
+                if (active) setError(failure.message || __('Could not load your personal labels.', 'core-blueprint-notes'));
             });
             return function () { active = false; };
         }, []);
@@ -106,32 +115,31 @@
                 setEditing('');
                 setEditName('');
                 setAdding(false);
-                var verb = action === 'create' ? 'Created' : action === 'rename' ? 'Renamed' : 'Removed';
-                setMessage(verb + ' ' + kinds[selectedKind].singular + ' successfully.');
+                var verb = action === 'create' ? __('Created', 'core-blueprint-notes') : action === 'rename' ? __('Renamed', 'core-blueprint-notes') : __('Removed', 'core-blueprint-notes');
+                setMessage(sprintf(__('%1$s %2$s successfully.', 'core-blueprint-notes'), verb, kinds[selectedKind].singular));
             }).catch(function (failure) {
-                setError(failure.message || 'Changes could not be saved.');
+                setError(failure.message || __('Changes could not be saved.', 'core-blueprint-notes'));
             }).finally(function () { setBusy(false); });
         }
 
         function confirmDelete(item, selectedKind) {
             var modal = window.cbCore && window.cbCore.modal;
             if (!modal || typeof modal.show !== 'function') {
-                setError('The Core Blueprint confirmation is unavailable. No item was removed.');
+                setError(__('The Core Blueprint confirmation is unavailable. No item was removed.', 'core-blueprint-notes'));
                 return;
             }
             modal.show({
-                title: 'Remove ' + item.name + '?',
-                body: 'This removes the personal ' + kinds[selectedKind].singular +
-                    ' from your catalog. Notes using it will become unfiled in that field. Note content and revisions remain intact.',
+                title: sprintf(__('Remove %s?', 'core-blueprint-notes'), item.name),
+                body: sprintf(__('This removes the personal %s from your catalog. Notes using it will become unfiled in that field. Note content and revisions remain intact.', 'core-blueprint-notes'), kinds[selectedKind].singular),
                 confirmVariant: 'danger',
-                confirmLabel: 'Remove label',
+                confirmLabel: __('Remove label', 'core-blueprint-notes'),
                 confirmCheck: {
-                    label: 'I understand that this label will no longer be assigned to notes.'
+                    label: __('I understand that this label will no longer be assigned to notes.', 'core-blueprint-notes')
                 }
             }).then(function (accepted) {
                 if (accepted === true) mutate('delete', item.id, '', selectedKind);
             }).catch(function () {
-                setError('Could not complete the confirmation. No changes were made.');
+                setError(__('Could not complete the confirmation. No changes were made.', 'core-blueprint-notes'));
             });
         }
 
@@ -150,7 +158,7 @@
         var content = [
             el('nav', {
                 key: 'tabs', className: 'nav-tab-wrapper cb-core-tab-wrapper cb-notes-organize__tabs',
-                'aria-label': 'Personal organization sections'
+                'aria-label': __('Personal organization sections', 'core-blueprint-notes')
             }, tabs)
         ];
 
@@ -175,7 +183,7 @@
             content.push(el('p', {
                 key: 'loading', className: 'cb-notes-organize__help',
                 role: 'status'
-            }, 'Loading personal labels…'));
+            }, __('Loading personal labels…', 'core-blueprint-notes')));
         } else {
             var items = catalog[kind] || [];
             var list = [];
@@ -183,7 +191,7 @@
             if (items.length === 0) {
                 list.push(el('p', {
                     key: 'empty', className: 'cb-notes-organize__empty'
-                }, 'No ' + spec.title.toLowerCase() + ' yet. Use Add new to create your first ' + spec.singular + '.'));
+                }, sprintf(__('No %1$s yet. Use Add new to create your first %2$s.', 'core-blueprint-notes'), spec.title.toLowerCase(), spec.singular)));
             }
             items.forEach(function (item) {
                 var isEditing = editing === item.id;
@@ -192,7 +200,7 @@
                 if (isEditing) {
                     row = el('div', { className: 'cb-notes-organize__rename' },
                         el(wp.components.TextControl, {
-                            label: 'Rename ' + item.name,
+                            label: sprintf(__('Rename %s', 'core-blueprint-notes'), item.name),
                             value: editName,
                             maxLength: 80,
                             disabled: busy,
@@ -204,13 +212,13 @@
                                 variant: 'primary',
                                 disabled: busy || !editName.trim(),
                                 onClick: function () { mutate('rename', item.id, editName.trim(), kind); }
-                            }, 'Save'),
+                            }, __('Save', 'core-blueprint-notes')),
                             el(wp.components.Button, {
                                 className: 'cb-core-button cb-core-button--secondary',
                                 variant: 'secondary',
                                 disabled: busy,
                                 onClick: function () { setEditing(''); setEditName(''); }
-                            }, 'Cancel')
+                            }, __('Cancel', 'core-blueprint-notes'))
                         )
                     );
                 } else {
@@ -226,14 +234,14 @@
                                 setError('');
                                 setMessage('');
                             }
-                        }, 'Rename'),
+                        }, __('Rename', 'core-blueprint-notes')),
                         el(wp.components.Button, {
                             className: 'cb-core-button cb-core-button--danger',
                             variant: 'secondary',
                             isDestructive: true,
                             disabled: busy,
                             onClick: function () { confirmDelete(item, kind); }
-                        }, 'Remove')
+                        }, __('Remove', 'core-blueprint-notes'))
                     );
                 }
 
@@ -247,7 +255,7 @@
                 el('div', { className: 'cb-notes-organize__list-heading' },
                     el('h2', { className: 'cb-notes-organize__heading' }, spec.title),
                     el('span', { className: 'cb-notes-organize__count' },
-                        items.length + (items.length === 1 ? ' personal label' : ' personal labels'))
+                        sprintf(_n('%d personal label', '%d personal labels', items.length, 'core-blueprint-notes'), items.length))
                 ),
                 el(wp.components.Button, {
                     className: 'cb-core-button ' +
@@ -264,7 +272,7 @@
                         setError('');
                         setMessage('');
                     }
-                }, adding ? 'Cancel' : 'Add new')
+                }, adding ? __('Cancel', 'core-blueprint-notes') : __('Add new', 'core-blueprint-notes'))
             );
 
             var panel = [header];
@@ -276,12 +284,12 @@
                     className: 'cb-notes-organize__create'
                 },
                     el(wp.components.TextControl, {
-                        label: 'Name',
+                        label: __('Name', 'core-blueprint-notes'),
                         value: newName,
                         maxLength: 80,
                         disabled: busy,
                         onChange: setNewName,
-                        placeholder: 'Name your new ' + spec.singular
+                        placeholder: sprintf(__('Name your new %s', 'core-blueprint-notes'), spec.singular)
                     }),
                     el('div', { className: 'cb-notes-organize__actions' },
                         el(wp.components.Button, {
@@ -289,13 +297,13 @@
                             variant: 'primary',
                             disabled: busy || !newName.trim(),
                             onClick: function () { mutate('create', '', newName.trim(), kind); }
-                        }, 'Create ' + spec.singular),
+                        }, sprintf(__('Create %s', 'core-blueprint-notes'), spec.singular)),
                         el(wp.components.Button, {
                             className: 'cb-core-button cb-core-button--secondary',
                             variant: 'secondary',
                             disabled: busy,
                             onClick: function () { setAdding(false); setNewName(''); }
-                        }, 'Cancel')
+                        }, __('Cancel', 'core-blueprint-notes'))
                     )
                 ));
             }
@@ -305,7 +313,7 @@
 
             content.push(el('section', {
                 key: 'manager', className: 'cb-core-card cb-notes-organize__card',
-                'aria-label': spec.title + ' management'
+                'aria-label': sprintf(__('%s management', 'core-blueprint-notes'), spec.title)
             }, el('div', { className: 'cb-core-card__body' }, panel)));
         }
 
