@@ -5,6 +5,7 @@ use CoreBlueprint\Core\ExtensionRegistry;
 use CoreBlueprint\Core\Admin\SettingsRegistry;
 use CB\Notes\Admin\SettingsPage;
 use CB\Notes\Sharing\Controller;
+use CB\Notes\Sharing\SecureRevocationRecovery;
 use CB\Notes\Integration\SecureProvider;
 use CB\Notes\Organization\Catalog;
 use CB\Notes\Library\Page as LibraryPage;
@@ -40,6 +41,7 @@ final class Plugin {
         add_action('init',[self::class,'register_events'],9);
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
         SettingsPage::init();
+        SecureRevocationRecovery::register();
         Catalog::init();
         LibraryPage::init();
         Markers::init();
