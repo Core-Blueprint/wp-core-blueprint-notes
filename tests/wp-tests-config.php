@@ -30,6 +30,7 @@ define( 'AUTH_SALT', 'cb-notes-tests-auth-salt' );
 define( 'SECURE_AUTH_SALT', 'cb-notes-tests-secure-salt' );
 define( 'LOGGED_IN_SALT', 'cb-notes-tests-login-salt' );
 define( 'NONCE_SALT', 'cb-notes-tests-nonce-salt' );
+define( 'CB_NOTES_SHARE_EPOCH_KEY', str_repeat( 'a', 64 ) );
 define( 'WP_TESTS_DOMAIN', 'notes.test' );
 define( 'WP_TESTS_EMAIL', 'noreply@notes.test' );
 define( 'WP_TESTS_TITLE', 'Core Blueprint Notes Integration Tests' );
