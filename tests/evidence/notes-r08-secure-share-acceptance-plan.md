@@ -1,6 +1,6 @@
 # Notes Alpha25: R08 Secure Share acceptance plan
 
-**Status (2026-10-14): Optional API compatibility source gate PREPARED, NOT RUN. Real Secure Share/HTTPS gate NOT RUN.** This file is under tests/evidence and is intentionally omitted from the pinned Alpha25 ZIP.
+**Status (2026-10-14): R08.1 ACTUAL SOURCE COMPATIBILITY PASS; R08.2 real-provider CLI/SQL runner PREPARED, NOT RUN; R08.3 browser HTTPS gate NOT RUN.** This file is under tests/evidence and is intentionally omitted from the pinned Alpha25 ZIP.
 
 ## Actual first-party provider inspected
 
@@ -16,6 +16,51 @@ cd ~/Downloads/wp-core-blueprint-notes
 node tests/secure-share-api-compat.cjs
 ```
 It reads `~/Downloads/wp-core-blueprint-secure-share` by default (or explicit absolute `CB_NOTES_SECURE_SHARE_REPO` environment path), requires clean tracked working trees, records both HEADs and performs no network/WordPress/SQL actions. This is **not wired into `bash tools/check`** because Secure Share is optional.
+
+## R08.1 actual operator compatibility evidence: PASS
+
+The operator confirmed that the existing `~/Downloads/wp-core-blueprint-secure-share` repository was checked out on `fix/core-admin-components-contract-v1` with uncommitted edits in `src/Integration/Suite.php` and `tests/suite-integration-regression.php`. These existing changes were **not** discarded, stashed, committed, switched or tested as final R08 authority. Instead, an independent clean `~/Downloads/wp-core-blueprint-secure-share-r08` worktree was opened at the published `main` commit `88c15c45a4898dd1c43c1dfad1d7265f5b693350`; `bash tools/check` completed `Secure Share SS4 checks: PASS`. Notes at `fc07c8f81970063badfde6c92f7b4be3bac65a34` then returned:
+
+```text
+Notes R08 Secure Share API compatibility source: PASS
+Notes source HEAD: fc07c8f81970063badfde6c92f7b4be3bac65a34
+Secure Share source HEAD: 88c15c45a4898dd1c43c1dfad1d7265f5b693350
+R08 real HTTPS, provider persistence, password, expiry, revoke and rollback: NOT RUN
+```
+
+The initial `git worktree add origin/main` and subsequent `FETCH_HEAD` attempts did not establish a new checkout; the **already existing clean worktree** above is independently verified by the successful HEAD/status and SS4 checks. R08.1 is **CLOSED for source compatibility** only. This is not a runtime provider or external HTTPS PASS.
+
+## R08.2 guarded real-provider WordPress CLI/SQL test: PREPARED, NOT RUN
+
+The test-only files `tests/r08/wordpress-config.php`, `tests/r08/fixture.php`, `tests/r08/runner-contract.cjs` and `tools/check-secure-runtime` are staged on the existing Notes hardening branch. Their safety-source contract is wired into `bash tools/check` without requiring optional Secure Share to be installed merely to run Notes source checks.
+
+The runner:
+- Requires a **clean** detached Secure Share worktree pinned to `88c15c45a4898dd1c43c1dfad1d7265f5b693350` and a clean local Base.
+- Requires the immutable Alpha25 ZIP SHA-256 `77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908`.
+- Refuses an existing `core_blueprint_notes_r08_test` SQL database; creates one synthetic disposable MariaDB test schema and temporary WordPress 7.0 CLI-only site under `/tmp/core-blueprint-tests/notes-r08-secure-provider`. No HTTP server is exposed.
+- Activates real Base, Notes Alpha25 and real Secure Share on that isolated site; verifies the actual Secure Share schema, public API readiness and Notes provider registration.
+- Uses a synthetic private note and two test editors to prove cross-user issue denial, real password-protected grant creation, provider SQL persistence and expiry, bearer hash lookup, denial before password verification, authorized provider delivery of frozen HTML, unchanged share after private edit, Notes local revocation and real provider grant revocation with revision advancement, and rejection of the old bearer and stale context.
+- Keeps the bearer, invitation fragment, password and grant UUID out of routine output. The temporary site and test database are cleaned through an ownership-aware trap; provider failures remain a genuine failure and are not silently converted into PASS.
+
+**Run after pulling updated Notes test-only branch (the existing Alpha25 release package remains immutable):**
+
+```bash
+cd ~/Downloads/wp-core-blueprint-notes
+git fetch origin
+git switch feature/notes-rc1-golden-hardening-v1
+git pull --ff-only origin feature/notes-rc1-golden-hardening-v1
+git rev-parse HEAD
+git status --short
+php -l tests/r08/wordpress-config.php
+php -l tests/r08/fixture.php
+bash -n tools/check-secure-runtime
+node tests/r08/runner-contract.cjs
+bash tools/check
+echo "77035d6ba1c5e352d97f917eb8a4ddcaca09af3b36db155bbb2ab4303610e908  dist/core-blueprint-notes-0.1.0-alpha25.zip" | sha256sum -c -
+bash tools/check-secure-runtime
+```
+
+Expected result **only if the genuine PHP/WordPress/provider SQL test succeeds**: `Notes R08.2 real-provider runtime: PASS (isolated WP 7.0 CLI)`. If the isolated activation, schema readiness or any provider assertion fails, keep R08.2 **BLOCKED** and repair only the test or affected product after a reviewed patch. Do not infer that browser password gates and cookies have been verified from the CLI fixture, which supplies a vetted real provider context but bypasses interactive browser transport.
 
 ## R08 real runtime cases (NOT RUN)
 
