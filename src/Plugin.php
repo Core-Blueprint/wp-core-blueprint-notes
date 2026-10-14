@@ -125,7 +125,9 @@ final class Plugin {
             'rest_base'=>'cb-notes','has_archive'=>false,'rewrite'=>false,'query_var'=>false,
             'show_in_nav_menus'=>false,'show_in_admin_bar'=>false,
             'menu_icon'=>'dashicons-edit-page','menu_position'=>26.5,
-            'supports'=>['title','editor','author','revisions'],
+            // WP REST only exposes registered meta for CPTs with custom-fields support.
+            // Catalog::validate_note_rest and per-key auth_callbacks enforce the owner boundary.
+            'supports'=>['title','editor','author','revisions','custom-fields'],
             'map_meta_cap'=>true,'capability_type'=>['cb_note','cb_notes'],
             'capabilities'=>[
                 'edit_post'=>'edit_post','read_post'=>'read_post',
