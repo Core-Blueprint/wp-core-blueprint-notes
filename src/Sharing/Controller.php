@@ -64,12 +64,15 @@ final class Controller {
         }
         $mode = self::mode($post->ID);
         $snapshot = get_post_meta($post->ID, self::PUBLIC_META, true);
+        $publicValid = $mode === 'public' &&
+            self::public_snapshot_allowed($post, (string)($snapshot['key'] ?? ''), $snapshot);
         return [
             'mode' => $mode,
             'modified_gmt' => (string)$post->post_modified_gmt,
             'content_version' => self::content_version($post),
-            'public_url' => $mode === 'public' && is_array($snapshot)
-                ? self::url((string)($snapshot['key'] ?? '')) : null,
+            'public_url' => $publicValid ? self::url((string)$snapshot['key']) : null,
+            'public_ready' => PublicShareGuard::ready(),
+            'public_valid' => $publicValid,
             'secure_available' => SecureProvider::available(),
             'has_secure_link' => $mode === 'secure',
             'shared_at' => $mode === 'public' && is_array($snapshot)
@@ -118,6 +121,10 @@ final class Controller {
             return self::error('Secure sharing is not permitted for this account.', 403);
         }
 
+        if ($mode === 'public' && !PublicShareGuard::ready()) {
+            return self::error('Public sharing requires an installation recovery key.', 503);
+        }
+
         $html = Snapshot::capture($post);
         if (is_wp_error($html)) {
             return $html;
@@ -130,6 +137,11 @@ final class Controller {
                 'modified' => (string)$post->post_modified_gmt,
                 'created' => gmdate('c'),
             ];
+            $signed = PublicShareGuard::sign((int)$post->ID, $snapshot);
+            if ($signed === false) {
+                return self::error('Public sharing requires an installation recovery key.', 503);
+            }
+            $snapshot = $signed;
             // Persist all three fields before advertising the public URL.
             // A failed write disarms delivery; partially stored snapshots
             // must never become independently reachable.
@@ -284,6 +296,7 @@ final class Controller {
             'Secure links must expire within 1 to 30 days.' => __('Secure links must expire within 1 to 30 days.', 'core-blueprint-notes'),
             'Secure sharing failed. No new link is active in Notes.' => __('Secure sharing failed. No new link is active in Notes.', 'core-blueprint-notes'),
             'Public sharing could not be saved. No new link is active.' => __('Public sharing could not be saved. No new link is active.', 'core-blueprint-notes'),
+            'Public sharing requires an installation recovery key.' => __('Public sharing requires an installation recovery key.', 'core-blueprint-notes'),
             default => __('Sharing is unavailable.', 'core-blueprint-notes'),
         };
         return new \WP_Error('cb_notes_sharing_unavailable', $translated, ['status' => $status]);
@@ -300,7 +313,9 @@ final class Controller {
         }
         $stored = $snapshot['key'] ?? null;
         return is_string($stored) && strlen($stored) === 32
-            && hash_equals($stored, $key);
+            && hash_equals($stored, $key)
+            && hash_equals((string)get_post_meta($post->ID, self::PUBLIC_KEY, true), $key)
+            && PublicShareGuard::verify((int)$post->ID, $snapshot);
     }
 
     /** Only the explicitly shared frozen copy is delivered to anonymous visitors. */
