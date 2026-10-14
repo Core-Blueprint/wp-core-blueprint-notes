@@ -1,12 +1,35 @@
 # Notes RC1 | Historical backup share rollback security decision
 
-**Status: SECURITY POLICY AND PRODUCT DECISION REQUIRED, NOT IMPLEMENTED OR RUN (2026-10-14).**
+**Status: RISK REPRODUCED on isolated WordPress 7.0 / Notes Alpha24 (2026-10-14). P0 SECURITY MITIGATION NOT IMPLEMENTED.**
 
 ## Concrete exposure and evidence
 
 The successful WordPress 7.0 SQL restore test took the backup **after** a synthetic Public share was revoked, and the successful 44-check localhost HTTP test revoked a token without rolling back its database. Those results prove revocation on the current DB state, **not revocation persistence through a restore of an older DB snapshot**.
 
-In `src/Sharing/Controller.php`, the public share authorization uses local postmeta: `MODE_META` (`_cb_notes_share_mode`), `PUBLIC_META` (`_cb_notes_public_snapshot`) and `PUBLIC_KEY` (`_cb_notes_public_key`). The public delivery path checks this state. A full restore of an **older database containing an active public snapshot and its key** can therefore cause a previously revoked link to become valid again. A database-local revocation marker from the newer state would also be rolled back. This is a real architectural rollback hazard, but **the historical-backup HTTP replay scenario has not yet been executed**. Treat the risk as a release security blocker until a policy and mitigations have been accepted and tested.
+In `src/Sharing/Controller.php`, the public share authorization uses local postmeta: `MODE_META` (`_cb_notes_share_mode`), `PUBLIC_META` (`_cb_notes_public_snapshot`) and `PUBLIC_KEY` (`_cb_notes_public_key`). The public delivery path checks this state. A full restore of an **older database containing an active public snapshot and its key** can therefore cause a previously revoked link to become valid again. A database-local revocation marker from the newer state would also be rolled back. This is a **reproduced authorization-level rollback defect**. The old SQL backup replay has now run successfully in isolated WordPress 7.0. A separate HTTP request to the restored target and its CDN has **not** been executed. Treat the risk as a release security blocker until mitigation has been accepted, implemented and tested.
+
+## Reproduction evidence: completed 2026-10-14
+
+The operator executed `bash tools/check-rollback-repro` on `feature/notes-rc1-golden-hardening-v1`, source HEAD `6adffe914b0e1bc57496bdabc519334e463bf78e`, after full `bash tools/check` and rollback fixture source checks PASS.
+
+| Step | Actual result |
+|---|---|
+| Create synthetic private WordPress note and authorized Public snapshot | `Notes rollback rehearsal: source active-share seed PASS (7 checks)` |
+| Store full SQL archive **while the share is active** | Source database exported to private temporary SQL file |
+| Revoke the share in the current source database | `Notes rollback rehearsal: source revocation PASS (7 checks)` |
+| Import older active-share SQL into a separate WordPress target database | Completed without reported SQL error |
+| Evaluate the restored target's `Controller::public_snapshot_allowed()` | `Notes rollback rehearsal: RISK REPRODUCED after old SQL restore (5 checks)` |
+| Revalidate source revocation after the target restore | `Notes rollback rehearsal: original source remains revoked PASS (5 checks)` |
+| Runner summary | `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore` |
+
+- Source: WordPress 7.0 / synthetic Alpha24 Notes artifact; two prechecked disposable MariaDB databases in local test container
+- Backup SQL SHA-256: `84b5ba7da10dc7e5d36c84f2cc4398e26205c75893f34e0c9ef9efbccaebbc39`
+- Alpha24 ZIP SHA-256: `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc`
+- Cleanup: runner reached its test database and file cleanup announcement; independent teardown inspection was not reported
+- Scope: **the actual WordPress authorization predicate on a restored SQL database**, not an externally served restored HTTP page, CDN cache, complete-hosting restore or Secure Share grant
+- Security outcome: reproduction **PASS**, RC1 safety acceptance **FAIL/BLOCKED** until a separate mitigation and negative security test PASS
+
+The 76 SQL source-to-target recovery checks and 44 HTTP loopback checks remain accurate for their previously reported cases and do not imply safety under historical backup replay.
 
 ## Minimum safe operator recovery procedure (PROPOSED, not currently automated)
 
@@ -35,7 +58,7 @@ Keep any recovery token/epoch outside public web paths, version it deliberately,
 6. Apply the documented recovery reset and verify 404 before unquarantining. With optional Secure Share, verify the provider grant also cannot deliver.
 7. Establish exact evidence, compatibility and cleanup. If link delivery becomes 200 at any point after it was revoked, mark **FAIL** and block RC1 until the failure is remediated.
 
-## Prepared isolated risk reproduction (SOURCE-ONLY; NOT YET RUN)
+## Isolated reproduction runner (ACTUAL RUNTIME PASS, evidence above)
 
 A separate strictly synthetic runner, `tools/check-rollback-repro`, is now staged on `feature/notes-rc1-golden-hardening-v1`. It does **not** change Notes product code, WordPress production data, Base, the CDN, Secure Share or customer links. It uses two new fixed MariaDB databases (`core_blueprint_notes_rollback_source` and `core_blueprint_notes_rollback_target`) and two separately bootstrapped disposable WordPress 7.0 installations. It refuses existing database names and an incorrect container, branch or checksum; cleanup ownership is acquired only after both test databases have been created. Its synthetic CLI-only configuration cannot serve public HTTP traffic.
 
@@ -57,11 +80,11 @@ sha256sum dist/core-blueprint-notes-0.1.0-alpha24.zip
 bash tools/check-rollback-repro
 ```
 
-**Expected before mitigation:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore`. This means the hazard is experimentally confirmed, **not** that sharing is secure. A failed reproduction needs investigation, not a security PASS claim. This runner does not test public HTTP, hosting or cache behavior. The next development batch must implement an agreed fail-closed recovery barrier and a separate negative acceptance test that expects the historic key to remain denied after restore.
+**Observed:** `Notes historical share rollback: RISK REPRODUCED in isolated Alpha24 SQL restore` (2026-10-14). This is experimental proof of the hazard, **not** evidence of security. The runner still does not test public HTTP, hosting or cache behavior. The next development batch must implement an approved fail-closed recovery barrier and a separate **negative** acceptance test requiring the historic key to remain denied after restore.
 
 ## Gate and product decisions
 
-- **OPEN P0/security design:** fail-closed handling of old-backup active sharing keys, including cache and optional real-provider behavior.
+- **CONFIRMED P0/security blocker:** older-backup restore resurrects authorization of previously revoked Public sharing keys. Fail-closed protection, cache and optional real-provider behavior remain unresolved.
 - **No false closure:** the 76-check SQL restore PASS and 44-check localhost HTTP PASS retain their status, but neither covers this scenario.
 - **No implementation GO:** do not modify user data, live hosting, Base, sharing metadata, CDN or provider, and do not merge or promote to RC1 on the basis of this proposal.
 - Product owner must sign off whether RC1 requires an automated rollback-resistant barrier or a documented offline recovery/quarantine/reset workflow and the exact resulting acceptance test. Prefer an actually enforced barrier over a purely documentary warning.
