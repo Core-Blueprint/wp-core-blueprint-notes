@@ -42,6 +42,7 @@ function current_user_can(string $cap,int $id=0): bool {
     return user_can(get_current_user_id(),$cap);
 }
 function get_post(int $id): ?WP_Post { return $GLOBALS['posts'][$id]??null; }
+function get_post_type(int $id): string|false { return get_post($id)?->post_type ?? false; }
 function get_post_meta(int $id,string $key,bool $single=true): mixed {
     return $GLOBALS['notes_meta'][$id][$key]??'';
 }
@@ -162,6 +163,15 @@ $note->post_status='private';
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::MODE_META)==='private','trash revokes share mode permanently');
 verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'restore does not reactivate old public link');
 verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY)==='','trash removes shared URL key');
+// Defense in depth: restoring even an unexpectedly stale public state revokes it.
+update_post_meta(42, \CB\Notes\Sharing\Controller::MODE_META, 'public');
+update_post_meta(42, \CB\Notes\Sharing\Controller::PUBLIC_META, $snapshot);
+update_post_meta(42, \CB\Notes\Sharing\Controller::PUBLIC_KEY, $key);
+\CB\Notes\Plugin::audit_restore(42);
+verify(get_post_meta(42, \CB\Notes\Sharing\Controller::MODE_META) === 'private'
+    && get_post_meta(42, \CB\Notes\Sharing\Controller::PUBLIC_KEY) === '',
+    'RC1: restore hook never reactivates a stale public share');
+
 $note->post_content='UNSAFE';
 verify(\CB\Notes\Sharing\Snapshot::capture($note) instanceof WP_Error,'dynamic/embedded blocks refused');
 $GLOBALS['current_user']=5;
