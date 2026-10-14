@@ -88,17 +88,17 @@ Create two regular Notes editor accounts **A** and **B**, an actual site adminis
 |---|---|---|---|
 | R01 | WP 7.0/7.1, PHP 8.4+, Base API 1.2; Base missing/incompatible | Safe refusal, clear notice, no fatal fallback | NOT RUN |
 | R02 | Gutenberg create/edit/save, autosave, revisions, restore, native Publish | Lossless blocks; private CPT cannot be publicly queried | NOT RUN |
-| R03 | A/B/admin/anonymous, exact REST reads/edit/delete, revisions/autosaves/list | No unauthorized note, count, title, content, ID or meta disclosure | NOT RUN |
+| R03 | A/B/admin/anonymous, exact REST reads/edit/delete, revisions/autosaves/list | No unauthorized note, count, title, content, ID or meta disclosure | PARTIAL: 44 local HTTP origin checks PASS; full manual matrix NOT RUN |
 | R04 | Notebook/category/tag create/rename/remove/filter, foreign catalog IDs | Independent personal catalogs; no cross-user suggestions or mutations | NOT RUN |
 | R05 | List/Table, sort A–Z/Z–A + recent/oldest, search, paging, favorites/pins | Same owner-scoped results, no metadata leaks, saved view preference | NOT RUN |
 | R06 | Bulk up to 20, invalid IDs/nonce, partial success, confirmed/cancelled Trash | No cross-owner writes; correct failures and share revocation | NOT RUN |
-| R07 | Public frozen snapshot; revoked/trashed/restored note, private REST & CDN | Public gated, no resurrection, HTTP cache/robots policy honored | NOT RUN |
+| R07 | Public frozen snapshot; revoked/trashed/restored note, private REST & CDN | Public gated, no resurrection, HTTP cache/robots policy honored | PARTIAL: frozen snapshot, headers & 404 revocation on local HTTP origin PASS; CDN/remaining manual scenarios NOT RUN |
 | R08 | Secure Share absent/present, password, expiry, revocation and rollback | Soft absence; token isolated; no delivery after revocation | NOT RUN |
 | R09 | MCP/Abilities disabled and explicitly read-enabled, A/B and admin | No unauthorized exposure, no write abilities, bounded queries | NOT RUN |
-| R10 | Alpha migrations, label deletion, deactivation, backup and restore | No data loss; explicit validated catalog portability/uninstall decision | NOT RUN |
+| R10 | Alpha migrations, label deletion, deactivation, backup and restore | No data loss; explicit validated catalog portability/uninstall decision | PARTIAL: full SQL source-to-target restore PASS (76 checks), other lifecycle cases NOT RUN |
 | R11 | Light/Dark, mobile/table scroll, 200% zoom, keyboard/focus, screen reader | Accessible, responsive and intact in both Base themes | NOT RUN |
 | R12 | 20/page lists, 250+ Note/label boundary, bulk + share audit log | Predictable limits; no unbounded writes, no leaked sensitive log values | NOT RUN |
-| R13 | Two clean identical ZIP builds, checksum, root allowlist, dependency rules | Deterministic, no test/secret/hidden files in release package | NOT RUN |
+| R13 | Two clean identical ZIP builds, checksum, root allowlist, dependency rules | Deterministic, no test/secret/hidden files in release package | PARTIAL: deterministic source build & ZIP integrity operator-reported PASS; final RC1 artifact NOT RUN |
 
 **Security STOP:** any leak, unexpected anonymous/remote access, revocation failure, raw snapshot/body in logs, data loss, or broken activation. Never mark a NOT RUN cell PASS because a similar source smoke test passed.
 
@@ -114,11 +114,11 @@ Create two regular Notes editor accounts **A** and **B**, an actual site adminis
 
 An isolated, fail-closed restore rehearsal has been specified in [RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md](RC1-DISPOSABLE-RESTORE-ACCEPTANCE.md). It requires a complete synthetic source WordPress site/database backup, a separately provisioned target database/site, user/author/catalog identity checks, Base trust-domain review, and privacy/sharing revocation checks. **PASS:** the documented SQL source-to-target restore completed on WordPress 7.0. **OPEN:** external HTTP/cache, historical active-share backup rollback and real provider token-revocation proof. `tools/check-integration` is not the backup/restore runner because it resets its sole PHPUnit database on every run.
 
-**2026-10-14 operator confirmation:** the final Alpha24 source check, two identical releasebuilds, ZIP integrity and hash comparison were all reported PASS. The exact Alpha24 artifact SHA-256 is now pinned above; changes to docs in later commits will change newly built ZIP checksums. Restore tests intentionally used the previously verified artifact. This does not close the independent restore, CDN, Secure Share or browser gates.
+**2026-10-14 operator confirmation:** the final Alpha24 source check, two identical releasebuilds, ZIP integrity and hash comparison were all reported PASS. The exact Alpha24 artifact SHA-256 is now pinned above; changes to docs in later commits will change newly built ZIP checksums. Restore and local HTTP tests intentionally used the previously verified artifact. These results do not close CDN, Secure Share, remaining browser/manual cases or the final RC1 release build.
 
-### Next security gate: real HTTP/REST, cache/CDN and sharing (NOT RUN)
+### Real localhost HTTP origin security: PASS (44 checks), external cache/CDN and provider open
 
-The next acceptance plan is [RC1-HTTP-SHARING-ACCEPTANCE.md](RC1-HTTP-SHARING-ACCEPTANCE.md). A separate **source-only pilot** `tools/check-http` is now staged for localhost actual HTTP testing with its own disposable database and synthetic A/B users; **NOT RUN** until the operator executes it. It covers origin HTTP and does not close the live cache/CDN or provider gate. The broader plan includes: authorized/foreign/anonymous REST reads and mutations over an actual HTTP server; an explicit synthetic Public share frozen snapshot and response security headers; immediate revocation plus repeated origin/CDN tests through LiteSpeed/QUIC.cloud if applicable; and a separate optional real Secure Share provider gate. A full SQL restore PASS does **not** imply CDN revocation or protect against restoring an **older backup containing a once-active share key**. Keep this scenario explicitly unresolved until a non-rollback revocation policy is tested. No HTTP or CDN tests have been executed in this batch.
+**2026-10-14 REAL LOCAL HTTP PASS (operator evidence):** On branch HEAD `bbb4d21dbdb7efed2bc69876cf4a91e04c9d0297`, `bash tools/check-http` completed with synthetic seed/edit/revocation PASS and **`Notes real loopback HTTP origin: PASS (44 checks, WP 7.0)`** against pinned Alpha24 ZIP SHA-256 `22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc`. The test verified A/B/anonymous REST privacy including B's explicit private list/count, a frozen public snapshot, origin cache/noindex security headers, and repeat 404 after revocation. [Detailed acceptance evidence](RC1-HTTP-SHARING-ACCEPTANCE.md). **This closes only local HTTP-origin checks**, not the full R03/R07 manual matrix, CDN/LiteSpeed/QUIC.cloud, real Secure Share delivery or external HTTPS. A full SQL restore plus local HTTP PASS also does **not** protect against restoring an **older backup containing a once-active share key**. The older-backup risk remains a distinct release security decision.
 
 ## Release-scope decisions requiring operator signoff
 
