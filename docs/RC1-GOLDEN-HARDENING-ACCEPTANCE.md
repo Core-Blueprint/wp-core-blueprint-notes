@@ -1,4 +1,4 @@
-# Notes RC1 Golden — integrated one-batch acceptance (Alpha24 candidate)
+# Notes RC1 Golden — integrated acceptance (Alpha25 Share Recovery Guard candidate; Alpha24 historical baseline)
 
 **2026-10-13 — IN PROGRESS. Not Golden, not RC1, not production ready.**
 
