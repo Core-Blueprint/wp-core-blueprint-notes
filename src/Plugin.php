@@ -196,7 +196,15 @@ final class Plugin {
         Controller::revoke_for_lifecycle($post_id);
         self::audit_lifecycle('trashed',$post_id);
     }
-    public static function audit_restore(int $post_id): void {self::audit_lifecycle('restored',$post_id);}
+    public static function audit_restore(int $post_id): void {
+        $post = get_post($post_id);
+        // Defense in depth: a restored private note must not resurrect a share
+        // if the original Trash lifecycle encountered a transient DB error.
+        if ($post instanceof \WP_Post && $post->post_type === self::TYPE) {
+            Controller::revoke_for_lifecycle($post_id);
+        }
+        self::audit_lifecycle('restored', $post_id);
+    }
     public static function audit_delete(int $post_id,\WP_Post $post): void {
         Controller::revoke_for_lifecycle($post_id);
         if($post->post_type===self::TYPE)
