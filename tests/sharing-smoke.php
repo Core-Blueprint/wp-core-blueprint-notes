@@ -3,6 +3,7 @@ declare(strict_types=1);
 /** Alpha3 no-WordPress contract smoke. Does NOT replace real multi-user runtime testing. */
 
 define('ABSPATH', __DIR__ . '/');
+define('CB_NOTES_SHARE_EPOCH_KEY', str_repeat('a', 64));
 $GLOBALS['current_user'] = 4;
 $GLOBALS['posts'] = [];
 $GLOBALS['notes_meta'] = [];
@@ -72,6 +73,7 @@ function parse_blocks(string $html): array {
 function render_block(array $block): string { return (string)$block['innerHTML']; }
 function wp_kses(string $html,array $allowed,array $protocols=[]): string { return strip_tags($html,'<p><strong><em><h2>'); }
 function home_url(string $path): string {return 'https://example.test'.$path;}
+function wp_json_encode(mixed $value, int $options=0): string|false { return json_encode($value, $options); }
 function gmdate_unused(): void {}
 function esc_html(string $text): string{return htmlspecialchars($text,ENT_QUOTES);}
 function esc_attr(string $text): string{return esc_html($text);}
@@ -82,6 +84,7 @@ class_alias(MockAudit::class, 'CoreBlueprint\\Core\\Governance\\Audit');
 require dirname(__DIR__).'/src/Access.php';
 require dirname(__DIR__).'/src/Plugin.php';
 require dirname(__DIR__).'/src/Sharing/Snapshot.php';
+require dirname(__DIR__).'/src/Sharing/PublicShareGuard.php';
 require dirname(__DIR__).'/src/Integration/SecureProvider.php';
 require dirname(__DIR__).'/src/Sharing/Controller.php';
 function verify(bool $ok,string $message): void {
@@ -138,6 +141,17 @@ verify(get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META)['html']==='<p
 $key=(string)get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_KEY);
 $snapshot=get_post_meta(42,\CB\Notes\Sharing\Controller::PUBLIC_META);
 verify(\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'explicit active public snapshot permitted');
+verify(($snapshot['signature_version'] ?? null) === 1
+    && preg_match('/^[a-f0-9]{64}$/D', (string)($snapshot['signature'] ?? '')) === 1,
+    'RC1: public snapshot includes versioned recovery signature');
+$unsigned = $snapshot;
+unset($unsigned['signature_version'], $unsigned['signature']);
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$unsigned),
+    'RC1: unsigned Alpha24 public snapshot denied');
+$tampered = $snapshot;
+$tampered['html'] = '<p>Altered frozen content</p>';
+verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$tampered),
+    'RC1: tampered frozen snapshot denied');
 $note->post_status='trash';
 verify(!\CB\Notes\Sharing\Controller::public_snapshot_allowed($note,$key,$snapshot),'trashed notes cannot remain public');
 $note->post_status='private';
