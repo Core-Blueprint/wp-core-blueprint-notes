@@ -71,6 +71,10 @@ A valid final `PASS` must come from `Notes real loopback HTTP origin: PASS (... 
 6. Test invalid/malformed keys and route permutations, as well as dangerous/embedded blocks (which must not enter a public frozen snapshot).
 7. Separate unresolved security question: restoring an **older full backup containing a once-active public key** may resurrect access at the origin unless an external/non-rollback revocation mechanism prevents it. Explicitly test or define the documented restore/rekey policy **before broad production claims**.
 
+### Unresolved old-backup replay gate (SECURITY DECISION REQUIRED)
+
+See [RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md](RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md) for the proposed offline recovery quarantine/reset policy, long-term non-rollback barrier architecture and negative test. A revoked public link that becomes reachable again after restoring an older database remains a release blocker until the accepted mitigation is tested. Neither the local HTTP PASS nor the full SQL restore PASS settles this case.
+
 ## R08: Optional Secure Share
 
 - **Absent**: Notes must function normally, show no broken Secure Share UI, and expose no secure share link.
