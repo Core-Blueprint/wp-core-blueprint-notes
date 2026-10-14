@@ -1,6 +1,6 @@
 # Notes RC1 | Fail-closed historical-share recovery guard: implementation specification
 
-**Status: PROPOSED / PRODUCT GO REQUIRED. Not implemented.** Linked risk reproduction: `RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md`, 2026-10-14 on WordPress 7.0. The Alpha24 authorization predicate reaccepts an old Public key after restoration of an older SQL snapshot. This spec does **not** authorize altering production data, host settings, Base, or existing Public/Secure Share links.
+**Status: FEATURE-BRANCH GO RECEIVED, ALPHA25 IMPLEMENTATION STAGED; RUNTIME SECURITY VALIDATION NOT YET PASS.** Linked risk reproduction: `RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md`, 2026-10-14 on WordPress 7.0. The Alpha24 authorization predicate reaccepts an old Public key after restoration of an older SQL snapshot. This spec does **not** authorize altering production data, host settings, Base, or existing Public/Secure Share links.
 
 ## Security guarantee and explicit limitations
 
