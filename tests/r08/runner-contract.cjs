@@ -52,11 +52,15 @@ check(fixture.includes('SecureInstaller::ready()') &&
     fixture.includes('$provider->deliver($context)'),
     'Fixture must inspect real plugin schema, grant store, verified bearer and registered provider');
 check(fixture.includes('PasswordHasher::verify(') &&
-    fixture.includes('password-protected grant denies context') &&
+    fixture.includes('ShareAction::View, false') &&
+    fixture.includes('ShareAction::View, true') &&
+    fixture.includes('Services::accessService()->context(') &&
+    fixture.includes('$grant->expiresAt()') &&
     fixture.includes('revokedAt() !== null') &&
-    fixture.includes('Old bearer cannot authorize after provider revocation') &&
-    fixture.includes('Cached old AccessContext cannot retrieve Notes after local revocation'),
-    'Fixture must exercise password, expiry-bound grant and revocation');
+    fixture.includes('revision() === 2') &&
+    fixture.includes('Services::accessService()->inspectBearer($bearer)') &&
+    fixture.includes('$provider->deliver($context)'),
+    'Fixture must execute real password, expiry, context and provider revoke checks');
 check(runner.includes('HTTPS browser, cookies, CDN and provider-side old-backup rollback: NOT RUN') &&
     fixture.includes('R08 HTTPS browser flow, cookies, CDN and provider rollback: NOT RUN'),
     'No source test or CLI runtime may claim separate HTTPS browser acceptance');
