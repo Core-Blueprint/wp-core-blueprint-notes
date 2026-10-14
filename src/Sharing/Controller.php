@@ -216,11 +216,7 @@ final class Controller {
             // finalization failed. Revoke it using the in-memory result before
             // discarding the pending snapshot. Never log the grant or URL.
             if ($issued !== null) {
-                try {
-                    $facade::revoke($issued->grantId(), $issued->revision());
-                } catch (\Throwable $revoke_error) {
-                    error_log('[Core Blueprint Notes] Uncommitted Secure Share grant needs operator review.');
-                }
+                SecureRevocationRecovery::revoke($issued->grantId(), $issued->revision());
             }
             self::disarm_sharing($post->ID);
             return self::error('Secure sharing failed. No new link is active in Notes.', 500);
@@ -256,17 +252,12 @@ final class Controller {
     /** Revoking local provider authority is immediate, even without Secure Share. */
     private static function revoke_old_secure(int $id): void {
         $old = get_post_meta($id, self::SECURE_META, true);
+        // Queue the provider obligation before deleting the last note-side
+        // reference. Local delivery is already disabled by the mode change.
+        if (is_array($old) && !empty($old['grant_id'])) {
+            SecureRevocationRecovery::revoke((string)$old['grant_id'], (int)($old['revision'] ?? 0));
+        }
         delete_post_meta($id, self::SECURE_META);
-        if (!is_array($old) || empty($old['grant_id']) || !SecureProvider::available()) {
-            return;
-        }
-        try {
-            \CB\SecureShare\PublicApi\SecureShare::revoke((string)$old['grant_id'], (int)$old['revision']);
-        } catch (\Throwable $error) {
-            // Provider is already disarmed by removing the Notes snapshot.
-            // Never reveal sensitive grant information or bearer secrets.
-            error_log('[Core Blueprint Notes] Secure Share grant revocation needs operator review.');
-        }
     }
 
     private static function record(string $mode, int $id): void {
