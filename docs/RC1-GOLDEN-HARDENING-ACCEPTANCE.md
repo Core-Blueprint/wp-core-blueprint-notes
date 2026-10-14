@@ -124,6 +124,10 @@ An isolated, fail-closed restore rehearsal has been specified in [RC1-DISPOSABLE
 
 [RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md](RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md) records the concrete risk: restoring an old SQL backup containing the three active Public sharing metadata fields can reauthorize an already revoked bearer link. Neither the 76-check SQL roundtrip (backup after revocation) nor 44-check local HTTP origin run (no DB rollback) exercises this. A proposed **quarantined, fail-closed recovery reset** and a separate old-backup negative test are documented. **No implementation and no acceptance test has been run.** Operator policy and tested enforcement are required before a global RC1 safety claim.
 
+### Next isolated vulnerability reproduction (PREPARED; NOT RUN)
+
+The guarded test-only `tools/check-rollback-repro` runner and `tests/rollback/*` fixtures are now staged. A full synthetic SQL backup is taken **while a Public share is active**, the source link is revoked, and the old backup is restored into a different, CLI-only test database. The target then verifies whether the *previously revoked* key is accepted by the current Alpha24 `Controller::public_snapshot_allowed()` authorization contract. This is deliberately expected to report **RISK REPRODUCED**, not a security PASS, and will establish reproduction evidence before any product-level mitigation or recovery barrier is approved. `bash tools/check` now includes the runner's source-only Bash and Node safety checks. **Actual execution and mitigation are NOT RUN.** See [historical rollback security decision](RC1-HISTORICAL-SHARE-ROLLBACK-DECISION.md).
+
 ## Release-scope decisions requiring operator signoff
 
 1. **Portability:** WordPress native CPT content and revisions remain canonical. Notebook/category/tag definitions use owner-private `user_meta`; normal post-only WXR does not automatically guarantee a valid round trip. Decide whether RC1 promises a tested full-site backup/restore route only, or needs a minimal scoped owner export. No new import UI without separate reviewed scope.
