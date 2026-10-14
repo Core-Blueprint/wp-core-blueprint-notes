@@ -32,10 +32,13 @@ assert(runner.includes('flock -x 9') &&
     runner.indexOf('OWN_DBS=1') > runner.indexOf('CREATE DATABASE ' + source) &&
     runner.includes('if [[ "$OWN_DBS" == 1 ]]'),
     'Lock, existing-DB refusal and database ownership must stay intact');
-assert(config.includes("PHP_SAPI !== 'cli'") &&
+assert(config.includes("!in_array(PHP_SAPI, ['cli', 'cli-server'], true)") &&
+    config.includes("$db !== 'core_blueprint_notes_rollback_target'") &&
+    config.includes("($_SERVER['REMOTE_ADDR'] ?? '') !== '127.0.0.1'") &&
+    config.includes("($_SERVER['HTTP_HOST'] ?? '') !== '127.0.0.1:18778'") &&
     config.includes("define('DB_HOST', '127.0.0.1:3307')") &&
     config.includes("define('WP_HTTP_BLOCK_EXTERNAL', true)"),
-    'Test must be CLI-only, pinned to local MariaDB, and block WordPress HTTP egress');
+    'Source remains CLI-only; only isolated restored target permits exact localhost HTTP; DB/egress pinned');
 assert(fixture.includes("'confirmation' => 'PUBLIC'") &&
     fixture.includes("CB_NOTES_ROLLBACK_PHASE") &&
     fixture.includes("Controller::public_snapshot_allowed"),
