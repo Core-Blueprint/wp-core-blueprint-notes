@@ -116,6 +116,10 @@ An isolated, fail-closed restore rehearsal has been specified in [RC1-DISPOSABLE
 
 **2026-10-14 operator confirmation:** the final Alpha24 source check, two identical releasebuilds, ZIP integrity and hash comparison were all reported PASS. The exact Alpha24 artifact SHA-256 is now pinned above; changes to docs in later commits will change newly built ZIP checksums. Restore tests intentionally used the previously verified artifact. This does not close the independent restore, CDN, Secure Share or browser gates.
 
+### Next security gate: real HTTP/REST, cache/CDN and sharing (NOT RUN)
+
+The next acceptance plan is [RC1-HTTP-SHARING-ACCEPTANCE.md](RC1-HTTP-SHARING-ACCEPTANCE.md): authorized/foreign/anonymous REST reads and mutations over an actual HTTP server; an explicit synthetic Public share frozen snapshot and response security headers; immediate revocation plus repeated origin/CDN tests through LiteSpeed/QUIC.cloud if applicable; and a separate optional real Secure Share provider gate. A full SQL restore PASS does **not** imply CDN revocation or protect against restoring an **older backup containing a once-active share key**. Keep this scenario explicitly unresolved until a non-rollback revocation policy is tested. No HTTP or CDN tests have been executed in this batch.
+
 ## Release-scope decisions requiring operator signoff
 
 1. **Portability:** WordPress native CPT content and revisions remain canonical. Notebook/category/tag definitions use owner-private `user_meta`; normal post-only WXR does not automatically guarantee a valid round trip. Decide whether RC1 promises a tested full-site backup/restore route only, or needs a minimal scoped owner export. No new import UI without separate reviewed scope.
