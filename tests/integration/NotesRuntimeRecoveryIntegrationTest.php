@@ -19,6 +19,15 @@ final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
         self::assertSame( '127.0.0.1:3307', (string) DB_HOST );
         Plugin::grant_roles();
         self::assertTrue( post_type_exists( Plugin::TYPE ) );
+        // wp-phpunit unregisters *every* registered meta key at tear_down().
+        // Recreate the real WordPress init registration for each isolated test;
+        // otherwise REST can return 200 with an empty meta projection even
+        // while a previously cached CPT controller schema lists the fields.
+        Catalog::register_meta();
+        foreach ( [ Catalog::NOTEBOOK, Catalog::CATEGORY, Catalog::TAGS ] as $key ) {
+            self::assertTrue( registered_meta_key_exists( 'post', $key, Plugin::TYPE ),
+                'REST metadata registry is missing the Notes key: ' . $key );
+        }
         self::assertTrue( post_type_supports( Plugin::TYPE, 'custom-fields' ),
             'Without CPT custom-fields support, native Gutenberg REST meta writes are omitted.' );
     }
