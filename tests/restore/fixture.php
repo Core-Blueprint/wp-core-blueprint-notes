@@ -20,8 +20,8 @@ $expected_db = $phase === 'seed'
 if (!in_array($phase, ['seed', 'verify'], true) || DB_NAME !== $expected_db) {
     throw new RuntimeException('Notes restore fixture requires the correct disposable database and phase.');
 }
-if (!defined('CB_NOTES_VERSION') || CB_NOTES_VERSION !== '0.1.0-alpha25') {
-    throw new RuntimeException('Restore requires installed Alpha25 Notes.');
+if (!defined('CB_NOTES_VERSION') || CB_NOTES_VERSION !== '0.1.0-alpha26') {
+    throw new RuntimeException('Restore requires installed Alpha26 Notes.');
 }
 if (!defined('CB_CORE_API_VERSION') || (string) CB_CORE_API_VERSION !== '1.2') {
     throw new RuntimeException('Restore requires Base API 1.2.');
