@@ -4,10 +4,10 @@ use CB\Notes\Plugin;
 use CB\Notes\Sharing\Controller;
 
 $phase = (string) getenv('CB_NOTES_ROLLBACK_PHASE');
-$expected = $phase === 'target_exposure'
+$expected = in_array($phase, ['target_exposure', 'target_denied', 'target_reissue'], true)
     ? 'core_blueprint_notes_rollback_target'
     : 'core_blueprint_notes_rollback_source';
-if (!in_array($phase, ['seed', 'revoke', 'source_still_revoked', 'target_exposure'], true)
+if (!in_array($phase, ['seed', 'revoke', 'source_still_revoked', 'target_exposure', 'target_denied', 'target_reissue'], true)
     || DB_NAME !== $expected || PHP_SAPI !== 'cli') {
     throw new RuntimeException('Refusing unexpected rollback test phase or database.');
 }
@@ -92,6 +92,63 @@ $allowed = Controller::public_snapshot_allowed(
 if ($phase === 'source_still_revoked') {
     $must(!$allowed, 'Original source remains revoked after separate target restore');
     echo "Notes rollback rehearsal: original source remains revoked PASS ({$checks} checks)\n";
+    return;
+}
+if ($phase === 'target_denied') {
+    $must(! $allowed, 'Old Public share cannot be delivered with a rotated epoch');
+    $must((string)get_post_meta($post->ID, Controller::PUBLIC_KEY, true) === $key,
+        'Old token is still in restored SQL, so denial is not from missing records');
+    $must((string)get_post_meta($post->ID, Controller::MODE_META, true) === 'public',
+        'Old Public mode still exists in restored SQL');
+    $must(str_contains((string)$post->post_content, 'ROLLBACK_SYNTHETIC_ONLY'),
+        'Original synthetic private Gutenberg content survived SQL restore');
+    wp_set_current_user((int)$m['owner_id']);
+    $read = rest_do_request(new WP_REST_Request(
+        'GET', '/core-blueprint-notes/v1/sharing/' . $post->ID
+    ));
+    $data = $read->get_data();
+    $must($read->get_status() === 200 && ($data['public_valid'] ?? true) === false
+        && ($data['public_url'] ?? 'not-null') === null,
+        'Owner UI cannot advertise an invalid old Public URL');
+    echo "Notes guarded rollback: restored old Public grant DENIED ({$checks} checks)\n";
+    return;
+}
+if ($phase === 'target_reissue') {
+    $must(!$allowed, 'Old Public grant still denied before explicit reissue');
+    wp_set_current_user((int)$m['owner_id']);
+    $route = '/core-blueprint-notes/v1/sharing/' . $post->ID;
+    $revoke = new WP_REST_Request('POST', $route);
+    $revoke->set_param('mode', 'private');
+    $revoked = rest_do_request($revoke);
+    $must($revoked->get_status() === 200, 'Operator/owner can stop old invalid share');
+    $state = rest_do_request(new WP_REST_Request('GET', $route));
+    $data = $state->get_data();
+    $create = new WP_REST_Request('POST', $route);
+    $create->set_body_params([
+        'mode' => 'public',
+        'expected_mode' => 'private',
+        'expected_content_version' => $data['content_version'],
+        'expected_modified_gmt' => $data['modified_gmt'],
+        'confirmation' => 'PUBLIC',
+    ]);
+    $new = rest_do_request($create);
+    $must($new->get_status() === 200, 'Owner can explicitly reissue under E2');
+    $newKey = (string)get_post_meta($post->ID, Controller::PUBLIC_KEY, true);
+    $newSnap = get_post_meta($post->ID, Controller::PUBLIC_META, true);
+    $must(preg_match('/^[a-f0-9]{32}$/D', $newKey) === 1 && $newKey !== $key,
+        'New key differs from historical revoked key');
+    $must(Controller::public_snapshot_allowed($post, $newKey, $newSnap),
+        'New E2 signed Public snapshot is valid');
+    $must(!Controller::public_snapshot_allowed($post, $key, $newSnap),
+        'Old key cannot reuse the new frozen snapshot');
+    $manifest = (string)getenv('CB_NOTES_ROLLBACK_HTTP_MANIFEST');
+    $must(str_starts_with($manifest, '/tmp/core-blueprint-tests/core-blueprint-notes-rollback/run.')
+        && !is_link($manifest), 'Only private synthetic manifest path accepted');
+    $json = wp_json_encode(['old' => $key, 'new' => $newKey]);
+    $must(is_string($json) && file_put_contents($manifest, $json, LOCK_EX) !== false,
+        'Persist synthetic-only HTTP keys outside the site root');
+    chmod($manifest, 0600);
+    echo "Notes guarded rollback: safe owner reissue PASS ({$checks} checks)\n";
     return;
 }
 // This is an intentionally EXPECTED VULNERABILITY REPRODUCTION on Alpha24.
