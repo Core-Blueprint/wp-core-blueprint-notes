@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Product-isolated Notes Level 2 runner. The ONLY reset target is the named Notes test DB.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fail() { printf 'Notes integration BLOCKED: %s\n' "$*" >&2; exit 1; }
+WP_VERSION="${CB_TEST_WP_VERSION:-7.0}"
+case "$WP_VERSION" in
+  7.0) WP_TEST_TAG=7.0.0 ;;
+  7.1.3) WP_TEST_TAG=7.1.0 ;;
+  *) fail "Only WordPress 7.0 and 7.1.3 are permitted." ;;
+esac
+TEST_ROOT="/tmp/core-blueprint-tests/core-blueprint-notes"
+BASE_SOURCE="${CB_TEST_BASE_SOURCE:-$HOME/Downloads/wp-core-blueprint}"
+DB_NAME="core_blueprint_notes_test"
+DB_HOST="127.0.0.1:3307"
+DB_USER="root"
+DB_PASSWORD="root"
+[[ -f "$ROOT/core-blueprint-notes.php" && -f "$BASE_SOURCE/core-blueprint.php" &&
+   -f "$BASE_SOURCE/vendor/autoload.php" && -x "$BASE_SOURCE/vendor/bin/phpunit" &&
+   -d "$BASE_SOURCE/vendor/yoast/phpunit-polyfills" ]] ||
+  fail "Notes/Base sources and pinned Base PHPUnit dependencies are required."
+for command_name in docker curl tar php git flock; do
+  command -v "$command_name" >/dev/null 2>&1 || fail "Missing command: $command_name"
+done
+git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
+  fail "Uncommitted tracked Notes changes: inspect before testing."
+git -C "$BASE_SOURCE" diff --quiet && git -C "$BASE_SOURCE" diff --cached --quiet ||
+  fail "Uncommitted tracked Base changes: inspect before testing."
+docker inspect cb-base-test-db >/dev/null 2>&1 || fail "Canonical Base MariaDB container unavailable."
+[[ "$(docker inspect --format '{{.Config.Image}}' cb-base-test-db)" == "mariadb:10.11.19" &&
+   "$(docker inspect --format '{{.State.Running}}' cb-base-test-db)" == "true" ]] ||
+  fail "Expected running cb-base-test-db using mariadb:10.11.19."
+PORT="$(docker port cb-base-test-db 3306/tcp 2>/dev/null || true)"
+grep -Eq '(^|:)3307$' <<< "$PORT" || fail "Canonical DB port 3307 missing."
+READY=0
+for (( attempt=1; attempt<=45; attempt++ )); do
+  if docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -u"$DB_USER" \
+    -e 'SELECT 1' >/dev/null 2>&1; then READY=1; break; fi
+  sleep 1
+done
+[[ "$READY" -eq 1 ]] || fail "MariaDB not ready."
+[[ ! -L "$TEST_ROOT" ]] || fail "Refusing symlink at Notes test root."
+mkdir -p "$TEST_ROOT"
+exec 9>"$TEST_ROOT/.integration.lock"
+flock -x 9
+RUN_DIR="$(mktemp -d "$TEST_ROOT/run.XXXXXXXX")"
+[[ "$RUN_DIR" == "$TEST_ROOT"/run.* ]] || fail "Unsafe temporary directory."
+cleanup() {
+  if [[ -n "${RUN_DIR:-}" && -d "$RUN_DIR" && "$RUN_DIR" == "$TEST_ROOT"/run.* ]]; then
+    rm -rf -- "$RUN_DIR"
+  fi
+}
+trap cleanup EXIT
+export WP_CORE_DIR="$RUN_DIR/wp" WP_TESTS_DIR="$RUN_DIR/wp-tests"
+export CB_TEST_BASE_SOURCE="$BASE_SOURCE"
+export CB_TEST_BASE_PLUGIN_FILE="$WP_CORE_DIR/wp-content/plugins/core-blueprint/core-blueprint.php"
+export CB_TEST_NOTES_PLUGIN_FILE="$WP_CORE_DIR/wp-content/plugins/core-blueprint-notes/core-blueprint-notes.php"
+export WP_DB_NAME="$DB_NAME" WP_DB_HOST="$DB_HOST" WP_DB_USER="$DB_USER" WP_DB_PASSWORD="$DB_PASSWORD"
+mkdir -p "$WP_CORE_DIR" "$WP_TESTS_DIR"
+printf 'Notes: preparing WP %s, wp-phpunit %s\n' "$WP_VERSION" "$WP_TEST_TAG"
+curl --fail --silent --show-error --location --max-time 120 \
+  "https://wordpress.org/wordpress-$WP_VERSION.tar.gz" |
+  tar -xz --strip-components=1 -C "$WP_CORE_DIR"
+curl --fail --silent --show-error --location --max-time 120 \
+  "https://codeload.github.com/wp-phpunit/wp-phpunit/tar.gz/refs/tags/$WP_TEST_TAG" |
+  tar -xz --strip-components=1 -C "$WP_TESTS_DIR"
+[[ -f "$WP_CORE_DIR/wp-settings.php" && -f "$WP_TESTS_DIR/includes/bootstrap.php" ]] ||
+  fail "WordPress/wp-phpunit archive incomplete."
+mkdir -p "$(dirname "$CB_TEST_BASE_PLUGIN_FILE")" "$(dirname "$CB_TEST_NOTES_PLUGIN_FILE")"
+tar -C "$BASE_SOURCE" --exclude='./.git' --exclude='./vendor' \
+  --exclude='./tests' --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+  tar -C "$(dirname "$CB_TEST_BASE_PLUGIN_FILE")" -xf -
+tar -C "$ROOT" --exclude='./.git' --exclude='./tests' --exclude='./tools' \
+  --exclude='./dist' --exclude='./.github' -cf - . |
+  tar -C "$(dirname "$CB_TEST_NOTES_PLUGIN_FILE")" -xf -
+[[ -f "$CB_TEST_BASE_PLUGIN_FILE" && -f "$CB_TEST_NOTES_PLUGIN_FILE" ]] ||
+  fail "Base or Notes staging failed."
+# Static, canonical SQL identifier: neither caller input nor other suites' DBs are touched.
+printf 'Notes: reset disposable database %s only\n' "$DB_NAME"
+docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -u"$DB_USER" \
+  -e 'DROP DATABASE IF EXISTS core_blueprint_notes_test; CREATE DATABASE core_blueprint_notes_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+  fail "Cannot provision Notes-only database."
+printf 'Notes=%s Base=%s WP=%s\n' \
+  "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE_SOURCE" rev-parse HEAD)" "$WP_VERSION"
+"$BASE_SOURCE/vendor/bin/phpunit" -c "$ROOT/tests/phpunit-notes.xml.dist" \
+  --do-not-cache-result --fail-on-skipped --fail-on-incomplete 2>&1 |
+  tee "$RUN_DIR/phpunit-output.log"
+if grep -Eq 'WordPress database error|class="wpdberror"|<strong>WordPress database error' \
+  "$RUN_DIR/phpunit-output.log"; then
+  fail "Unexpected WordPress database error in PHPUnit output."
+fi
+printf 'Core Blueprint Notes Level 2 integration: PASS (WP %s)\n' "$WP_VERSION"
