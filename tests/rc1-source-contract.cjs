@@ -24,10 +24,10 @@ const build = read('tools/build-release');
 const acceptance = read('docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md');
 const readme = read('README.md');
 
-check(plugin.includes('Version:           0.1.0-alpha24') &&
-    plugin.includes("define('CB_NOTES_VERSION', '0.1.0-alpha24')") &&
-    readme.includes('0.1.0-alpha24') &&
-    build.includes("'0.1.0-alpha24'"),
+check(plugin.includes('Version:           0.1.0-alpha25') &&
+    plugin.includes("define('CB_NOTES_VERSION', '0.1.0-alpha25')") &&
+    readme.includes('0.1.0-alpha25') &&
+    build.includes("'0.1.0-alpha25'"),
     'Header, runtime, documentation and release script use one exact alpha candidate');
 check(plugin.includes('Requires at least: 7.0') &&
     plugin.includes('Requires PHP:      8.4') &&
