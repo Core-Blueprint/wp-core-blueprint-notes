@@ -1,8 +1,8 @@
 # Core Blueprint Notes — current implementation status
 
-**Current test candidate:** 0.1.0-alpha24.
+**Current test candidate:** 0.1.0-alpha26 (new code untested; Alpha25 runtime evidence is historical).
 **Branch:** `feature/notes-rc1-golden-hardening-v1` (from Alpha23 P2.7 branch, unmerged).
-**Status:** RC1 one-batch source hardening in progress, not Golden and not production-ready. Alpha23 UI was visually accepted; full exact-head sourcegate/build, WordPress privacy/security, lifecycle, i18n and compatibility acceptance still open.
+**Status:** RC1 one-batch integrated Alpha26 hardening in progress, not Golden and not production-ready. Alpha23 UI was visually accepted; full exact-head sourcegate/build, WordPress privacy/security, lifecycle, i18n and compatibility acceptance still open.
 
 ## RC1 integrated hardening (Alpha24)
 
@@ -88,3 +88,10 @@ For alpha18, run the canonical sourcegate and release ZIP build on the exact bra
 [Unified alpha4 acceptance](ALPHA4-UNIFIED-ACCEPTANCE.md).
 
 No merge, CI/CD, production installation or WordPress.org submission without explicit GO.
+
+
+## Alpha26 integrated patch (awaiting new runtime evidence)
+
+- New durable recovery records preserve Secure Share revocation obligations across failed provider calls. A bounded administrator retry uses a nonce and shows only the count, not credentials. Stop sharing reports server storage failure instead of claiming success when the private-mode write cannot be persisted.
+- Added failure-injected revocation smoke, Settings Hub recovery UI smoke, real-provider drain check and WordPress deactivation/reactivation data-retention fixture. Alpha25's 25 real-provider checks and its 76 SQL / 44 HTTP checks are previous-version evidence only; Alpha26 must repeat them.
+- The release is deliberately separated as `0.1.0-alpha26`, with exact-HEAD double-build attestation required before new SQL/HTTP/provider runner execution. R08.3 HTTPS, CDN, browser accessibility, six-locale output, upgrades/portability and final RC1 release approval remain separate real-world gates.
