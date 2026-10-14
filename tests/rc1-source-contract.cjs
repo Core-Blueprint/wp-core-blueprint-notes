@@ -42,6 +42,11 @@ check(pluginRuntime.includes("'public'=>false,'publicly_queryable'=>false") &&
     access.includes('before_rest') && access.includes('scope_rest') &&
     access.includes('scope_query') && access.includes('map_meta_cap'),
     'Non-public Gutenberg CPT is protected by read, list and object policy layers');
+check(pluginRuntime.includes("'supports'=>['title','editor','author','revisions','custom-fields']") &&
+    catalog.includes('register_post_meta(Plugin::TYPE') &&
+    catalog.includes("'auth_callback' => [self::class, 'can_edit_meta']") &&
+    catalog.includes('validate_note_rest'),
+    'Native REST post meta requires CPT custom-fields support and owner-aware validation');
 check(catalog.includes('get_current_user_id()') &&
     library.includes("'author' => $owner > 0 ? $owner : -1") &&
     library.includes("'invalid' => $invalid") &&
