@@ -55,6 +55,15 @@ The source E1 and restored target E2 used **the same WordPress home URL** and di
 - R01–R13 complete manual matrix, six-language gettext extraction and locale output, accessibility, performance/scale, activation/uninstall and portability: **NOT RUN or partial as separately indicated**.
 - RC1 final versioned build and explicit operator acceptance, source merge, CI/distribution and deploy: **NOT AUTHORIZED**.
 
+
+## Alpha25 ordinary restore gate: failed precondition and fixture correction
+
+**2026-10-14 first reported Alpha25 ordinary SQL-restore attempt: BLOCKED before content verification** with
+`PHP Fatal error: Uncaught RuntimeException: Restore requires installed Alpha24 Notes.`
+at `tests/restore/fixture.php:24` via WP-CLI `eval-file`.
+The runner correctly installs the pinned Alpha25 ZIP and uses the two disposable databases, but the still-shared historical fixture erroneously required `CB_NOTES_VERSION === '0.1.0-alpha24'`.
+The fixture now strictly requires `0.1.0-alpha25`. The Node source contract pins this version check and the independent test-only epoch configuration. No production PHP or release ZIP files changed. **Ordinary Alpha25 SQL recovery must be rerun; no restore PASS can be claimed from the failing attempt.** Because the user's command joined runners with `&&`, the Alpha25 44-check HTTP-origin rerun was not reached.
+
 ## Governance
 
 This is a source/test evidence update only. It does not modify customer links, WordPress live databases, keys, Base, Secure Share, CDN or the packaged Alpha25 artifact. No merge, tag, deployment or publication.
