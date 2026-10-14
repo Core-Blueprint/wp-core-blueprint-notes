@@ -18,9 +18,10 @@ must(!syntax.error && syntax.status === 0, 'Full runner Bash syntax fails: ' + (
 must(runner.includes('bash -n "$0"') && runner.indexOf('bash -n "$0"') < runner.indexOf('CREATE DATABASE core_blueprint_notes_rollback_source'),
     'Whole-script Bash preflight must precede any disposable DB creation');
 must(runner.includes('ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26.zip"') &&
-    runner.includes('bash "$ROOT/tools/build-release"') &&
+    runner.includes('ARTIFACT_SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"') &&
+    load('tools/check-alpha26-artifact').includes('notes-alpha26-verified.txt') &&
     build.includes("'0.1.0-alpha26'"),
-    'Guard must rebuild the current Alpha26 artifact, not silently reuse Alpha24');
+    'Guard must use exact-head double-build-attested Alpha26, never unverified Alpha24');
 must(runner.includes('flock -x 9') && runner.includes('Disposable database already exists, refusing to touch:') &&
     runner.indexOf('OWN_DBS=1') > runner.indexOf('CREATE DATABASE core_blueprint_notes_rollback_source'),
     'Existing test DB refusal, lock and explicit cleanup ownership required');
