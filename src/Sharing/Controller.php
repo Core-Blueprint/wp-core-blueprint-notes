@@ -91,7 +91,11 @@ final class Controller {
         }
         if ($mode === 'private') {
             // Revocation must remain available regardless of unsaved/stale edits.
-            update_post_meta($post->ID, self::MODE_META, 'private');
+            // Never claim a successful stop while the Public or Secure mode
+            // could still be active due to a failed database write.
+            if (!self::persist_meta($post->ID, self::MODE_META, 'private')) {
+                return self::error('Sharing could not be stopped. Review the server storage and retry.', 500);
+            }
             delete_post_meta($post->ID, self::PUBLIC_META);
             delete_post_meta($post->ID, self::PUBLIC_KEY);
             self::revoke_old_secure($post->ID);
@@ -286,6 +290,7 @@ final class Controller {
             'Core Blueprint Secure Share is not available.' => __('Core Blueprint Secure Share is not available.', 'core-blueprint-notes'),
             'Secure links must expire within 1 to 30 days.' => __('Secure links must expire within 1 to 30 days.', 'core-blueprint-notes'),
             'Secure sharing failed. No new link is active in Notes.' => __('Secure sharing failed. No new link is active in Notes.', 'core-blueprint-notes'),
+            'Sharing could not be stopped. Review the server storage and retry.' => __('Sharing could not be stopped. Review the server storage and retry.', 'core-blueprint-notes'),
             'Public sharing could not be saved. No new link is active.' => __('Public sharing could not be saved. No new link is active.', 'core-blueprint-notes'),
             'Public sharing requires an installation recovery key.' => __('Public sharing requires an installation recovery key.', 'core-blueprint-notes'),
             default => __('Sharing is unavailable.', 'core-blueprint-notes'),
