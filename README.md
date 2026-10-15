@@ -45,9 +45,10 @@ The `feature/notes-rc1-golden-hardening-v1` branch carries the accepted Alpha23 
 
 \`\`\`bash
 bash tools/check
-bash tools/build-release
-unzip -t dist/core-blueprint-notes-0.1.0-alpha25.zip
-sha256sum dist/core-blueprint-notes-0.1.0-alpha25.zip
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
+unzip -t dist/core-blueprint-notes-0.1.0-alpha26.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha26.zip
 \`\`\`
 
 Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate includes P2 bulk owner/nonce/catalog/lifecycle regression and UI interaction checks, Sharing, personal organization, Gutenberg organization and sharing guidance interactions, Library queries, marker security/interactions, menu ordering, contextual empty states and Base-modal interaction checks. This is **source-level validation**, not proof of real WordPress security or cross-user isolation.
@@ -55,3 +56,18 @@ Artifact root: \`core-blueprint-notes/\`. The PHP and JavaScript sourcegate incl
 For the current Alpha23 Table View and sidebar polish, use [Table View acceptance](docs/NOTES-LIBRARY-TABLE-P27-ALPHA23-ACCEPTANCE.md). For the earlier Alpha18 overview/alignment changes, use [Library Overview acceptance](docs/NOTES-LIBRARY-OVERVIEW-ALPHA18-ACCEPTANCE.md). For earlier Alpha16 navigation/P2 changes, use [Productivity P2 acceptance](docs/NOTES-PRODUCTIVITY-P2-ACCEPTANCE.md). P1 is covered by [Productivity P1 acceptance](docs/NOTES-PRODUCTIVITY-P1-ACCEPTANCE.md). The earlier editor change remains documented in [Gutenberg UX Golden G1–G2 acceptance](docs/GUTENBERG-UX-G1-ACCEPTANCE.md). The previously accepted Library remains covered by the [Notes Library Golden batch staging acceptance](docs/NOTES-LIBRARY-GOLDEN-BATCH-ACCEPTANCE.md) to validate B1–B5 together, including full alpha4 privacy/sharing regression checks. The earlier [alpha4 unified acceptance](docs/ALPHA4-UNIFIED-ACCEPTANCE.md) remains as historical scope/evidence.
 
 **Governance:** no merge, CI/CD, WordPress.org publication or production deployment without separate explicit GO.
+
+## Alpha26 Handbook-aligned local validation (October 2026)
+
+The single supported operator flow is:
+
+```bash
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
+unzip -t dist/core-blueprint-notes-0.1.0-alpha26.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha26.zip
+```
+
+`--preflight` inspects the existing MariaDB helper, loopback-only port bindings, protected volume consumers, fixed Notes schema collisions and pinned dependencies without starting containers or mutating schemas. `--execute` authorizes **new-only** fixed Notes test schemas and cleanup only for schemas created by the runner. A pre-existing schema blocks the batch.
+
+The Alpha26 ZIP is a **non-customer test fixture** produced by `tools/build-alpha26-fixture` after WordPress Level 2. The canonical `tools/build-release` refuses customer packaging until the separate localization, runtime, field and RC1 approval requirements have been met.
