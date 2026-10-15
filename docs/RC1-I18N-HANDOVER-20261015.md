@@ -127,3 +127,22 @@ minified assets are created. Regression test checks both normalization variants.
 This is a candidate workaround based on the observed runtime output, and needs
 actual local WP-CLI confirmation. Preserve Git-tracked PO/POT, Base, and
 Alpha26 runtime sources. No customer release, merge or CI GO.
+
+## Notes parent menu / Library canonical URL (2026-10-15)
+
+Observed on the isolated WP sandbox: the Notes parent menu loads
+`admin.php?page=cb-notes-library` while the Library submenu loads
+`edit.php?post_type=cb_note&page=cb-notes-library`. Same registered
+`Page::render` callback but inconsistent WordPress active submenu highlight.
+Root cause verified against WP core `wp-admin/menu-header.php`: the first
+plugin submenu is linked through `admin.php?page` at the parent level,
+while its submenu URL is scoped to `edit.php?post_type`.
+
+Scoped feature-branch fix: register a `load-<Library hook>` handler that
+temporarily redirects only the `admin.php` alias to the existing canonical
+Library URL, reusing `Query::state` and `Page::url` for safe user-owned
+search/filter state. No CPT replacement, no unrelated redirect and no changes
+to Base, Secure Share, content, or the seven Git-owned translation sources.
+The menu-order smoke now covers hook registration, owner/capability guard,
+state preservation, unrecognized query keys and redirect-loop avoidance.
+Local tests and actual WordPress browser acceptance still required.

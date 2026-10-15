@@ -35,6 +35,30 @@ final class Page {
             AdminTheme::register_screen(self::$hook, [
                 'components' => ['buttons', 'panels', 'form-controls', 'fields', 'empty-state', 'badges'],
             ]);
+            // WP links the first plugin submenu from the CPT parent via admin.php.
+            add_action('load-' . self::$hook, [self::class, 'redirect_admin_alias']);
+        }
+    }
+
+    /**
+     * Use one canonical Library URL for the WordPress-generated Notes parent
+     * link and Library submenu, without replacing the native CPT menu screen.
+     */
+    public static function redirect_admin_alias(): void {
+        global $pagenow;
+
+        if ($pagenow !== 'admin.php'
+            || ($_GET['page'] ?? null) !== 'cb-notes-library'
+            || !current_user_can('cb_notes_edit')
+            || get_current_user_id() < 1) {
+            return;
+        }
+
+        // Preserve validated owner-scoped filters, never arbitrary GET arguments.
+        $owner = get_current_user_id();
+        $state = Query::state($_GET, Catalog::catalog($owner));
+        if (wp_safe_redirect(self::url($state), 302, 'Core Blueprint Notes')) {
+            exit;
         }
     }
 
