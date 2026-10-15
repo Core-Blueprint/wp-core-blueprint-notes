@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Installable INTERNAL i18n candidate only, not the customer release.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fail() { printf 'Notes localized candidate BLOCKED: %s\n' "$*" >&2; exit 1; }
+[[ "$#" -eq 1 && "$1" == --execute ]] || fail 'Specify --execute for fully isolated test DB validation'
+for cmd in wp php node python3 zip unzip sha256sum msgfmt; do
+  command -v "$cmd" >/dev/null || fail "Missing required command $cmd"
+done
+[[ -f "$ROOT/languages/core-blueprint-notes.pot" ]] || fail 'Install audited locale candidate first'
+bash "$ROOT/tools/check-rc1-alpha26-batch" --execute
+bash "$ROOT/tools/i18n/check"
+STAGE="$(mktemp -d)"
+trap 'rm -rf -- "$STAGE"' EXIT
+PACKAGE="$STAGE/core-blueprint-notes"
+mkdir -p "$PACKAGE"
+cp "$ROOT/core-blueprint-notes.php" "$ROOT/README.md" "$PACKAGE/"
+cp -R "$ROOT/src" "$ROOT/assets" "$ROOT/languages" "$PACKAGE/"
+for locale in nl_NL de_DE fr_FR es_ES it_IT pt_PT; do
+  PO="$PACKAGE/languages/core-blueprint-notes-$locale.po"
+  [[ -f "$PO" ]] || fail "Missing $locale PO"
+  msgfmt --check-header --check-format -o "$PACKAGE/languages/core-blueprint-notes-$locale.mo" "$PO" ||
+    fail "Gettext rejected $locale"
+done
+wp i18n make-json "$PACKAGE/languages" "$PACKAGE/languages" --no-purge --domain=core-blueprint-notes ||
+  fail 'WordPress JS JSON extraction failed'
+python3 - "$PACKAGE/languages" <<'PY'
+import hashlib, json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+sources = ('assets/editor.js','assets/sharing.js','assets/organization-admin.js',
+           'assets/library-admin.js','assets/library-bulk.js')
+for locale in ('nl_NL','de_DE','fr_FR','es_ES','it_IT','pt_PT'):
+    for source in sources:
+        name = 'core-blueprint-notes-' + locale + '-' + hashlib.md5(source.encode()).hexdigest() + '.json'
+        file = root / name
+        if not file.is_file():
+            raise SystemExit('Notes JS runtime missing: ' + name)
+        data = json.loads(file.read_text(encoding='utf-8'))
+        if data.get('domain') != 'core-blueprint-notes' or data.get('source','').replace('\\','/') != source:
+            raise SystemExit('Notes JS locale/domain mismatch: ' + name)
+        if len(data.get('locale_data',{}).get('messages',{})) < 2:
+            raise SystemExit('Empty JS translations: ' + name)
+print('30 WordPress script translation artifacts: PASS')
+PY
+if find "$PACKAGE" -type l -print -quit | grep -q .; then fail 'Symlink in package'; fi
+while IFS= read -r -d '' file; do
+  rel="$(realpath --relative-to="$PACKAGE" "$file")"
+  case "$rel" in
+    core-blueprint-notes.php|README.md|src/*.php|assets/*.js|assets/*.css|languages/*.pot|languages/*.po|languages/*.mo|languages/*.json) ;;
+    *) fail "Unexpected package path: $rel" ;;
+  esac
+done < <(find "$PACKAGE" -type f -print0)
+find "$PACKAGE" -type d -exec chmod 0755 {} +
+find "$PACKAGE" -type f -exec chmod 0644 {} +
+find "$PACKAGE" -exec touch -t 202001010000.00 {} +
+mkdir -p "$ROOT/dist"
+ZIP="$ROOT/dist/core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip"
+build_zip() {
+  rm -f "$ZIP"
+  (cd "$STAGE"; LC_ALL=C find core-blueprint-notes -print | LC_ALL=C sort | zip -q -X "$ZIP" -@)
+  unzip -tq "$ZIP" >/dev/null
+}
+build_zip
+FIRST="$(sha256sum "$ZIP" | cut -d ' ' -f1)"
+build_zip
+SECOND="$(sha256sum "$ZIP" | cut -d ' ' -f1)"
+[[ "$FIRST" == "$SECOND" ]] || fail 'Non-deterministic package'
+printf '%s  %s\n' "$SECOND" "$(basename "$ZIP")" > "$ZIP.sha256"
+(cd "$ROOT/dist"; sha256sum -c "$(basename "$ZIP.sha256")") || fail 'Checksum mismatch'
+printf 'Notes localized installable test candidate: PASS\nZIP: %s\nSHA-256: %s\n' "$ZIP" "$SECOND"
+echo 'EDITORIAL/FIELD/RELEASE HOLD: not an authorized customer release'
