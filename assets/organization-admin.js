@@ -115,8 +115,25 @@
                 setEditing('');
                 setEditName('');
                 setAdding(false);
-                var verb = action === 'create' ? __('Created', 'core-blueprint-notes') : action === 'rename' ? __('Renamed', 'core-blueprint-notes') : __('Removed', 'core-blueprint-notes');
-                setMessage(sprintf(__('%1$s %2$s successfully.', 'core-blueprint-notes'), verb, kinds[selectedKind].singular));
+                // Whole sentences avoid word-order and grammatical agreement errors.
+                var messages = {
+                    notebook: {
+                        create: __('Notebook created.', 'core-blueprint-notes'),
+                        rename: __('Notebook renamed.', 'core-blueprint-notes'),
+                        delete: __('Notebook removed.', 'core-blueprint-notes')
+                    },
+                    category: {
+                        create: __('Category created.', 'core-blueprint-notes'),
+                        rename: __('Category renamed.', 'core-blueprint-notes'),
+                        delete: __('Category removed.', 'core-blueprint-notes')
+                    },
+                    tag: {
+                        create: __('Tag created.', 'core-blueprint-notes'),
+                        rename: __('Tag renamed.', 'core-blueprint-notes'),
+                        delete: __('Tag removed.', 'core-blueprint-notes')
+                    }
+                };
+                setMessage(messages[selectedKind][action]);
             }).catch(function (failure) {
                 setError(failure.message || __('Changes could not be saved.', 'core-blueprint-notes'));
             }).finally(function () { setBusy(false); });
@@ -189,9 +206,14 @@
             var list = [];
 
             if (items.length === 0) {
+                var emptyMessages = {
+                    notebook: __('No notebooks yet. Use Add new to create your first notebook.', 'core-blueprint-notes'),
+                    category: __('No categories yet. Use Add new to create your first category.', 'core-blueprint-notes'),
+                    tag: __('No tags yet. Use Add new to create your first tag.', 'core-blueprint-notes')
+                };
                 list.push(el('p', {
                     key: 'empty', className: 'cb-notes-organize__empty'
-                }, sprintf(__('No %1$s yet. Use Add new to create your first %2$s.', 'core-blueprint-notes'), spec.title.toLowerCase(), spec.singular)));
+                }, emptyMessages[kind]));
             }
             items.forEach(function (item) {
                 var isEditing = editing === item.id;

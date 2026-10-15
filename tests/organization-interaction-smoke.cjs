@@ -125,7 +125,7 @@ vm.runInNewContext(code, {
     category.props.onClick({ preventDefault() {} });
     repaint();
     assert.ok(location.href.includes('section=category'));
-    assert.ok(flattenText(tree).includes('No categories yet'));
+    assert.ok(flattenText(tree).includes('No categories yet. Use Add new to create your first category.'));
     console.log('PASS: category tab switches in-place and retains deep link');
 
     control('Button', 'Add new').props.onClick();
@@ -148,7 +148,7 @@ vm.runInNewContext(code, {
     control('Button', 'Save').props.onClick();
     await settle();
     assert.equal(store.category[0].name, 'Meetings 2026');
-    assert.ok(flattenText(tree).includes('Renamed category successfully.'));
+    assert.ok(flattenText(tree).includes('Category renamed.'));
     console.log('PASS: inline rename and compact feedback');
 
     control('Button', 'Remove').props.onClick();
@@ -166,7 +166,7 @@ vm.runInNewContext(code, {
     tags.props.onClick({ preventDefault() {} });
     repaint();
     assert.ok(location.href.includes('section=tag'));
-    assert.ok(flattenText(tree).includes('No tags yet'));
+    assert.ok(flattenText(tree).includes('No tags yet. Use Add new to create your first tag.'));
     console.log('PASS: Tags navigation works after CRUD actions');
     console.log('Notes Organize interaction smoke: PASS');
 })().catch(error => {

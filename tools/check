@@ -59,4 +59,5 @@ node "$ROOT/tests/r08/runner-contract.cjs"
 bash -n "$ROOT/tools/build-alpha26-fixture"
 bash -n "$ROOT/tools/build-release"
 node "$ROOT/tests/i18n-tooling-source-contract.cjs"
+node "$ROOT/tests/i18n-sentences-contract.cjs"
 echo 'Notes source checks: PASS'
