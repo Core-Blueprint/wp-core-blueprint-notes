@@ -53,6 +53,9 @@ COLLISIONS="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B \
        'core_blueprint_notes_rollback_source', 'core_blueprint_notes_rollback_target',
        'core_blueprint_notes_r08_test'
     ) ORDER BY SCHEMA_NAME;")" || fail "MariaDB readiness/inventory query failed"
-[[ -z "$COLLISIONS" ]] ||
-    fail "Existing Notes test schemas are protected ($COLLISIONS). No automatic reset"
+# Other historic Notes schemas remain protected and do not block a fresh, unrelated run.
+# Each individual runner MUST still refuse an existing target with new-only CREATE.
+if [[ -n "$COLLISIONS" ]]; then
+    printf 'Notes infrastructure: protected historical schemas retained: %s\n' "$COLLISIONS"
+fi
 printf 'Notes shared database preflight: PASS (read-only)\n'

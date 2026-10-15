@@ -21,8 +21,10 @@ must(guard.includes('HostConfig.PortBindings') && guard.includes('INFORMATION_SC
 must(!/\bdocker (run|start|rm)\b|\bCREATE DATABASE\b|\bDROP DATABASE\b/.test(guard),
     'Preflight may not mutate container or SQL');
 must(integration.includes('CB_NOTES_DB_MUTATION_APPROVED') &&
-    integration.includes('CREATE DATABASE core_blueprint_notes_test') &&
-    integration.includes('DROP DATABASE core_blueprint_notes_test;') &&
+    integration.includes('CREATE DATABASE `$DB_NAME`') &&
+    integration.includes('DROP DATABASE `$DB_NAME`') &&
+    integration.includes('core_blueprint_notes_int_$(php -r') &&
+    integration.includes('random_bytes(6)') &&
     !integration.includes('DROP DATABASE IF EXISTS core_blueprint_notes_test'),
     'New-only integration, explicitly owned cleanup');
 must(batch.indexOf('tools/check-test-infrastructure') < batch.indexOf('bash "$ROOT/tools/check"') &&
@@ -52,7 +54,7 @@ try {
     ].join('\n') + '\n');
     fs.chmodSync(docker, 0o700);
     for (const [mode, success] of [['clean',true],['stopped',false],['exposed',false],
-        ['shared',false],['collision',false]]) {
+        ['shared',false],['collision',true]]) {
         const r = spawnSync('bash', [path.join(root, 'tools/check-test-infrastructure')], {
             env: { ...process.env, PATH: dir + ':' + process.env.PATH, MOCK_MODE: mode },
             encoding: 'utf8', timeout: 12000,

@@ -10,7 +10,7 @@ $db_name = (string) getenv( 'WP_DB_NAME' );
 $db_host = (string) getenv( 'WP_DB_HOST' );
 $db_user = (string) getenv( 'WP_DB_USER' );
 $db_password = (string) getenv( 'WP_DB_PASSWORD' );
-if ( 'core_blueprint_notes_test' !== $db_name ||
+if ( 1 !== preg_match( '/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D', $db_name ) ||
      '127.0.0.1:3307' !== $db_host ||
      'root' !== $db_user || 'root' !== $db_password ) {
     throw new RuntimeException( 'Notes integration refuses noncanonical DB credentials or host.' );

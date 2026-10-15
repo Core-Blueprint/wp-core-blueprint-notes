@@ -12,7 +12,7 @@ use CB\Notes\Plugin;
 final class NotesRuntimePrivacyIntegrationTest extends WP_UnitTestCase {
     public function set_up(): void {
         parent::set_up();
-        if ( 'core_blueprint_notes_test' !== (string) DB_NAME ||
+        if ( 1 !== preg_match( '/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D', (string) DB_NAME ) ||
              '127.0.0.1:3307' !== (string) DB_HOST ) {
             self::fail( 'Notes integration must never run against a noncanonical database.' );
         }
