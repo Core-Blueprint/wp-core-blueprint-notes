@@ -61,5 +61,6 @@ bash -n "$ROOT/tools/build-release"
 node "$ROOT/tests/i18n-tooling-source-contract.cjs"
 node "$ROOT/tests/i18n-sentences-contract.cjs"
 node "$ROOT/tests/localized-package-contract.cjs"
+node "$ROOT/tests/i18n-branch-and-import-contract.cjs"
 bash -n "$ROOT/tools/build-localized-candidate"
 echo 'Notes source checks: PASS'

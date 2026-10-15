@@ -33,3 +33,47 @@ The review artifact is not committed as a release source, and must not be moved 
 5. Perform remaining browser/HTTPS/CDN/a11y and field tests; only then use the independent Handbook-compliant customer release gate.
 
 **Do not merge, tag, publish or distribute solely on this audit.** The previous green Alpha26 test fixture remains separate and is not a customer release.
+
+## 2026-10-15: 305-message full-sentence UI revision and six-language test candidates
+
+The original 298-message POT and fuzzy proposal package are historical source evidence.
+The current i18n branch removes five compositional msgids and introduces twelve
+full-sentence variants. The new SOURCE target is **305** messages per locale.
+
+Pinned audited candidate archive: `core-blueprint-notes-rc1-i18n-candidate.zip`
+SHA-256: `b87d3fb77e324a77af431c6d6f5be3a809b243b2cc25f01f6c8692aaf5c4b5bc`.
+
+The archive contains both:
+- `review-proposals/*.po`: 305 **fuzzy**, editorial review proposals per locale.
+- `languages/*.po`: the exact same 305 translations, with fuzzy omitted **for local gettext/JS runtime acceptance only**.
+- `languages/core-blueprint-notes.pot`: audit template for cross-checking against a freshly WP-CLI-extracted POT.
+
+Candidate PO strings have been checked with Babel's catalog parser and format
+validation (all six, 305 source keys, three plural msgids each, no format failures).
+This does not constitute independent human editorial approval or installed WordPress
+locale acceptance. The source-aligned authoritative POT is generated locally by
+`tools/i18n/import-candidate` using WP-CLI before importing the six POs.
+The canonical `tools/i18n/check` must pass. The full Alpha26 batch remains a
+prerequisite for `tools/build-localized-candidate --execute`.
+
+**IMPORTANT:** The branch retains the fail-closed `tools/build-release` customer
+builder. A successful i18n candidate build is not RC1 or a customer-release GO.
+
+### Operator sequence (one validation batch)
+
+Download the exact pinned archive into `~/Downloads/`. Use branch
+`feature/notes-rc1-i18n-foundation-v1` and verify its current HEAD before execution.
+
+```bash
+bash tools/check
+bash tools/i18n/import-candidate ~/Downloads/core-blueprint-notes-rc1-i18n-candidate.zip
+bash tools/build-localized-candidate --execute
+unzip -tq dist/core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip
+(cd dist && sha256sum -c core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip.sha256)
+```
+
+No previously existing `languages/` directory is overwritten. Import is pinned
+by SHA, branch-scoped, and requires a clean Git source state. Generated catalog
+content remains untracked until explicitly committed and reviewed. A successful
+candidate still needs the installation/UI/locale/HTTPS/browser and editor approval
+specified in RC1 acceptance documentation before release promotion.

@@ -49,3 +49,19 @@ If the POT changes, it fails rather than overwriting drafts; reconcile with the
 canonical `msgmerge` flow after review. Nothing is copied into `languages/`
 automatically, and customer packaging remains blocked until the six POs are
 reviewed and accepted through the canonical check.
+
+### Full six-locale WordPress runtime candidate (305 messages)
+
+Get the pinned `core-blueprint-notes-rc1-i18n-candidate.zip` archive.
+`bash tools/i18n/import-candidate <zip>` verifies its SHA-256, regenerates a
+fresh POT from GitHub source via WP-CLI, checks all 305 keys, validates all six
+POs via gettext and refuses overwriting existing `languages/`.
+`bash tools/build-localized-candidate --execute` runs full Level 1/2 local
+regressions, checks POT/PO, produces six MO and 30 WP JavaScript JSON
+files, then builds and independently verifies a reproducible installable
+i18n **test-only** ZIP and its checksum.
+
+The source branch and code changes remain separate from the green Alpha26
+hardening baseline. No AI-generated catalog can be called independently
+editorially approved by these automated checks. The customer release gate
+remains blocked pending owner acceptance.
