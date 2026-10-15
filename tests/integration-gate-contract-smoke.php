@@ -10,17 +10,19 @@ $integration = (string) file_get_contents( __DIR__ . '/integration/NotesRuntimeP
 $checks = [
     'Single fixed disposable Notes database, not Base or Work' =>
         str_contains( $runner, 'DB_NAME="core_blueprint_notes_test"' )
-        && str_contains( $runner, 'DROP DATABASE IF EXISTS core_blueprint_notes_test;' )
-        && substr_count( $runner, 'DROP DATABASE IF EXISTS' ) === 1
+        && ! str_contains( $runner, 'DROP DATABASE IF EXISTS core_blueprint_notes_test;' )
+        && str_contains( $runner, 'CREATE DATABASE core_blueprint_notes_test' )
+        && str_contains( $runner, 'DROP DATABASE core_blueprint_notes_test;' )
+        && str_contains( $runner, 'OWN_DB=1' )
         && ! str_contains( $runner, 'core_blueprint_work_test' )
         && ! str_contains( $runner, 'wordpress_test' ),
     'Canonical DB container and pinned image/port' =>
         str_contains( $runner, 'cb-base-test-db' )
         && str_contains( $runner, 'mariadb:10.11.19' )
         && str_contains( $runner, 'DB_HOST="127.0.0.1:3307"' )
-        && str_contains( $runner, 'DB_READY' ) === false
-        && str_contains( $runner, 'READY=0' )
-        && strpos( $runner, 'READY=0' ) < strpos( $runner, 'DROP DATABASE IF EXISTS' ),
+        && str_contains( $runner, 'bash "$ROOT/tools/check-test-infrastructure"' )
+        && str_contains( $runner, 'CB_NOTES_DB_MUTATION_APPROVED' )
+        && strpos( $runner, 'check-test-infrastructure' ) < strpos( $runner, 'CREATE DATABASE core_blueprint_notes_test' ),
     'Isolated test root, staging and serialized runs' =>
         str_contains( $runner, '/tmp/core-blueprint-tests/core-blueprint-notes' )
         && str_contains( $runner, 'flock -x 9' )
