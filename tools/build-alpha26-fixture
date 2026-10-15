@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# INTERNAL Alpha26 fixture for isolated runtime tests; NOT an accepted customer release.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+OUT="$ROOT/dist"
+mkdir -p "$OUT"
+bash "$ROOT/tools/check"
+VERSION="$(php -r '$p=file_get_contents($argv[1]); preg_match("/Version:\\s*(\\S+)/", $p, $m); echo $m[1] ?? "";' "$ROOT/core-blueprint-notes.php")"
+[[ "$VERSION" == '0.1.0-alpha26' ]] || { echo 'Unexpected plugin version' >&2; exit 1; }
+ZIP="$OUT/core-blueprint-notes-${VERSION}.zip"
+STAGE="$(mktemp -d "$OUT/.notes-package-XXXXXX")"
+trap 'rm -r -- "$STAGE"' EXIT
+mkdir -p "$STAGE/core-blueprint-notes"
+cp "$ROOT/core-blueprint-notes.php" "$ROOT/README.md" "$STAGE/core-blueprint-notes/"
+cp -R "$ROOT/src" "$ROOT/assets" "$ROOT/docs" "$STAGE/core-blueprint-notes/"
+# A release archive is an exact snapshot, not an incremental ZIP update.
+# Reject unexpected files and links before packaging any local workspace data.
+if find "$STAGE/core-blueprint-notes" -type l -print -quit | grep -q .; then
+  echo 'Symlinks are not allowed in the release package' >&2
+  exit 1
+fi
+while IFS= read -r -d '' file; do
+  rel="${file#"$STAGE/core-blueprint-notes/"}"
+  case "$rel" in
+    core-blueprint-notes.php|README.md|src/*.php|assets/*.js|assets/*.css|docs/*.md) ;;
+    *) echo "Unexpected package file: $rel" >&2; exit 1 ;;
+  esac
+done < <(find "$STAGE/core-blueprint-notes" -type f -print0)
+
+# Normalize staged metadata for an identical archive from identical source.
+find "$STAGE/core-blueprint-notes" -type d -exec chmod 0755 {} +
+find "$STAGE/core-blueprint-notes" -type f -exec chmod 0644 {} +
+find "$STAGE/core-blueprint-notes" -exec touch -t 202001010000.00 {} +
+rm -f -- "$ZIP"
+(
+  cd "$STAGE"
+  LC_ALL=C find core-blueprint-notes -print | LC_ALL=C sort |
+    zip -q -X "$ZIP" -@
+)
+unzip -t "$ZIP" | tail -n 1
+sha256sum "$ZIP"
+printf 'NON-CUSTOMER Alpha26 fixture: %s\n' "$ZIP"
