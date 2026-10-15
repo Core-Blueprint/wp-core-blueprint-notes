@@ -22,14 +22,16 @@ const abilities = read('src/Abilities.php');
 const library = read('src/Library/Query.php');
 const catalogTest = read('tests/organization-smoke.php');
 const sharingTest = read('tests/sharing-smoke.php');
-const build = read('tools/build-release');
+const build = read('tools/build-alpha26-fixture');
+const customerBuild = read('tools/build-release');
 const acceptance = read('docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md');
 const readme = read('README.md');
 
 check(plugin.includes('Version:           0.1.0-alpha26') &&
     plugin.includes("define('CB_NOTES_VERSION', '0.1.0-alpha26')") &&
     readme.includes('0.1.0-alpha26') &&
-    build.includes("'0.1.0-alpha26'"),
+    build.includes("'0.1.0-alpha26'") &&
+    customerBuild.includes('Notes customer release BLOCKED'),
     'Header, runtime, documentation and release script use one exact alpha candidate');
 check(plugin.includes('Requires at least: 7.0') &&
     plugin.includes('Requires PHP:      8.4') &&
