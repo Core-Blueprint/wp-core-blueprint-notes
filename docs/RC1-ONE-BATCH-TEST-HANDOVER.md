@@ -1,6 +1,6 @@
 # Notes Alpha26 | One-batch RC1 test handover
 
-**State: integrated development candidate prepared. NOT RUN on Alpha26, NOT RC1, NOT Golden, no merge or deployment.**
+**State: original Alpha26 source and fixture build passed on 2026-10-15; WordPress integration was blocked when MariaDB was stopped. This Handbook-alignment patch requires new exact-HEAD execution. NOT RC1, NOT Golden.**
 
 Notes repository: christiaanbruinsma/wp-core-blueprint-notes
 Branch: feature/notes-rc1-golden-hardening-v1
@@ -27,7 +27,8 @@ Requires PHP 8.4+, Node, WP-CLI, Git, Base, the pinned clean Secure Share worktr
     git rev-parse HEAD
     git status --short
     bash -n tools/check-rc1-alpha26-batch
-    bash tools/check-rc1-alpha26-batch
+    bash tools/check-rc1-alpha26-batch --preflight
+    bash tools/check-rc1-alpha26-batch --execute
 
 This should run:
 1. Full PHP/JS/source contract and revoke-recovery smoke checks.
@@ -68,3 +69,18 @@ No one should claim provider-level revocation when Secure Share returns false or
 The supported current data-portability proof is **full-site SQL** with owner user-meta and author relationships. Standalone Notes WXR portability has not been proven; do not promise it. No destructive uninstall routine is included. Owner signoff is needed for retention, data-portability, and locale fallback release policy.
 
 **Current NO-GO:** passing the local batch will close local engineering gates only. R01–R13 browser/manual security, locale/accessibility/load, origin/CDN and host recovery still need proof. Promotion to v1.0.0-rc1, merge, Marketplace/Repository distribution, or deployment requires separate explicit GO.
+
+## Alpha26 Handbook-aligned local validation (October 2026)
+
+The single supported operator flow is:
+
+```bash
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
+unzip -t dist/core-blueprint-notes-0.1.0-alpha26.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha26.zip
+```
+
+`--preflight` inspects the existing MariaDB helper, loopback-only port bindings, protected volume consumers, fixed Notes schema collisions and pinned dependencies without starting containers or mutating schemas. `--execute` authorizes **new-only** fixed Notes test schemas and cleanup only for schemas created by the runner. A pre-existing schema blocks the batch.
+
+The Alpha26 ZIP is a **non-customer test fixture** produced by `tools/build-alpha26-fixture` after WordPress Level 2. The canonical `tools/build-release` refuses customer packaging until the separate localization, runtime, field and RC1 approval requirements have been met.
