@@ -157,3 +157,18 @@ The final report must state both positives and `NOT RUN`/blocking outcomes. Unti
 Alpha26 introduces durable, per-grant, non-autoload Secure Share revocation recovery, an administrator-only, nonce-protected bounded retry action, and explicit failure instead of false success when a private-mode Stop sharing write fails. Source and release version are bumped to `0.1.0-alpha26`; historical Alpha25/24 artifacts must not be overwritten.
 
 **Required before RC1:** run `bash tools/verify-alpha26-build` to double-build and attest the ZIP to this exact HEAD; then WordPress 7.0 + 7.1.3 integration, full SQL restore, local HTTP origin, historical E1/E2 rollback recovery and real Secure Share runtime, followed by the R01–R13 browser/host/i18n/scale/manual gates. See `docs/RC1-ONE-BATCH-TEST-HANDOVER.md`. **No source-only test counts as browser, TLS or CDN evidence.**
+
+## Alpha26 Handbook-aligned local validation (October 2026)
+
+The single supported operator flow is:
+
+```bash
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
+unzip -t dist/core-blueprint-notes-0.1.0-alpha26.zip
+sha256sum dist/core-blueprint-notes-0.1.0-alpha26.zip
+```
+
+`--preflight` inspects the existing MariaDB helper, loopback-only port bindings, protected volume consumers, fixed Notes schema collisions and pinned dependencies without starting containers or mutating schemas. `--execute` authorizes **new-only** fixed Notes test schemas and cleanup only for schemas created by the runner. A pre-existing schema blocks the batch.
+
+The Alpha26 ZIP is a **non-customer test fixture** produced by `tools/build-alpha26-fixture` after WordPress Level 2. The canonical `tools/build-release` refuses customer packaging until the separate localization, runtime, field and RC1 approval requirements have been met.
