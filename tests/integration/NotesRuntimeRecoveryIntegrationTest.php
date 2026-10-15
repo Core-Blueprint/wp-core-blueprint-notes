@@ -10,12 +10,12 @@ use CB\Notes\Sharing\Controller;
  * sharing revocation on a genuine WordPress Trash/Restore lifecycle.
  *
  * This does NOT replace a full-site SQL dump/restore into a second installation.
- * It never operates outside the disposable core_blueprint_notes_test database.
+ * It never operates outside a generated, disposable Notes-only test database.
  */
 final class NotesRuntimeRecoveryIntegrationTest extends WP_UnitTestCase {
     public function set_up(): void {
         parent::set_up();
-        self::assertSame( 'core_blueprint_notes_test', (string) DB_NAME );
+        self::assertSame( 1, preg_match( '/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D', (string) DB_NAME ) );
         self::assertSame( '127.0.0.1:3307', (string) DB_HOST );
         Plugin::grant_roles();
         self::assertTrue( post_type_exists( Plugin::TYPE ) );
