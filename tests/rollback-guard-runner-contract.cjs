@@ -8,7 +8,7 @@ const runner = load('tools/check-rollback-guard');
 const fixture = load('tests/rollback/fixture.php');
 const config = load('tests/rollback/wordpress-config.php');
 const router = load('tests/rollback/router.php');
-const build = load('tools/build-release');
+const build = load('tools/build-alpha26-fixture');
 const fail = why => { throw new Error('Notes recovery guard runner contract: ' + why); };
 const must = (ok, why) => { if (!ok) fail(why); };
 const syntax = spawnSync('bash', ['-n', path.join(root, 'tools/check-rollback-guard')], {
