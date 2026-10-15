@@ -19,7 +19,7 @@ assert.deepEqual(sourceMap, {
 }, 'WP-CLI must receive five canonical PO source paths with min-suffix normalization hints');
 // Some installed WP-CLI versions strip dmin.js from *-admin.js while newer
 // versions correctly normalize .min.js. Both must yield canonical source paths.
-const normalizeCurrent = source => source.replace(/\\.min\\.js$/, '.js');
+const normalizeCurrent = source => source.replace(/\.min\.js$/, '.js');
 const normalizeLegacy = source => source.replace(/.min.js$/, '.js');
 for (const normalize of [normalizeCurrent, normalizeLegacy]) {
   assert.deepEqual(Object.entries(sourceMap).map(([source, output]) => [source, normalize(output)]), [
