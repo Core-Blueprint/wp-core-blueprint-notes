@@ -23,9 +23,9 @@ must(batch.includes('set -euo pipefail') &&
     'Batch refuses modified tracked source and unexpected branch');
 const phases = [
     'bash "$ROOT/tools/check"',
+    'bash "$ROOT/tools/check-integration" --execute',
+    'CB_TEST_WP_VERSION=7.1.3 bash "$ROOT/tools/check-integration" --execute',
     'bash "$ROOT/tools/verify-alpha26-build"',
-    'bash "$ROOT/tools/check-integration"',
-    'CB_TEST_WP_VERSION=7.1.3 bash "$ROOT/tools/check-integration"',
     'bash "$ROOT/tools/check-restore"',
     'bash "$ROOT/tools/check-http"',
     'bash "$ROOT/tools/check-rollback-guard"',
@@ -39,7 +39,7 @@ for (const phase of phases) {
     at = next;
 }
 must(verifier.includes('rm -f -- "$STAMP"') &&
-    (verifier.match(/bash "\$ROOT\/tools\/build-release"/g) || []).length === 2 &&
+    (verifier.match(/bash "\$ROOT\/tools\/build-alpha26-fixture"/g) || []).length === 2 &&
     verifier.includes('SHA1') && verifier.includes('SHA2') &&
     verifier.includes('[[ "$SHA1" == "$SHA2"') &&
     verifier.includes('git -C "$ROOT" rev-parse HEAD'),
@@ -49,6 +49,11 @@ must(preflight.includes('notes-alpha26-verified.txt') &&
     preflight.includes('sha256sum "$ZIP"') &&
     preflight.includes('unzip -t "$ZIP"'),
     'Runtime preflight must reject wrong source revision and archive digest');
+must(batch.includes('bash "$ROOT/tools/check-test-infrastructure"') &&
+    batch.includes('CB_NOTES_DB_MUTATION_APPROVED=notes-alpha26-new-only-v1') &&
+    batch.includes('if [[ "$MODE" == "--preflight" ]]') &&
+    batch.indexOf('tools/check-test-infrastructure') < batch.indexOf('tools/check"'),
+    'Preflight must precede source/build/runtime activity');
 must(batch.includes('NOT RUN: manual R01-R13') &&
     batch.includes('NO GO for RC1 promotion') &&
     !batch.includes('git merge') && !batch.includes('git push'),
