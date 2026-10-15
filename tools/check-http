@@ -25,9 +25,9 @@ for program in wp docker curl php unzip tar flock git sha256sum; do
 done
 [[ -f "$ZIP" && "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$SHA" ]] || fail "Unexpected verified Alpha26 ZIP."
 unzip -t "$ZIP" >/dev/null || fail "Corrupt ZIP."
-[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] || fail "Wrong DB container."
-[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == true ]] || fail "DB container not running."
-docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' || fail "Wrong DB port."
+bash "$ROOT/tools/check-test-infrastructure"
+[[ "${CB_NOTES_DB_MUTATION_APPROVED:-}" == "notes-alpha26-new-only-v1" ]] ||
+    fail "Run the approved Alpha26 batch --execute; no direct database mutation without authorization"
 [[ ! -L "$HOME_TEST" ]] || fail "Unsafe test directory symlink."
 mkdir -p "$HOME_TEST"
 exec 9>"$HOME_TEST/.http.lock"
