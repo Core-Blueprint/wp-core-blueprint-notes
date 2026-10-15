@@ -7,13 +7,13 @@ use CB\Notes\Sharing\Controller;
 /**
  * Notes RC1: real WordPress REST write, revision/autosave and public sharing gates.
  *
- * The WP_UnitTestCase runner uses the fixed disposable core_blueprint_notes_test
+ * The WP_UnitTestCase runner uses a generated, disposable Notes-only test database
  * database only. It does not exercise the HTTP stack, CDN or Secure Share provider.
  */
 final class NotesRuntimeMutationSharingIntegrationTest extends WP_UnitTestCase {
     public function set_up(): void {
         parent::set_up();
-        self::assertSame( 'core_blueprint_notes_test', (string) DB_NAME );
+        self::assertSame( 1, preg_match( '/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D', (string) DB_NAME ) );
         self::assertSame( '127.0.0.1:3307', (string) DB_HOST );
         Plugin::grant_roles();
         self::assertTrue( post_type_exists( Plugin::TYPE ) );
