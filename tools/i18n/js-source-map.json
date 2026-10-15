@@ -1,9 +1,7 @@
 {
   "assets/editor.js": "assets/editor.js",
   "assets/sharing.js": "assets/sharing.js",
-  "assets/organization-admin.js": "assets/organization-admin.js",
-  "assets/organization-a.js": "assets/organization-admin.js",
-  "assets/library-admin.js": "assets/library-admin.js",
-  "assets/library-a.js": "assets/library-admin.js",
+  "assets/organization-admin.js": "assets/organization-admin.min.js",
+  "assets/library-admin.js": "assets/library-admin.min.js",
   "assets/library-bulk.js": "assets/library-bulk.js"
 }

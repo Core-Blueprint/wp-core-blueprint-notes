@@ -13,12 +13,23 @@ const sourceMap = JSON.parse(read('tools/i18n/js-source-map.json'));
 assert.deepEqual(sourceMap, {
   'assets/editor.js': 'assets/editor.js',
   'assets/sharing.js': 'assets/sharing.js',
-  'assets/organization-admin.js': 'assets/organization-admin.js',
-  'assets/organization-a.js': 'assets/organization-admin.js',
-  'assets/library-admin.js': 'assets/library-admin.js',
-  'assets/library-a.js': 'assets/library-admin.js',
+  'assets/organization-admin.js': 'assets/organization-admin.min.js',
+  'assets/library-admin.js': 'assets/library-admin.min.js',
   'assets/library-bulk.js': 'assets/library-bulk.js',
-}, 'WP-CLI source aliases must resolve to the five WordPress registered script paths');
+}, 'WP-CLI must receive five canonical PO source paths with min-suffix normalization hints');
+// Some installed WP-CLI versions strip dmin.js from *-admin.js while newer
+// versions correctly normalize .min.js. Both must yield canonical source paths.
+const normalizeCurrent = source => source.replace(/\\.min\\.js$/, '.js');
+const normalizeLegacy = source => source.replace(/.min.js$/, '.js');
+for (const normalize of [normalizeCurrent, normalizeLegacy]) {
+  assert.deepEqual(Object.entries(sourceMap).map(([source, output]) => [source, normalize(output)]), [
+    ['assets/editor.js', 'assets/editor.js'],
+    ['assets/sharing.js', 'assets/sharing.js'],
+    ['assets/organization-admin.js', 'assets/organization-admin.js'],
+    ['assets/library-admin.js', 'assets/library-admin.js'],
+    ['assets/library-bulk.js', 'assets/library-bulk.js'],
+  ], 'WP-CLI normalized output must match WordPress script handles');
+}
 assert.ok(build.indexOf('30 WordPress script translation artifacts: PASS') <
   build.indexOf('bash "$ROOT/tools/check-rc1-alpha26-batch" --execute'),
   'JS runtime catalog availability must fail fast before heavyweight runtime tests');

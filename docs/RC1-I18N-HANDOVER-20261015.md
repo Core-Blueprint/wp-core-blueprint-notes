@@ -108,3 +108,22 @@ committing. Pull its resulting feature HEAD; run `bash tools/check`,
 and `(cd dist && sha256sum -c core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip.sha256)`.
 Editorial language review, browser R01-R13, real TLS/CDN and rollback remain
 open. Customer-release builder remains fail-closed. No merge or deployment GO.
+
+## Corrective follow-up: WP-CLI min.js suffix handling (2026-10-15)
+
+User executed commit `f151fe6ed2cba1e08cefdf81d502ed7f8ae8bef8`:
+source contracts and six-locale check PASS, but `wp i18n make-json` generated
+30 files and the preflight still failed on `core-blueprint-notes-nl_NL-55b0979ed721c28ac95ce829460011b9.json`.
+The first `--use-map` was an identity map for the two `*-admin.js` paths;
+it could not prevent the installed WP-CLI source-path suffix normalization.
+The output `organization-a.js` and `library-a.js` is consistent with a
+legacy overly-broad `min.js` normalizer matching the trailing `dmin.js`.
+
+Scoped follow-up modifies only the i18n source map, source contract and docs:
+map the original `*-admin.js` PO references to synthetic `*-admin.min.js`
+paths. Both strict `.min.js` normalizers and the legacy behavior normalize
+these to the canonical `*-admin.js` names required by the runtime. No actual
+minified assets are created. Regression test checks both normalization variants.
+This is a candidate workaround based on the observed runtime output, and needs
+actual local WP-CLI confirmation. Preserve Git-tracked PO/POT, Base, and
+Alpha26 runtime sources. No customer release, merge or CI GO.

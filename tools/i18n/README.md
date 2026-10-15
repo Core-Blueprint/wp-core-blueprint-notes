@@ -31,14 +31,18 @@ then runs the complete Alpha26 local batch on its pinned disposable test
 environment before producing two deterministic builds with ZIP integrity and
 checksum verification. No tracked PO/POT is rewritten.
 
-WP-CLI `make-json` currently reports `assets/organization-a.js` and
-`assets/library-a.js` for two source references in the six locale PO files.
-`tools/i18n/js-source-map.json` provides explicit WordPress-supported
-`--use-map` aliases back to the canonical registered
-`assets/organization-admin.js` and `assets/library-admin.js` paths. The
-map also explicitly includes the canonical five JS files, because `--use-map`
-filters out all unmapped references. The JSON file SHA names and `source`
-fields must match the five canonical paths before runtime tests start.
+WP-CLI `make-json` reported `assets/organization-a.js` and
+`assets/library-a.js` where WordPress registers `assets/organization-admin.js`
+and `assets/library-admin.js`. A first identity map did not help: the installed
+tool's suffix normalization still produced shortened paths. The
+`tools/i18n/js-source-map.json` now maps those two PO references to synthetic
+`*-admin.min.js` paths. The documented WP-CLI suffix normalization converts
+them to the canonical `*-admin.js` paths before hashing. Neither synthetic
+path is packaged as a real asset. The map includes all five original JS
+references because `--use-map` filters out unmapped sources. Regression tests
+cover both strict `.min.js` normalization and the legacy behavior indicated
+by the actual output. All 30 JSON filenames and embedded source paths must
+still match registered scripts before the expensive runtime batch starts.
 
 Canonical tooling:
 - `tools/i18n/check-reference`: read-only pinned first-party engine integrity.
