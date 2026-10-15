@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Read-only inspection of the existing shared MariaDB helper. Never provision or reset it.
+fail() { printf 'Notes infrastructure BLOCKED: %s\n' "$*" >&2; exit 1; }
+[[ "$#" -eq 0 ]] || fail "No arguments accepted"
+for cmd in docker python3; do
+    command -v "$cmd" >/dev/null 2>&1 || fail "Missing $cmd"
+done
+CONTAINER="cb-base-test-db"
+[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
+    fail "Expected existing mariadb:10.11.19 helper"
+[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER" 2>/dev/null)" == "true" ]] ||
+    fail "Existing helper stopped; do not create or start a container automatically"
+BINDINGS="$(docker inspect --format '{{json .HostConfig.PortBindings}}' "$CONTAINER")" ||
+    fail "Cannot inspect configured port bindings"
+PUBLISHED="$(docker port "$CONTAINER" 3306/tcp)" ||
+    fail "Cannot inspect effective port bindings"
+python3 - "$BINDINGS" "$PUBLISHED" <<'PY' ||
+import json
+import sys
+try:
+    bindings = json.loads(sys.argv[1])
+    configured = [(entry["HostIp"], entry["HostPort"]) for entry in bindings["3306/tcp"]]
+    allowed = {("127.0.0.1", "3307"), ("::1", "3307")}
+    effective = {"127.0.0.1:3307"}
+    if ("::1", "3307") in configured:
+        effective.add("[::1]:3307")
+    valid = (set(bindings) == {"3306/tcp"}
+             and len(configured) == len(set(configured))
+             and ("127.0.0.1", "3307") in configured
+             and set(configured).issubset(allowed)
+             and set(sys.argv[2].strip().splitlines()) == effective)
+except (KeyError, ValueError, TypeError, IndexError):
+    valid = False
+if not valid:
+    print("Notes infrastructure BLOCKED: non-loopback or unexpected MariaDB publication", file=sys.stderr)
+    sys.exit(1)
+PY
+    fail "Database port binding rejected"
+MOUNT="$(docker inspect --format '{{range .Mounts}}{{if eq .Destination "/var/lib/mysql"}}{{.Type}}:{{.Name}}{{"\n"}}{{end}}{{end}}' "$CONTAINER")" ||
+    fail "Cannot inspect MariaDB data volume"
+[[ "$MOUNT" =~ ^volume:[a-zA-Z0-9_-]+$ ]] ||
+    fail "Expected exactly one protected named volume mounted at /var/lib/mysql"
+ACTIVE="$(docker ps --filter "volume=${MOUNT#volume:}" --format '{{.Names}}')" ||
+    fail "Cannot inspect active volume consumers"
+[[ "$ACTIVE" == "$CONTAINER" ]] ||
+    fail "Protected database volume is shared with another running container"
+# Fixed query avoids listing unrelated database names and never modifies SQL data.
+COLLISIONS="$(docker exec -e MYSQL_PWD=root "$CONTAINER" mariadb -uroot -N -B \
+    -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME IN (
+       'core_blueprint_notes_test', 'core_blueprint_notes_restore_source',
+       'core_blueprint_notes_restore_target', 'core_blueprint_notes_http_test',
+       'core_blueprint_notes_rollback_source', 'core_blueprint_notes_rollback_target',
+       'core_blueprint_notes_r08_test'
+    ) ORDER BY SCHEMA_NAME;")" || fail "MariaDB readiness/inventory query failed"
+[[ -z "$COLLISIONS" ]] ||
+    fail "Existing Notes test schemas are protected ($COLLISIONS). No automatic reset"
+printf 'Notes shared database preflight: PASS (read-only)\n'
