@@ -8,6 +8,20 @@ const build = read('tools/build-localized-candidate');
 for (const required of ['check-rc1-alpha26-batch" --execute','tools/i18n/check','--no-purge','msgfmt --check-header --check-format','assets/editor.js','assets/sharing.js','assets/organization-admin.js','assets/library-admin.js','assets/library-bulk.js','FIRST=','SECOND=','EDITORIAL/FIELD/RELEASE HOLD']) {
   assert.ok(build.includes(required), 'Missing localizable-runtime requirement: ' + required);
 }
+assert.ok(build.includes('use-map="$ROOT/tools/i18n/js-source-map.json"'), 'Explicit WP-CLI map must normalize source aliases');
+const sourceMap = JSON.parse(read('tools/i18n/js-source-map.json'));
+assert.deepEqual(sourceMap, {
+  'assets/editor.js': 'assets/editor.js',
+  'assets/sharing.js': 'assets/sharing.js',
+  'assets/organization-admin.js': 'assets/organization-admin.js',
+  'assets/organization-a.js': 'assets/organization-admin.js',
+  'assets/library-admin.js': 'assets/library-admin.js',
+  'assets/library-a.js': 'assets/library-admin.js',
+  'assets/library-bulk.js': 'assets/library-bulk.js',
+}, 'WP-CLI source aliases must resolve to the five WordPress registered script paths');
+assert.ok(build.indexOf('30 WordPress script translation artifacts: PASS') <
+  build.indexOf('bash "$ROOT/tools/check-rc1-alpha26-batch" --execute'),
+  'JS runtime catalog availability must fail fast before heavyweight runtime tests');
 assert.ok(build.includes("data.get('domain') != 'messages'"), 'WP Jed JSON uses the messages domain');
 assert.ok(build.includes("header.get('lang') != locale"), 'Must verify per-locale Jed language');
 assert.doesNotMatch(build, /import-candidate|core-blueprint-notes-rc1-i18n-candidate\\.zip/);

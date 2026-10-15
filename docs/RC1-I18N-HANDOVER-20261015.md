@@ -80,3 +80,31 @@ Privacy, integrity, no silent approval of AI-assisted translation proposals,
 no remote/staging/production mutations, and no merges or GitHub Actions without
 explicit user permission. Updates should be compact with concrete commands,
 real PASS vs NOT RUN distinctions and the next acceptance decision.
+
+## Follow-up: localized JS catalog source aliases (2026-10-15)
+
+Local validation of source HEAD `e516a57597dc5f038d6e4135bb7e11a95f41f985`
+passed `tools/check`, six-locale `tools/i18n/check`, real WP 7.0/7.1.3
+integration (9 tests, 221 assertions each), Alpha26 deterministic fixture,
+SQL restore, loopback HTTP, rollback and Secure Share CLI. The localized
+candidate failed **after** these PASS results: WP-CLI produced 30 Jed JSON
+files, but named two script sources `assets/organization-a.js` and
+`assets/library-a.js`, not the registered `*-admin.js` source paths.
+The missing candidate ZIP/checksum was a consequential failure, not a
+checksum defect.
+
+Fix scoped to the i18n build pipeline only:
+- Use the documented WP-CLI `make-json --use-map` with
+  `tools/i18n/js-source-map.json` (five canonical paths plus two observed
+  source aliases); preserve all seven Git-pinned source catalogs unchanged.
+- Check all 30 canonical JSON artifacts before the heavyweight Alpha26 batch
+  to fail fast on packaging mistakes.
+- Extend the existing localized package contract to protect this mapping.
+
+**Pending acceptance:** the source patch is not locally validated merely by
+committing. Pull its resulting feature HEAD; run `bash tools/check`,
+`bash tools/i18n/check`, `bash tools/build-localized-candidate --execute`,
+`unzip -tqq dist/core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip`,
+and `(cd dist && sha256sum -c core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip.sha256)`.
+Editorial language review, browser R01-R13, real TLS/CDN and rollback remain
+open. Customer-release builder remains fail-closed. No merge or deployment GO.

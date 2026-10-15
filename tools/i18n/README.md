@@ -25,10 +25,20 @@ bash tools/build-localized-candidate --execute
 (cd dist && sha256sum -c core-blueprint-notes-0.1.0-alpha26-i18n-candidate.zip.sha256)
 ```
 
-The localized candidate builder runs the complete Alpha26 local batch on its
-pinned disposable test environment. It then compiles MO and WordPress JavaScript
-JSON from the Git-tracked PO files into a temporary package and verifies two
-deterministic builds, ZIP integrity and checksum. No tracked PO/POT is rewritten.
+The localized candidate builder generates MO and WordPress JavaScript JSON from
+the Git-tracked PO files in temporary staging, validates all 30 Jed catalogs,
+then runs the complete Alpha26 local batch on its pinned disposable test
+environment before producing two deterministic builds with ZIP integrity and
+checksum verification. No tracked PO/POT is rewritten.
+
+WP-CLI `make-json` currently reports `assets/organization-a.js` and
+`assets/library-a.js` for two source references in the six locale PO files.
+`tools/i18n/js-source-map.json` provides explicit WordPress-supported
+`--use-map` aliases back to the canonical registered
+`assets/organization-admin.js` and `assets/library-admin.js` paths. The
+map also explicitly includes the canonical five JS files, because `--use-map`
+filters out all unmapped references. The JSON file SHA names and `source`
+fields must match the five canonical paths before runtime tests start.
 
 Canonical tooling:
 - `tools/i18n/check-reference`: read-only pinned first-party engine integrity.
