@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Product-isolated Notes Level 2 runner. The ONLY reset target is the named Notes test DB.
+# Product-isolated Level 2 runner. Never reset an existing Notes schema.
+bash -n "$0"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail() { printf 'Notes integration BLOCKED: %s\n' "$*" >&2; exit 1; }
+MODE="${1:---preflight}"
+[[ "$#" -le 1 && ( "$MODE" == "--preflight" || "$MODE" == "--execute" ) ]] ||
+  fail "Use --preflight or --execute"
 WP_VERSION="${CB_TEST_WP_VERSION:-7.0}"
 case "$WP_VERSION" in
   7.0) WP_TEST_TAG=7.0.0 ;;
@@ -26,29 +30,34 @@ git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
   fail "Uncommitted tracked Notes changes: inspect before testing."
 git -C "$BASE_SOURCE" diff --quiet && git -C "$BASE_SOURCE" diff --cached --quiet ||
   fail "Uncommitted tracked Base changes: inspect before testing."
-docker inspect cb-base-test-db >/dev/null 2>&1 || fail "Canonical Base MariaDB container unavailable."
-[[ "$(docker inspect --format '{{.Config.Image}}' cb-base-test-db)" == "mariadb:10.11.19" &&
-   "$(docker inspect --format '{{.State.Running}}' cb-base-test-db)" == "true" ]] ||
-  fail "Expected running cb-base-test-db using mariadb:10.11.19."
-PORT="$(docker port cb-base-test-db 3306/tcp 2>/dev/null || true)"
-grep -Eq '(^|:)3307$' <<< "$PORT" || fail "Canonical DB port 3307 missing."
-READY=0
-for (( attempt=1; attempt<=45; attempt++ )); do
-  if docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -u"$DB_USER" \
-    -e 'SELECT 1' >/dev/null 2>&1; then READY=1; break; fi
-  sleep 1
-done
-[[ "$READY" -eq 1 ]] || fail "MariaDB not ready."
+bash "$ROOT/tools/check-test-infrastructure"
+if [[ "$MODE" == "--preflight" ]]; then
+  echo 'Notes Level 2 read-only preflight: PASS'
+  exit 0
+fi
+[[ "${CB_NOTES_DB_MUTATION_APPROVED:-}" == "notes-alpha26-new-only-v1" ]] ||
+  fail "Explicit single-batch --execute approval required for new-only schema and owned cleanup"
 [[ ! -L "$TEST_ROOT" ]] || fail "Refusing symlink at Notes test root."
 mkdir -p "$TEST_ROOT"
 exec 9>"$TEST_ROOT/.integration.lock"
 flock -x 9
 RUN_DIR="$(mktemp -d "$TEST_ROOT/run.XXXXXXXX")"
 [[ "$RUN_DIR" == "$TEST_ROOT"/run.* ]] || fail "Unsafe temporary directory."
+OWN_DB=0
 cleanup() {
-  if [[ -n "${RUN_DIR:-}" && -d "$RUN_DIR" && "$RUN_DIR" == "$TEST_ROOT"/run.* ]]; then
+  local status=$?
+  trap - EXIT
+  if [[ "$OWN_DB" == 1 ]]; then
+    if ! docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -u"$DB_USER" \
+      -e 'DROP DATABASE core_blueprint_notes_test;' >/dev/null; then
+      echo 'Notes integration cleanup BLOCKED: inspect only the newly owned Notes database' >&2
+      status=1
+    fi
+  fi
+  if [[ -n "${RUN_DIR:-}" && -d "$RUN_DIR" && ! -L "$RUN_DIR" && "$RUN_DIR" == "$TEST_ROOT"/run.* ]]; then
     rm -rf -- "$RUN_DIR"
   fi
+  exit "$status"
 }
 trap cleanup EXIT
 export WP_CORE_DIR="$RUN_DIR/wp" WP_TESTS_DIR="$RUN_DIR/wp-tests"
@@ -75,11 +84,12 @@ tar -C "$ROOT" --exclude='./.git' --exclude='./tests' --exclude='./tools' \
   tar -C "$(dirname "$CB_TEST_NOTES_PLUGIN_FILE")" -xf -
 [[ -f "$CB_TEST_BASE_PLUGIN_FILE" && -f "$CB_TEST_NOTES_PLUGIN_FILE" ]] ||
   fail "Base or Notes staging failed."
-# Static, canonical SQL identifier: neither caller input nor other suites' DBs are touched.
-printf 'Notes: reset disposable database %s only\n' "$DB_NAME"
+# Atomic new-only CREATE: collisions fail; never drop an existing database.
+printf 'Notes: create new owned test schema %s\n' "$DB_NAME"
 docker exec -e MYSQL_PWD="$DB_PASSWORD" cb-base-test-db mariadb -u"$DB_USER" \
-  -e 'DROP DATABASE IF EXISTS core_blueprint_notes_test; CREATE DATABASE core_blueprint_notes_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
-  fail "Cannot provision Notes-only database."
+  -e 'CREATE DATABASE core_blueprint_notes_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;' ||
+  fail "Schema creation refused; inspect existing state, no automatic deletion"
+OWN_DB=1
 printf 'Notes=%s Base=%s WP=%s\n' \
   "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE_SOURCE" rev-parse HEAD)" "$WP_VERSION"
 "$BASE_SOURCE/vendor/bin/phpunit" -c "$ROOT/tests/phpunit-notes.xml.dist" \
