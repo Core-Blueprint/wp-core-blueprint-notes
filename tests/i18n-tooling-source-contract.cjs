@@ -29,4 +29,16 @@ for (const name of ['check','update']) {
 }
 assert.match(read('tools/i18n/check'), /tools\/i18n\/check-reference/);
 assert.match(read('tools/build-release'), /Notes customer release BLOCKED/);
+const pluginBootstrap = read('core-blueprint-notes.php');
+assert.match(pluginBootstrap, /\* Domain Path:\s+\/languages/);
+assert.match(pluginBootstrap, /load_plugin_textdomain\(/);
+assert.match(pluginBootstrap, /dirname\(CB_NOTES_BASENAME\) \. '\/languages'/);
+const prepare = read('tools/i18n/prepare-review.py');
+assert.match(prepare, /catalog\.generate_pot\(/);
+assert.match(prepare, /catalog\.source_version\(/);
+assert.match(prepare, /catalog\.source_stamp\(/);
+assert.match(prepare, /catalog\.key_set\(/);
+assert.match(prepare, /"dist" \/ "i18n-review"/);
+assert.match(read('tools/i18n/prepare-review'), /tools\/i18n\/prepare-review\.py/);
+assert.doesNotMatch(prepare, /machine.translate|requests\.post|subprocess\.run/);
 console.log('Notes i18n tooling source: PASS (six-locale CONTENT HOLD; runtime NOT RUN)');

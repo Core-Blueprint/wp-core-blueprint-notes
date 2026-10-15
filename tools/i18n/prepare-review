@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+python3 "$ROOT/tools/i18n/check-reference"
+exec python3 "$ROOT/tools/i18n/prepare-review.py" "$@"

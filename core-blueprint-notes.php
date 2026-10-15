@@ -8,6 +8,7 @@
  * Author URI:        https://coreblueprint.io
  * License:           GPL-2.0-or-later
  * Text Domain:       core-blueprint-notes
+ * Domain Path:       /languages
  * Requires at least: 7.0
  * Requires PHP:      8.4
  * Requires Plugins: core-blueprint
@@ -74,6 +75,14 @@ function cb_notes_activate(): void {
     flush_rewrite_rules();
 }
 register_activation_hook(__FILE__, 'cb_notes_activate');
+
+add_action('init', static function (): void {
+    load_plugin_textdomain(
+        'core-blueprint-notes',
+        false,
+        dirname(CB_NOTES_BASENAME) . '/languages'
+    );
+}, 0);
 
 add_action('plugins_loaded', static function (): void {
     $error = cb_notes_requirement_error();

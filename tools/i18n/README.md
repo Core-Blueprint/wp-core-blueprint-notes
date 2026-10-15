@@ -16,3 +16,13 @@ Source POT must come from current PHP and JavaScript using WP-CLI make-pot.
 Generate JS translation JSON using WP-CLI make-json only from reviewed PO sources.
 Customer packaging and browser runtime acceptance remain blocked until catalog review and tests.
 The Alpha26 ZIP remains an internal fixture, never an accepted release.
+
+### Review-only source extraction
+
+Run `bash tools/i18n/prepare-review` on the operator workstation. It uses the
+pinned WordPress-aware `catalog.generate_pot` to extract PHP and JavaScript into
+`dist/i18n-review/core-blueprint-notes.pot`. This is **not** the approved catalog,
+and does not satisfy `tools/i18n/check`.
+
+Translate and review the six required locales, then use the canonical update/check
+workflow. Missing or unreviewed POs remain a customer-release content hold.
