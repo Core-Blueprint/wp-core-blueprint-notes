@@ -5,7 +5,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODE="${1:---preflight}"
 [[ "$#" -le 1 && ( "$MODE" == "--preflight" || "$MODE" == "--execute" ) ]] ||
     { echo 'Use --preflight or --execute' >&2; exit 1; }
-[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
+[[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
     { echo 'Wrong Notes branch' >&2; exit 1; }
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     { echo 'Notes tracked files are modified; refusing ambiguous release evidence' >&2; exit 1; }

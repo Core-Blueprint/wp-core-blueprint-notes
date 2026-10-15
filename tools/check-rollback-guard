@@ -15,7 +15,9 @@ ORIGIN="http://127.0.0.1:18778"
 fail() { printf 'Notes rollback rehearsal BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
 [[ "$#" == 0 ]] || fail "No command-line arguments allowed."
-[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
+[[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
     fail "Unexpected branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     fail "Notes tracked source modified."

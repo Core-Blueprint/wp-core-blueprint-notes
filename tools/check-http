@@ -16,7 +16,9 @@ SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"
 fail() { printf 'Notes HTTP BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
 [[ "$#" == 0 ]] || fail "No CLI args supported."
-[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] || fail "Wrong branch."
+NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
+[[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] || fail "Wrong branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet || fail "Notes tracked source modified."
 [[ -f "$BASE/core-blueprint.php" ]] || fail "Canonical Base checkout required."
 git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet || fail "Base tracked source modified."

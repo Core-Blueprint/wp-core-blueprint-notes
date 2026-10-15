@@ -14,7 +14,9 @@ TEST_HOME="/tmp/core-blueprint-tests/core-blueprint-notes-restore"
 fail() { printf 'Notes restore BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
 
-[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
+[[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
     fail "Expected dedicated Notes feature branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     fail "Notes has modified tracked files."

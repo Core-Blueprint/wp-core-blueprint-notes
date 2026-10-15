@@ -15,7 +15,9 @@ PINNED_SHA="22665ea1ca9445f1cd4092f0738e1965fab720b8a6e406c582c6b3f8d09c6dfc"
 fail() { printf 'Notes rollback rehearsal BLOCKED: %s\n' "$*" >&2; exit 1; }
 umask 077
 [[ "$#" == 0 ]] || fail "No command-line arguments allowed."
-[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
+NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
+[[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
     fail "Unexpected branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     fail "Notes tracked source modified."
