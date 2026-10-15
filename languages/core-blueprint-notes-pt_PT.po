@@ -1,0 +1,1440 @@
+# Copyright (C) 2026 Core Blueprint
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Core Blueprint Notes 0.1.0-alpha26\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/wp-core-"
+"blueprint-notes\n"
+"POT-Creation-Date: 2026-10-15 12:09+0000\n"
+"PO-Revision-Date: 2026-10-15 14:00+0000\n"
+"Last-Translator: Core Blueprint | editorial review candidate; operator "
+"approval required\n"
+"Language: pt_PT\n"
+"Language-Team: Core Blueprint pt_PT review pending\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#. Plugin Name of the plugin
+#: core-blueprint-notes.php src/Abilities.php:10
+msgid "Core Blueprint Notes"
+msgstr "Core Blueprint Notes"
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: core-blueprint-notes.php
+msgid "https://coreblueprint.io"
+msgstr "https://coreblueprint.io"
+
+#. Description of the plugin
+#: core-blueprint-notes.php
+msgid ""
+"Private Gutenberg notes with personal notebooks, categories, tags and "
+"controlled sharing."
+msgstr ""
+"Notas privadas no Gutenberg com cadernos pessoais, categorias, etiquetas e "
+"partilha controlada."
+
+#. Author of the plugin
+#: core-blueprint-notes.php
+msgid "Core Blueprint"
+msgstr "Core Blueprint"
+
+#: src/Abilities.php:11
+msgid "Permissioned access to WordPress Notes."
+msgstr "Acesso ao WordPress Notes sujeito a permissões."
+
+#: src/Abilities.php:41
+msgid "Read only authorized private WordPress notes. No content is changed."
+msgstr ""
+"Ler apenas notas privadas do WordPress autorizadas. Nenhum conteúdo é "
+"alterado."
+
+#: src/Abilities.php:61
+msgid "Invalid search."
+msgstr "Pesquisa inválida."
+
+#: src/Abilities.php:99 src/Access.php:46 src/Access.php:63
+#: src/Sharing/Controller.php:283
+msgid "Note not found."
+msgstr "Nota não encontrada."
+
+#: src/Admin/SettingsPage.php:27 src/Plugin.php:117 src/Plugin.php:171
+#: src/Plugin.php:268
+msgid "Notes"
+msgstr "Notas"
+
+#: src/Admin/SettingsPage.php:28
+msgid ""
+"Manage private notes, personal notebooks and optional AI access using "
+"Gutenberg."
+msgstr ""
+"Gira notas privadas, cadernos pessoais e o acesso opcional à IA através do "
+"Gutenberg."
+
+#: src/Admin/SettingsPage.php:41
+msgid "Overview"
+msgstr "Visão geral"
+
+#: src/Admin/SettingsPage.php:42 src/Plugin.php:241
+msgid "AI Access"
+msgstr "Acesso à IA"
+
+#: src/Admin/SettingsPage.php:60 src/Admin/SettingsPage.php:172
+msgid "You do not have permission to manage Notes settings."
+msgstr "Não tem permissão para gerir as definições do Notes."
+
+#: src/Admin/SettingsPage.php:65
+msgid "Notes settings sections"
+msgstr "Secções das definições do Notes"
+
+#: src/Admin/SettingsPage.php:102
+msgid "Notes at a glance"
+msgstr "Notes em resumo"
+
+#: src/Admin/SettingsPage.php:103
+msgid "My notes"
+msgstr "As minhas notas"
+
+#: src/Admin/SettingsPage.php:104
+msgid "Editor"
+msgstr "Editor"
+
+#: src/Admin/SettingsPage.php:105
+msgid "AI access"
+msgstr "Acesso à IA"
+
+#: src/Admin/SettingsPage.php:106 src/Admin/SettingsPage.php:147
+msgid "Enabled"
+msgstr "Ativado"
+
+#: src/Admin/SettingsPage.php:106 src/Admin/SettingsPage.php:147
+msgid "Disabled"
+msgstr "Desativado"
+
+#: src/Admin/SettingsPage.php:110
+msgid "Notes workspace"
+msgstr "Área de trabalho do Notes"
+
+#: src/Admin/SettingsPage.php:111
+msgid ""
+"Create and edit your own notes in the native WordPress block editor. "
+"Personal notebook labels are stored with each note."
+msgstr ""
+"Crie e edite as suas próprias notas no editor de blocos nativo do "
+"WordPress. As etiquetas dos cadernos pessoais são guardadas com cada nota."
+
+#: src/Admin/SettingsPage.php:112
+msgid ""
+"Notes are private by default. Team sharing and private file attachments are"
+" not available in this alpha."
+msgstr ""
+"As notas são privadas por predefinição. A partilha com equipas e os anexos "
+"privados não estão disponíveis nesta versão alfa."
+
+#: src/Admin/SettingsPage.php:115
+msgid "Open Notes Library"
+msgstr "Abrir biblioteca do Notes"
+
+#: src/Admin/SettingsPage.php:123
+msgid "Secure Share recovery"
+msgstr "Recuperação do Secure Share"
+
+#: src/Admin/SettingsPage.php:124
+msgid ""
+"Some Secure Share grants still require provider-side revocation. Notes has "
+"already disabled local delivery. Resolve these before relying on the "
+"original links being fully revoked."
+msgstr ""
+"Algumas autorizações do Secure Share ainda precisam de ser revogadas junto "
+"do fornecedor. O Notes já desativou a disponibilização local. Resolva estes"
+" casos antes de considerar que as ligações originais foram totalmente "
+"revogadas."
+
+#: src/Admin/SettingsPage.php:125
+msgid "Pending revocations:"
+msgstr "Revogações pendentes:"
+
+#: src/Admin/SettingsPage.php:129
+msgid "Retry provider revocations"
+msgstr "Repetir revogações junto dos fornecedores"
+
+#: src/Admin/SettingsPage.php:144
+msgid "AI & MCP access"
+msgstr "Acesso a IA e MCP"
+
+#: src/Admin/SettingsPage.php:145
+msgid ""
+"Read-only Notes abilities are optional and disabled by default. A "
+"separately installed and authenticated WordPress MCP Adapter is required "
+"for an external AI client. Enabling this setting does not create a "
+"connection."
+msgstr ""
+"As funcionalidades do Notes apenas de leitura são opcionais e estão "
+"desativadas por predefinição. Um WordPress MCP Adapter instalado "
+"separadamente e autenticado é necessário para um cliente de IA externo. "
+"Ativar esta definição não cria uma ligação."
+
+#: src/Admin/SettingsPage.php:146
+msgid "Current setting:"
+msgstr "Definição atual:"
+
+#: src/Admin/SettingsPage.php:154
+msgid "Allow read-only Notes abilities in MCP"
+msgstr "Permitir funcionalidades do Notes apenas de leitura através de MCP"
+
+#: src/Admin/SettingsPage.php:155
+msgid ""
+"Only users with cb_notes_use_ai (administrators by default) may invoke "
+"abilities. They can read only notes they authored, even when using an "
+"administrator account."
+msgstr ""
+"Apenas os utilizadores com cb_notes_use_ai (administradores por "
+"predefinição) podem invocar estas funcionalidades. Mesmo com uma conta de "
+"administrador, só podem ler notas de que sejam autores."
+
+#: src/Admin/SettingsPage.php:156
+msgid "Save Changes"
+msgstr "Guardar alterações"
+
+#: src/Admin/SettingsPage.php:161
+msgid "Available abilities"
+msgstr "Funcionalidades disponíveis"
+
+#: src/Admin/SettingsPage.php:162
+msgid ""
+"List notes, search notes and read a note. Create, update and delete "
+"abilities are not registered."
+msgstr ""
+"Listar notas, pesquisar notas e ler uma nota. Não estão registadas "
+"funcionalidades para criar, atualizar ou eliminar."
+
+#: src/Admin/SettingsPage.php:181
+msgid "Open AI Access settings"
+msgstr "Abrir definições de acesso à IA"
+
+#: src/Library/Bulk.php:112 src/Library/Display.php:46 src/Library/Page.php:518
+#: src/Organization/Catalog.php:114 src/Organization/Catalog.php:551
+msgid "Access denied."
+msgstr "Acesso negado."
+
+#: src/Library/Bulk.php:117
+msgid "Your session has expired. Reload the Library."
+msgstr "A sua sessão expirou. Recarregue a biblioteca."
+
+#: src/Library/Bulk.php:126
+msgid "Invalid bulk selection or destination."
+msgstr "Seleção em massa ou destino inválido."
+
+#: src/Library/Display.php:51
+msgid "Invalid display."
+msgstr "Vista inválida."
+
+#: src/Library/Markers.php:47
+msgid "This action has expired. Reload and try again."
+msgstr "Esta ação expirou. Recarregue a página e tente novamente."
+
+#: src/Library/Markers.php:51
+msgid "This note is not available to you."
+msgstr "Esta nota não está disponível para si."
+
+#: src/Library/Markers.php:58
+msgid "Invalid note action."
+msgstr "Ação de nota inválida."
+
+#: src/Library/Markers.php:69
+msgid "Could not save this preference."
+msgstr "Não foi possível guardar esta preferência."
+
+#: src/Library/Page.php:28 src/Library/Page.php:532
+msgid "Notes Library"
+msgstr "Biblioteca do Notes"
+
+#: src/Library/Page.php:29
+msgid "Library"
+msgstr "Biblioteca"
+
+#: src/Library/Page.php:139
+msgid "Search notes"
+msgstr "Pesquisar notas"
+
+#: src/Library/Page.php:141
+msgid "Search your notes"
+msgstr "Pesquisar nas suas notas"
+
+#: src/Library/Page.php:142
+msgid "Search"
+msgstr "Pesquisar"
+
+#: src/Library/Page.php:145
+msgid "More filters"
+msgstr "Mais filtros"
+
+#: assets/editor.js:205 src/Library/Page.php:147 src/Library/Page.php:314
+#: src/Library/Page.php:475 src/Organization/Catalog.php:459
+msgid "Category"
+msgstr "Categoria"
+
+#: src/Library/Page.php:149 src/Organization/Catalog.php:492
+msgid "All categories"
+msgstr "Todas as categorias"
+
+#: src/Library/Page.php:151
+msgid "Tag"
+msgstr "Etiqueta"
+
+#: src/Library/Page.php:153 src/Organization/Catalog.php:493
+msgid "All tags"
+msgstr "Todas as etiquetas"
+
+#: src/Library/Page.php:155
+msgid "Sort by"
+msgstr "Ordenar por"
+
+#: src/Library/Page.php:158
+msgid "Pinned first (default)"
+msgstr "Fixadas primeiro (predefinição)"
+
+#: src/Library/Page.php:159
+msgid "Modified: newest first"
+msgstr "Modificação: mais recentes primeiro"
+
+#: src/Library/Page.php:160
+msgid "Modified: oldest first"
+msgstr "Modificação: mais antigas primeiro"
+
+#: src/Library/Page.php:161
+msgid "Title A to Z"
+msgstr "Título de A a Z"
+
+#: src/Library/Page.php:162
+msgid "Title Z to A"
+msgstr "Título de Z a A"
+
+#: src/Library/Page.php:168
+msgid "Apply filters"
+msgstr "Aplicar filtros"
+
+#: src/Library/Page.php:183 src/Library/Page.php:346
+msgid "Untitled note"
+msgstr "Nota sem título"
+
+#. translators: %s: note title
+#: src/Library/Page.php:195 src/Library/Page.php:359
+#, php-format, python-format
+msgid "Select note: %s"
+msgstr "Selecionar nota: %s"
+
+#: src/Library/Page.php:197 src/Library/Page.php:360
+msgid "Select note"
+msgstr "Selecionar nota"
+
+#: src/Library/Page.php:204 src/Library/Page.php:366
+msgid "Draft"
+msgstr "Rascunho"
+
+#: assets/sharing.js:123 src/Library/Page.php:206 src/Library/Page.php:366
+msgid "Private"
+msgstr "Privada"
+
+#: src/Library/Page.php:214
+msgid "Notebook:"
+msgstr "Caderno:"
+
+#: src/Library/Page.php:216 src/Library/Page.php:369 src/Library/Page.php:543
+msgid "Unfiled"
+msgstr "Não classificada"
+
+#: src/Library/Page.php:219
+msgid "Category:"
+msgstr "Categoria:"
+
+#: src/Library/Page.php:223
+msgid "Tags:"
+msgstr "Etiquetas:"
+
+#. translators: %s: comma-separated list of additional private tag names
+#. translators: %s: comma-separated private tag names
+#: src/Library/Page.php:231 src/Library/Page.php:383
+#, php-format, python-format
+msgid "Additional tags: %s"
+msgstr "Etiquetas adicionais: %s"
+
+#: src/Library/Page.php:249
+msgid "Remove from favorites"
+msgstr "Remover dos favoritos"
+
+#: src/Library/Page.php:250
+msgid "Add to favorites"
+msgstr "Adicionar aos favoritos"
+
+#: src/Library/Page.php:254
+msgid "Unpin note"
+msgstr "Desafixar nota"
+
+#: src/Library/Page.php:255
+msgid "Pin note"
+msgstr "Fixar nota"
+
+#. translators: %s: note title
+#: src/Library/Page.php:273
+#, php-format, python-format
+msgid "Edit note: %s"
+msgstr "Editar nota: %s"
+
+#. translators: %s: note title
+#: src/Library/Page.php:286
+#, php-format, python-format
+msgid "Move note to Trash: %s"
+msgstr "Mover nota para o lixo: %s"
+
+#: src/Library/Page.php:303
+msgid "Notes table, scroll horizontally if needed"
+msgstr "Tabela de notas, desloque horizontalmente se necessário"
+
+#: src/Library/Page.php:312
+msgid "Title"
+msgstr "Título"
+
+#: assets/editor.js:181 src/Library/Page.php:313 src/Library/Page.php:469
+#: src/Plugin.php:255
+msgid "Notebook"
+msgstr "Caderno"
+
+#: assets/organization-admin.js:25 src/Library/Page.php:315
+#: src/Organization/Catalog.php:460
+msgid "Tags"
+msgstr "Etiquetas"
+
+#: src/Library/Page.php:325
+msgid "Modified"
+msgstr "Modificada"
+
+#: src/Library/Page.php:326
+msgid "Actions"
+msgstr "Ações"
+
+#: src/Library/Page.php:408
+msgid "No notes on this page"
+msgstr "Não há notas nesta página"
+
+#: src/Library/Page.php:409
+msgid "Try the first page of these results."
+msgstr "Experimente a primeira página destes resultados."
+
+#: src/Library/Page.php:410
+msgid "First page"
+msgstr "Primeira página"
+
+#: src/Library/Page.php:413
+msgid "No matching notes"
+msgstr "Sem notas correspondentes"
+
+#: src/Library/Page.php:414
+msgid "Try a different search or clear your filters."
+msgstr "Experimente outra pesquisa ou limpe os filtros."
+
+#: src/Library/Page.php:415
+msgid "Clear filters"
+msgstr "Limpar filtros"
+
+#: src/Library/Page.php:418
+msgid "No favorites yet"
+msgstr "Ainda não há favoritos"
+
+#: src/Library/Page.php:419
+msgid "Use the star next to a note to save it here."
+msgstr "Utilize a estrela junto a uma nota para a guardar aqui."
+
+#: src/Library/Page.php:420 src/Library/Page.php:425 src/Library/Page.php:430
+msgid "Show all notes"
+msgstr "Mostrar todas as notas"
+
+#: src/Library/Page.php:423
+msgid "No pinned notes yet"
+msgstr "Ainda não há notas fixadas"
+
+#: src/Library/Page.php:424
+msgid "Pin important notes to keep them at the top of your Library."
+msgstr "Fixe as notas importantes para as manter no topo da biblioteca."
+
+#: src/Library/Page.php:428
+msgid "No unfiled notes"
+msgstr "Sem notas não classificadas"
+
+#: src/Library/Page.php:429
+msgid "Your notes are already assigned to notebooks."
+msgstr "Todas as suas notas já estão atribuídas a cadernos."
+
+#: src/Library/Page.php:433
+msgid "This notebook is empty"
+msgstr "Este caderno está vazio"
+
+#: src/Library/Page.php:434
+msgid "Create a note, then select this notebook in the editor."
+msgstr "Crie uma nota e, em seguida, selecione este caderno no editor."
+
+#: src/Library/Page.php:435 src/Library/Page.php:440 src/Library/Page.php:535
+msgid "New note"
+msgstr "Nova nota"
+
+#: src/Library/Page.php:438
+msgid "Your Library is empty"
+msgstr "A sua biblioteca está vazia"
+
+#: src/Library/Page.php:439
+msgid "Create your first private note to get started."
+msgstr "Crie a sua primeira nota privada para começar."
+
+#: src/Library/Page.php:454
+msgid "Selected notes actions"
+msgstr "Ações das notas selecionadas"
+
+#: src/Library/Page.php:456
+msgid "0 selected"
+msgstr "0 selecionadas"
+
+#: src/Library/Page.php:458
+msgid "Clear selection"
+msgstr "Limpar seleção"
+
+#: src/Library/Page.php:462
+msgid "Action"
+msgstr "Ação"
+
+#: src/Library/Page.php:464
+msgid "Choose action…"
+msgstr "Escolher ação…"
+
+#: src/Library/Page.php:465
+msgid "Move to notebook"
+msgstr "Mover para caderno"
+
+#: src/Library/Page.php:466
+msgid "Set category"
+msgstr "Definir categoria"
+
+#: src/Library/Page.php:471
+msgid "Choose notebook…"
+msgstr "Escolher caderno…"
+
+#: src/Library/Page.php:472
+msgid "Unfiled (no notebook)"
+msgstr "Não classificada (sem caderno)"
+
+#: src/Library/Page.php:477
+msgid "Choose category…"
+msgstr "Escolher categoria…"
+
+#: assets/editor.js:207 src/Library/Page.php:478
+msgid "No category"
+msgstr "Sem categoria"
+
+#: src/Library/Page.php:481
+msgid "Apply"
+msgstr "Aplicar"
+
+#: assets/library-admin.js:39 assets/library-bulk.js:209 src/Library/Page.php:484
+msgid "Move to Trash"
+msgstr "Mover para o lixo"
+
+#: src/Library/Page.php:489
+msgid "Refresh results"
+msgstr "Atualizar resultados"
+
+#: src/Library/Page.php:499
+msgid "Notes pages"
+msgstr "Páginas de notas"
+
+#: src/Library/Page.php:502
+msgid "Previous"
+msgstr "Anterior"
+
+#. translators: 1: page number, 2: total pages
+#: src/Library/Page.php:506
+#, php-format
+msgid "Page %1$d of %2$d"
+msgstr "Página %1$d de %2$d"
+
+#: src/Library/Page.php:511
+msgid "Next"
+msgstr "Seguinte"
+
+#: src/Library/Page.php:533
+msgid "Your private space to find, organize and write notes."
+msgstr "O seu espaço privado para encontrar, organizar e escrever notas."
+
+#: src/Library/Page.php:537
+msgid "Notes Library navigation"
+msgstr "Navegação da biblioteca do Notes"
+
+#: src/Library/Page.php:538
+msgid "Quick access"
+msgstr "Acesso rápido"
+
+#: src/Library/Page.php:539 src/Plugin.php:121
+msgid "All Notes"
+msgstr "Todas as notas"
+
+#: src/Library/Page.php:540
+msgid "Favorites"
+msgstr "Favoritos"
+
+#: src/Library/Page.php:541
+msgid "Pinned"
+msgstr "Fixadas"
+
+#: assets/organization-admin.js:23 src/Library/Page.php:542
+msgid "Notebooks"
+msgstr "Cadernos"
+
+#: src/Library/Page.php:556
+msgid "Organize notes"
+msgstr "Organizar notas"
+
+#: src/Library/Page.php:562
+msgid "Your favorites"
+msgstr "Os seus favoritos"
+
+#: src/Library/Page.php:563
+msgid "Pinned notes"
+msgstr "Notas fixadas"
+
+#: src/Library/Page.php:564
+msgid "Your notes"
+msgstr "As suas notas"
+
+#: src/Library/Page.php:570 src/Library/Page.php:571
+msgid "Select all visible notes"
+msgstr "Selecionar todas as notas visíveis"
+
+#. translators: %d: number of matching notes
+#: src/Library/Page.php:576
+#, php-format, python-format
+msgid "%d note"
+msgid_plural "%d notes"
+msgstr[0] "%d nota"
+msgstr[1] "%d notas"
+
+#: src/Library/Page.php:580
+msgid "Notes display"
+msgstr "Apresentação do Notes"
+
+#: src/Library/Page.php:583
+msgid "List view"
+msgstr "Vista de lista"
+
+#: src/Library/Page.php:587
+msgid "Table view"
+msgstr "Vista de tabela"
+
+#: src/Organization/Catalog.php:110
+msgid "Personal classifications belong to the note owner."
+msgstr "As classificações pessoais pertencem ao proprietário da nota."
+
+#: src/Organization/Catalog.php:111
+msgid "Unknown personal organization item."
+msgstr "Item de organização pessoal desconhecido."
+
+#: src/Organization/Catalog.php:112
+msgid "Invalid personal tags."
+msgstr "Etiquetas pessoais inválidas."
+
+#: src/Organization/Catalog.php:113
+msgid "Unknown personal tag."
+msgstr "Etiqueta pessoal desconhecida."
+
+#: src/Organization/Catalog.php:115
+msgid "Invalid organization action."
+msgstr "Ação de organização inválida."
+
+#: src/Organization/Catalog.php:116
+msgid "Invalid item."
+msgstr "Item inválido."
+
+#: src/Organization/Catalog.php:117
+msgid "Organization item not found."
+msgstr "Item de organização não encontrado."
+
+#: src/Organization/Catalog.php:118
+msgid "A name is required."
+msgstr "É necessário indicar um nome."
+
+#: src/Organization/Catalog.php:119
+msgid "This name already exists."
+msgstr "Este nome já existe."
+
+#: src/Organization/Catalog.php:120
+msgid "Organization item limit reached."
+msgstr "Foi atingido o limite de itens de organização."
+
+#: src/Organization/Catalog.php:121
+msgid ""
+"Organization save failed and note assignments could not all be restored. "
+"Review the site backup before retrying."
+msgstr ""
+"Falhou a gravação da organização e não foi possível repor todas as "
+"atribuições das notas. Verifique a cópia de segurança do site antes de "
+"tentar novamente."
+
+#: src/Organization/Catalog.php:122
+msgid "Could not save organization changes."
+msgstr "Não foi possível guardar as alterações à organização."
+
+#: src/Organization/Catalog.php:123
+msgid "Could not verify affected notes."
+msgstr "Não foi possível verificar as notas afetadas."
+
+#: src/Organization/Catalog.php:124
+msgid ""
+"This label belongs to more than 250 notes. Bulk removal needs an operator-"
+"reviewed batch."
+msgstr ""
+"Esta etiqueta está associada a mais de 250 notas. A remoção em massa exige "
+"um processo revisto por um responsável."
+
+#: src/Organization/Catalog.php:125
+msgid "Could not verify note ownership."
+msgstr "Não foi possível verificar o proprietário da nota."
+
+#: src/Organization/Catalog.php:126
+msgid "Could not verify a note tag assignment."
+msgstr "Não foi possível verificar a atribuição de uma etiqueta à nota."
+
+#: src/Organization/Catalog.php:127
+msgid ""
+"Note assignments could not all be restored. Review the site backup before "
+"retrying."
+msgstr ""
+"Não foi possível repor todas as atribuições das notas. Verifique a cópia de"
+" segurança do site antes de tentar novamente."
+
+#: src/Organization/Catalog.php:128
+msgid "Could not clear a note assignment."
+msgstr "Não foi possível limpar uma atribuição da nota."
+
+#: src/Organization/Catalog.php:129
+msgid "Organization action failed."
+msgstr "Falhou a ação de organização."
+
+#: src/Organization/Catalog.php:488
+#, php-format, python-format
+msgid "Filter by %s"
+msgstr "Filtrar por %s"
+
+#: src/Organization/Catalog.php:491
+msgid "All notebooks"
+msgstr "Todos os cadernos"
+
+#: src/Organization/Catalog.php:537 src/Organization/Catalog.php:554
+msgid "Organize Notes"
+msgstr "Organizar notas"
+
+#: assets/editor.js:258 src/Organization/Catalog.php:538
+msgid "Organize"
+msgstr "Organizar"
+
+#: src/Organization/Catalog.php:555
+msgid ""
+"Manage your personal notebooks, categories and tags. These labels stay "
+"private and are not included in shared notes."
+msgstr ""
+"Gira os seus cadernos pessoais, categorias e etiquetas. Estes rótulos "
+"permanecem privados e não são incluídos nas notas partilhadas."
+
+#: src/Plugin.php:118
+msgid "Note"
+msgstr "Nota"
+
+#: src/Plugin.php:119
+msgid "Add Note"
+msgstr "Adicionar nota"
+
+#: src/Plugin.php:120
+msgid "Edit Note"
+msgstr "Editar nota"
+
+#: src/Plugin.php:122
+msgid "No notes found."
+msgstr "Não foram encontradas notas."
+
+#: src/Plugin.php:124
+msgid "Private personal notes edited in Gutenberg."
+msgstr "Notas pessoais privadas editadas no Gutenberg."
+
+#: src/Plugin.php:178
+msgid "Private Gutenberg notes enabled"
+msgstr "Notas privadas do Gutenberg ativadas"
+
+#: src/Plugin.php:185
+#, php-format, python-format
+msgid "Notes: %s"
+msgstr "Notes: %s"
+
+#: src/Plugin.php:240
+msgid "Notes AI Access"
+msgstr "Acesso à IA do Notes"
+
+#: src/Plugin.php:271
+msgid "Settings"
+msgstr "Definições"
+
+#: src/Sharing/Controller.php:284
+msgid "Invalid sharing mode."
+msgstr "Modo de partilha inválido."
+
+#: src/Sharing/Controller.php:285
+msgid "Sharing settings have changed. Reload before continuing."
+msgstr ""
+"As definições de partilha foram alteradas. Recarregue a página antes de "
+"continuar."
+
+#: src/Sharing/Controller.php:286
+msgid "Note content has changed. Reload before sharing."
+msgstr "O conteúdo da nota foi alterado. Recarregue a página antes de partilhar."
+
+#: src/Sharing/Controller.php:287
+msgid "This note has changed. Reload and review the latest version before sharing."
+msgstr ""
+"Esta nota foi alterada. Recarregue a página e reveja a versão mais recente "
+"antes de partilhar."
+
+#: src/Sharing/Controller.php:288
+msgid "Public sharing requires a separate explicit confirmation."
+msgstr "A partilha pública requer uma confirmação explícita e separada."
+
+#: src/Sharing/Controller.php:289
+msgid "Secure sharing is not permitted for this account."
+msgstr "A partilha segura não é permitida para esta conta."
+
+#: src/Sharing/Controller.php:290
+msgid "Core Blueprint Secure Share is not available."
+msgstr "Core Blueprint Secure Share não está disponível."
+
+#: src/Sharing/Controller.php:291
+msgid "Secure links must expire within 1 to 30 days."
+msgstr "As ligações seguras devem expirar num prazo de 1 a 30 dias."
+
+#: src/Sharing/Controller.php:292
+msgid "Secure sharing failed. No new link is active in Notes."
+msgstr "Falhou a partilha segura. Não há nenhuma ligação nova ativa no Notes."
+
+#: src/Sharing/Controller.php:293
+msgid "Sharing could not be stopped. Review the server storage and retry."
+msgstr ""
+"Não foi possível parar a partilha. Verifique o armazenamento do servidor e "
+"tente novamente."
+
+#: src/Sharing/Controller.php:294
+msgid "Public sharing could not be saved. No new link is active."
+msgstr ""
+"Não foi possível guardar a partilha pública. Não há nenhuma ligação nova "
+"ativa."
+
+#: src/Sharing/Controller.php:295
+msgid "Public sharing requires an installation recovery key."
+msgstr "A partilha pública requer uma chave de recuperação da instalação."
+
+#: src/Sharing/Controller.php:296
+msgid "Sharing is unavailable."
+msgstr "A partilha não está disponível."
+
+#: src/Sharing/SecureRevocationRecovery.php:131
+msgid "You do not have permission to manage Secure Share recovery."
+msgstr "Não tem permissão para gerir a recuperação do Secure Share."
+
+#: src/Sharing/Snapshot.php:18
+msgid "This note cannot be shared."
+msgstr "Esta nota não pode ser partilhada."
+
+#: src/Sharing/Snapshot.php:21
+msgid "This note is too large for sharing."
+msgstr "Esta nota é demasiado grande para ser partilhada."
+
+#: src/Sharing/Snapshot.php:27
+msgid ""
+"Sharing currently supports static text, lists, quotations, code and tables "
+"only. Remove embeds, media and dynamic blocks before sharing."
+msgstr ""
+"A partilha suporta atualmente apenas texto estático, listas, citações, "
+"código e tabelas. Remova conteúdos incorporados, multimédia e blocos "
+"dinâmicos antes de partilhar."
+
+#: src/Sharing/Snapshot.php:47
+msgid "The rendered note is too large for sharing."
+msgstr "A nota apresentada é demasiado grande para ser partilhada."
+
+#: assets/editor.js:29 assets/organization-admin.js:23
+msgid "notebook"
+msgstr "caderno"
+
+#: assets/editor.js:30 assets/organization-admin.js:24
+msgid "category"
+msgstr "categoria"
+
+#: assets/editor.js:31 assets/organization-admin.js:25
+msgid "tag"
+msgstr "etiqueta"
+
+#: assets/editor.js:58
+msgid ""
+"Personal organization could not be loaded. Reload the editor before "
+"changing labels."
+msgstr ""
+"Não foi possível carregar a organização pessoal. Recarregue o editor antes "
+"de alterar as etiquetas."
+
+#: assets/editor.js:98
+msgid "The new label could not be confirmed. Reload the editor."
+msgstr "Não foi possível confirmar a nova etiqueta. Recarregue o editor."
+
+#: assets/editor.js:105
+msgid "The new label could not be found. Reload the editor before trying again."
+msgstr ""
+"Não foi possível encontrar a nova etiqueta. Recarregue o editor antes de "
+"tentar novamente."
+
+#: assets/editor.js:120
+msgid "Could not create the personal label."
+msgstr "Não foi possível criar a etiqueta pessoal."
+
+#: assets/editor.js:131
+#, python-format
+msgid "New %s"
+msgstr "Novo elemento (%s)"
+
+#: assets/editor.js:135
+#, python-format
+msgid "New %s name"
+msgstr "Nome do novo elemento (%s)"
+
+#: assets/editor.js:139
+msgid "Enter a name…"
+msgstr "Introduza um nome…"
+
+#: assets/editor.js:147 assets/organization-admin.js:300
+#, python-format
+msgid "Create %s"
+msgstr "Criar %s"
+
+#: assets/editor.js:152 assets/library-admin.js:40 assets/library-bulk.js:210
+#: assets/organization-admin.js:221 assets/organization-admin.js:275
+#: assets/organization-admin.js:306
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: assets/editor.js:158
+msgid ""
+"Saving this note does not publish it or update any shared copy. Sharing is "
+"a separate action."
+msgstr ""
+"Guardar esta nota não a publica nem atualiza nenhuma cópia partilhada. "
+"Partilhar é uma ação separada."
+
+#: assets/editor.js:169
+msgid "Labels are unavailable. Existing note classifications remain unchanged."
+msgstr ""
+"As etiquetas não estão disponíveis. As classificações existentes das notas "
+"permanecem inalteradas."
+
+#: assets/editor.js:170
+msgid "Loading your personal organization…"
+msgstr "A carregar a sua organização pessoal…"
+
+#: assets/editor.js:183
+msgid "No notebook"
+msgstr "Sem caderno"
+
+#: assets/editor.js:187
+msgid "Choose where you want to find this note."
+msgstr "Escolha onde pretende encontrar esta nota."
+
+#: assets/editor.js:199
+#, python-format
+msgid "Hide categories and tags (%d applied)"
+msgstr "Ocultar categorias e etiquetas (%d aplicadas)"
+
+#: assets/editor.js:199
+#, python-format
+msgid "Show categories and tags (%d applied)"
+msgstr "Mostrar categorias e etiquetas (%d aplicadas)"
+
+#: assets/editor.js:200
+msgid "Hide categories and tags"
+msgstr "Ocultar categorias e etiquetas"
+
+#: assets/editor.js:200
+msgid "Show categories and tags"
+msgstr "Mostrar categorias e etiquetas"
+
+#: assets/editor.js:214
+#, python-format
+msgid "Tags (%d/12)"
+msgstr "Etiquetas (%d/12)"
+
+#: assets/editor.js:223
+#, python-format
+msgid "Remove tag %s"
+msgstr "Remover etiqueta %s"
+
+#: assets/editor.js:225
+msgid "No tags selected."
+msgstr "Nenhuma etiqueta selecionada."
+
+#: assets/editor.js:227
+msgid "Add existing tag"
+msgstr "Adicionar etiqueta existente"
+
+#: assets/editor.js:229
+msgid "Select a tag…"
+msgstr "Selecionar etiqueta…"
+
+#: assets/editor.js:243
+msgid "Add tag"
+msgstr "Adicionar etiqueta"
+
+#: assets/editor.js:246
+msgid "Maximum of 12 tags reached."
+msgstr "Foi atingido o máximo de 12 etiquetas."
+
+#: assets/editor.js:253
+msgid "Rename or remove personal labels in Notes → Organize."
+msgstr "Mude o nome ou remova etiquetas pessoais em Notes → Organizar."
+
+#: assets/library-admin.js:30 assets/library-bulk.js:199
+msgid "The Core Blueprint confirmation is unavailable. Nothing was moved to Trash."
+msgstr ""
+"A confirmação do Core Blueprint não está disponível. Nada foi movido para o"
+" lixo."
+
+#: assets/library-admin.js:36
+msgid "Move note to Trash?"
+msgstr "Mover nota para o lixo?"
+
+#: assets/library-admin.js:37
+msgid ""
+"This moves your private note to WordPress Trash. You can restore the note "
+"later, but any active share links will be revoked."
+msgstr ""
+"Esta ação move a sua nota privada para o lixo do WordPress. Pode repô-la "
+"mais tarde, mas as ligações de partilha ativas serão revogadas."
+
+#: assets/library-admin.js:46
+msgid "Could not complete the confirmation. Nothing was moved to Trash."
+msgstr "Não foi possível concluir a confirmação. Nada foi movido para o lixo."
+
+#: assets/library-admin.js:94
+msgid "Could not save this note preference."
+msgstr "Não foi possível guardar esta preferência da nota."
+
+#: assets/library-admin.js:114
+msgid "Could not update this note. Please try again."
+msgstr "Não foi possível atualizar esta nota. Tente novamente."
+
+#: assets/library-bulk.js:52
+#, python-format
+msgid "%d selected"
+msgid_plural "%d selected"
+msgstr[0] "%d selecionada"
+msgstr[1] "%d selecionadas"
+
+#: assets/library-bulk.js:133
+msgid "The selected notes could not be updated."
+msgstr "Não foi possível atualizar as notas selecionadas."
+
+#: assets/library-bulk.js:141
+msgid "Unexpected bulk response. Refresh results before trying again."
+msgstr ""
+"Resposta inesperada da ação em massa. Atualize os resultados antes de "
+"tentar novamente."
+
+#: assets/library-bulk.js:146
+msgid "Unexpected note IDs in bulk response. Refresh results before retrying."
+msgstr ""
+"IDs de notas inesperados na resposta da ação em massa. Atualize os "
+"resultados antes de tentar novamente."
+
+#: assets/library-bulk.js:154 assets/library-bulk.js:155
+#, python-format
+msgid "Note #%s"
+msgstr "Nota n.º %s"
+
+#: assets/library-bulk.js:164
+msgid "%1$d updated; %2$d failed."
+msgstr "%1$d atualizadas; %2$d falhadas."
+
+#: assets/library-bulk.js:165
+#, python-format
+msgid "Not updated: %s."
+msgstr "Não atualizadas: %s."
+
+#: assets/library-bulk.js:166
+msgid "Refresh results to see the latest Library."
+msgstr "Atualize os resultados para ver a biblioteca mais recente."
+
+#: assets/library-bulk.js:169
+msgid "Bulk action status unknown. Refresh before retrying."
+msgstr "Estado da ação em massa desconhecido. Atualize antes de tentar novamente."
+
+#: assets/library-bulk.js:206
+msgid "Move selected notes to Trash?"
+msgstr "Mover as notas selecionadas para o lixo?"
+
+#: assets/library-bulk.js:207
+#, python-format
+msgid ""
+"You selected %d private notes. You can restore them from WordPress Trash, "
+"but existing share links will be revoked."
+msgstr ""
+"Selecionou %d notas privadas. Pode repô-las a partir do lixo do WordPress, "
+"mas as ligações de partilha existentes serão revogadas."
+
+#: assets/library-bulk.js:218
+msgid "Confirmation failed. Nothing was requested from Trash."
+msgstr "A confirmação falhou. Não foi pedido qualquer movimento para o lixo."
+
+#: assets/organization-admin.js:24
+msgid "Categories"
+msgstr "Categorias"
+
+#: assets/organization-admin.js:60
+msgid "Could not load your personal labels."
+msgstr "Não foi possível carregar as suas etiquetas pessoais."
+
+#: assets/organization-admin.js:121
+msgid "Changes could not be saved."
+msgstr "Não foi possível guardar as alterações."
+
+#: assets/organization-admin.js:128
+msgid "The Core Blueprint confirmation is unavailable. No item was removed."
+msgstr ""
+"A confirmação do Core Blueprint não está disponível. Nenhum item foi "
+"removido."
+
+#: assets/organization-admin.js:132
+#, python-format
+msgid "Remove %s?"
+msgstr "Remover %s?"
+
+#: assets/organization-admin.js:133
+#, python-format
+msgid ""
+"This removes the personal %s from your catalog. Notes using it will become "
+"unfiled in that field. Note content and revisions remain intact."
+msgstr ""
+"Esta ação remove o %s pessoal do seu catálogo. As notas que o utilizam "
+"deixarão de estar classificadas nesse campo. O conteúdo e as revisões das "
+"notas permanecem inalterados."
+
+#: assets/organization-admin.js:135
+msgid "Remove label"
+msgstr "Remover etiqueta"
+
+#: assets/organization-admin.js:137
+msgid "I understand that this label will no longer be assigned to notes."
+msgstr "Compreendo que esta etiqueta deixará de estar atribuída às notas."
+
+#: assets/organization-admin.js:142
+msgid "Could not complete the confirmation. No changes were made."
+msgstr "Não foi possível concluir a confirmação. Não foram efetuadas alterações."
+
+#: assets/organization-admin.js:161
+msgid "Personal organization sections"
+msgstr "Secções de organização pessoal"
+
+#: assets/organization-admin.js:186
+msgid "Loading personal labels…"
+msgstr "A carregar etiquetas pessoais…"
+
+#: assets/organization-admin.js:203
+#, python-format
+msgid "Rename %s"
+msgstr "Renomear %s"
+
+#: assets/organization-admin.js:215
+msgid "Save"
+msgstr "Guardar"
+
+#: assets/organization-admin.js:237
+msgid "Rename"
+msgstr "Renomear"
+
+#: assets/organization-admin.js:244
+msgid "Remove"
+msgstr "Remover"
+
+#: assets/organization-admin.js:258
+#, python-format
+msgid "%d personal label"
+msgid_plural "%d personal labels"
+msgstr[0] "%d etiqueta pessoal"
+msgstr[1] "%d etiquetas pessoais"
+
+#: assets/organization-admin.js:275
+msgid "Add new"
+msgstr "Adicionar novo"
+
+#: assets/organization-admin.js:287
+msgid "Name"
+msgstr "Nome"
+
+#: assets/organization-admin.js:292
+#, python-format
+msgid "Name your new %s"
+msgstr "Dê um nome ao seu novo elemento %s"
+
+#: assets/organization-admin.js:316
+#, python-format
+msgid "%s management"
+msgstr "Gestão de %s"
+
+#: assets/sharing.js:40
+msgid "Sharing settings are unavailable."
+msgstr "As definições de partilha não estão disponíveis."
+
+#: assets/sharing.js:46
+msgid "Save the note first, then review the sharing settings."
+msgstr "Guarde primeiro a nota e depois reveja as definições de partilha."
+
+#: assets/sharing.js:70
+msgid "Sharing could not be changed. Nothing new was published."
+msgstr "Não foi possível alterar a partilha. Não foi publicado nada de novo."
+
+#: assets/sharing.js:77
+msgid "Save the note before making a public version."
+msgstr "Guarde a nota antes de criar uma versão pública."
+
+#: assets/sharing.js:82
+msgid ""
+"The required Core Blueprint confirmation modal is unavailable. Nothing was "
+"published."
+msgstr ""
+"A janela de confirmação necessária do Core Blueprint não está disponível. "
+"Não foi publicado nada."
+
+#: assets/sharing.js:86
+msgid "Make this note public?"
+msgstr "Tornar esta nota pública?"
+
+#: assets/sharing.js:87
+msgid ""
+"A frozen copy of this note will be accessible to anyone with the public "
+"URL, without a login or password. Others can copy it even if you stop "
+"sharing later. Only supported text blocks are included. Later edits will "
+"not update this shared copy."
+msgstr ""
+"Uma cópia fixa desta nota ficará acessível a qualquer pessoa com o URL "
+"público, sem início de sessão ou palavra-passe. Outras pessoas poderão "
+"copiá-la, mesmo que mais tarde pare a partilha. Apenas são incluídos blocos"
+" de texto suportados. As alterações posteriores não atualizarão a cópia "
+"partilhada."
+
+#: assets/sharing.js:89
+msgid "Make public"
+msgstr "Tornar pública"
+
+#: assets/sharing.js:90
+msgid "Keep private"
+msgstr "Manter privada"
+
+#: assets/sharing.js:93
+msgid "I understand that anyone can access and copy the public version."
+msgstr "Compreendo que qualquer pessoa pode aceder à versão pública e copiá-la."
+
+#: assets/sharing.js:98
+msgid "The required confirmation could not be completed. Nothing was published."
+msgstr "Não foi possível concluir a confirmação necessária. Não foi publicado nada."
+
+#: assets/sharing.js:106
+msgid "The confirmation modal is unavailable."
+msgstr "A janela de confirmação não está disponível."
+
+#: assets/sharing.js:110
+msgid "Stop sharing this note?"
+msgstr "Parar de partilhar esta nota?"
+
+#: assets/sharing.js:111
+msgid ""
+"Existing public or secure links will stop delivering this note. Copies "
+"already made by recipients cannot be recalled."
+msgstr ""
+"As ligações públicas ou seguras existentes deixarão de disponibilizar esta "
+"nota. As cópias já feitas pelos destinatários não podem ser recuperadas."
+
+#: assets/sharing.js:113 assets/sharing.js:167
+msgid "Stop sharing"
+msgstr "Parar partilha"
+
+#: assets/sharing.js:116
+msgid "Could not complete confirmation."
+msgstr "Não foi possível concluir a confirmação."
+
+#: assets/sharing.js:120
+msgid "Checking…"
+msgstr "A verificar…"
+
+#: assets/sharing.js:121
+msgid "Public copy unavailable"
+msgstr "Cópia pública indisponível"
+
+#: assets/sharing.js:122
+msgid "Public copy active"
+msgstr "Cópia pública ativa"
+
+#: assets/sharing.js:123
+msgid "Secure copy active"
+msgstr "Cópia segura ativa"
+
+#: assets/sharing.js:125
+msgid ""
+"Saving or publishing in Gutenberg keeps the note private. Sharing requires "
+"a separate action below."
+msgstr ""
+"Guardar ou publicar no Gutenberg mantém a nota privada. A partilha exige "
+"uma ação separada abaixo."
+
+#: assets/sharing.js:126
+msgid ""
+"The original note stays private. Saving changes will not update the frozen "
+"shared copy. Use Stop sharing to revoke access."
+msgstr ""
+"A nota original permanece privada. Guardar alterações não atualiza a cópia "
+"partilhada fixa. Utilize Parar partilha para revogar o acesso."
+
+#: assets/sharing.js:128
+msgid "Sharing status: "
+msgstr "Estado da partilha: "
+
+#: assets/sharing.js:135
+msgid "Loading sharing settings…"
+msgstr "A carregar definições de partilha…"
+
+#: assets/sharing.js:141
+msgid ""
+"Public sharing is unavailable until your site operator configures the "
+"independent recovery key. Private notes and Secure Share remain available."
+msgstr ""
+"A partilha pública não está disponível enquanto o administrador do site não"
+" configurar a chave de recuperação independente. As notas privadas e o "
+"Secure Share continuam disponíveis."
+
+#: assets/sharing.js:145
+msgid ""
+"This previous public link is no longer valid. Stop sharing, then create a "
+"new link if needed."
+msgstr ""
+"Esta ligação pública anterior já não é válida. Pare a partilha e, se "
+"necessário, crie uma nova ligação."
+
+#: assets/sharing.js:147
+msgid "Save your changes before creating a shared copy."
+msgstr "Guarde as alterações antes de criar uma cópia partilhada."
+
+#: assets/sharing.js:148
+msgid "Unsaved edits are not visible to recipients. You can still stop sharing."
+msgstr ""
+"As alterações não guardadas não são visíveis para os destinatários. Ainda "
+"pode parar a partilha."
+
+#: assets/sharing.js:151
+msgid "Public URL"
+msgstr "URL público"
+
+#: assets/sharing.js:157
+msgid "Secure invitation link (copy now)"
+msgstr "Ligação de convite seguro (copie agora)"
+
+#: assets/sharing.js:161
+msgid "This secure invitation cannot be retrieved later. Keep it confidential."
+msgstr ""
+"Este convite seguro não poderá ser recuperado mais tarde. Mantenha-o "
+"confidencial."
+
+#: assets/sharing.js:172
+msgid "Make public…"
+msgstr "Tornar pública…"
+
+#: assets/sharing.js:175
+msgid "Password or PIN (optional)"
+msgstr "Palavra-passe ou PIN (opcional)"
+
+#: assets/sharing.js:179
+msgid "Secure link expires after"
+msgstr "A ligação segura expira após"
+
+#: assets/sharing.js:182
+msgid "1 day"
+msgstr "1 dia"
+
+#: assets/sharing.js:183
+msgid "7 days"
+msgstr "7 dias"
+
+#: assets/sharing.js:184
+msgid "30 days"
+msgstr "30 dias"
+
+#: assets/sharing.js:190
+msgid "Create secure link"
+msgstr "Criar ligação segura"
+
+#: assets/sharing.js:194
+msgid "Sharing"
+msgstr "Partilhar"
+
+#: assets/organization-admin.js:1
+msgid "Notebook created."
+msgstr "Caderno criado."
+
+#: assets/organization-admin.js:1
+msgid "Notebook renamed."
+msgstr "Caderno renomeado."
+
+#: assets/organization-admin.js:1
+msgid "Notebook removed."
+msgstr "Caderno removido."
+
+#: assets/organization-admin.js:1
+msgid "Category created."
+msgstr "Categoria criada."
+
+#: assets/organization-admin.js:1
+msgid "Category renamed."
+msgstr "Categoria renomeada."
+
+#: assets/organization-admin.js:1
+msgid "Category removed."
+msgstr "Categoria removida."
+
+#: assets/organization-admin.js:1
+msgid "Tag created."
+msgstr "Etiqueta criada."
+
+#: assets/organization-admin.js:1
+msgid "Tag renamed."
+msgstr "Etiqueta renomeada."
+
+#: assets/organization-admin.js:1
+msgid "Tag removed."
+msgstr "Etiqueta removida."
+
+#: assets/organization-admin.js:1
+msgid "No notebooks yet. Use Add new to create your first notebook."
+msgstr ""
+"Ainda não existem cadernos. Utilize Adicionar novo para criar o seu "
+"primeiro caderno."
+
+#: assets/organization-admin.js:1
+msgid "No categories yet. Use Add new to create your first category."
+msgstr ""
+"Ainda não existem categorias. Utilize Adicionar novo para criar a sua "
+"primeira categoria."
+
+#: assets/organization-admin.js:1
+msgid "No tags yet. Use Add new to create your first tag."
+msgstr ""
+"Ainda não existem etiquetas. Utilize Adicionar novo para criar a sua "
+"primeira etiqueta."
+
