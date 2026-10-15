@@ -2,18 +2,42 @@
 set -euo pipefail
 bash -n "$0"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-[[ "$#" == 0 ]] || { echo 'No arguments accepted' >&2; exit 1; }
+MODE="${1:---preflight}"
+[[ "$#" -le 1 && ( "$MODE" == "--preflight" || "$MODE" == "--execute" ) ]] ||
+    { echo 'Use --preflight or --execute' >&2; exit 1; }
 [[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-golden-hardening-v1" ]] ||
     { echo 'Wrong Notes branch' >&2; exit 1; }
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     { echo 'Notes tracked files are modified; refusing ambiguous release evidence' >&2; exit 1; }
+# Full infrastructure and dependency preflight precedes any test resource creation.
+for cmd in php node wp docker curl tar unzip zip sha256sum git flock python3; do
+    command -v "$cmd" >/dev/null 2>&1 || { echo "Missing tool: $cmd" >&2; exit 1; }
+done
+BASE="$HOME/Downloads/wp-core-blueprint"
+SECURE="$HOME/Downloads/wp-core-blueprint-secure-share-r08"
+[[ -f "$BASE/core-blueprint.php" && -x "$BASE/vendor/bin/phpunit" &&
+   -d "$BASE/vendor/yoast/phpunit-polyfills" ]] ||
+    { echo 'Canonical Base/PHPUnit prerequisites missing' >&2; exit 1; }
+git -C "$BASE" diff --quiet && git -C "$BASE" diff --cached --quiet ||
+    { echo 'Base source is modified' >&2; exit 1; }
+[[ -f "$SECURE/core-blueprint-secure-share.php" &&
+   "$(git -C "$SECURE" rev-parse HEAD 2>/dev/null)" == "88c15c45a4898dd1c43c1dfad1d7265f5b693350" ]] ||
+    { echo 'Pinned Secure Share checkout unavailable' >&2; exit 1; }
+git -C "$SECURE" diff --quiet && git -C "$SECURE" diff --cached --quiet ||
+    { echo 'Secure Share tracked source is modified' >&2; exit 1; }
+bash "$ROOT/tools/check-test-infrastructure"
+if [[ "$MODE" == "--preflight" ]]; then
+    echo 'Notes Alpha26 read-only preflight: PASS; --execute authorizes new-only owned disposable test schemas.'
+    exit 0
+fi
+export CB_NOTES_DB_MUTATION_APPROVED=notes-alpha26-new-only-v1
 echo 'NOTES RC1 ALPHA26: SOURCE / FAIL-CLOSED CONTRACT GATE'
 bash "$ROOT/tools/check"
-echo 'NOTES RC1 ALPHA26: SOURCE-BOUND DOUBLE BUILD'
-bash "$ROOT/tools/verify-alpha26-build"
 echo 'NOTES RC1 ALPHA26: REAL WP 7.0 AND 7.1.3 INTEGRATION'
-bash "$ROOT/tools/check-integration"
-CB_TEST_WP_VERSION=7.1.3 bash "$ROOT/tools/check-integration"
+bash "$ROOT/tools/check-integration" --execute
+CB_TEST_WP_VERSION=7.1.3 bash "$ROOT/tools/check-integration" --execute
+echo 'NOTES RC1 ALPHA26: SOURCE-BOUND DOUBLE NON-CUSTOMER FIXTURE BUILD'
+bash "$ROOT/tools/verify-alpha26-build"
 echo 'NOTES RC1 ALPHA26: FULL SQL SOURCE-TO-TARGET RESTORE'
 bash "$ROOT/tools/check-restore"
 echo 'NOTES RC1 ALPHA26: LOOPBACK A/B/ANON HTTP ORIGIN'
