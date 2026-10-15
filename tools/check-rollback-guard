@@ -31,12 +31,9 @@ ARTIFACT_SHA="$(bash "$ROOT/tools/check-alpha26-artifact")"
 unzip -t "$ZIP" >/dev/null || fail "Alpha26 ZIP integrity failure."
 [[ "$(sha256sum "$ZIP" | cut -d' ' -f1)" == "$ARTIFACT_SHA" ]] || fail "Verified artifact mismatch."
 [[ "$ARTIFACT_SHA" =~ ^[a-f0-9]{64}$ ]] || fail "Invalid Alpha26 hash."
-[[ "$(docker inspect --format '{{.Config.Image}}' "$CONTAINER" 2>/dev/null)" == "mariadb:10.11.19" ]] ||
-    fail "Unexpected MariaDB image."
-[[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" == "true" ]] ||
-    fail "Test MariaDB is stopped."
-docker port "$CONTAINER" 3306/tcp | grep -Eq '(^|:)3307$' ||
-    fail "Expected test MariaDB on port 3307."
+bash "$ROOT/tools/check-test-infrastructure"
+[[ "${CB_NOTES_DB_MUTATION_APPROVED:-}" == "notes-alpha26-new-only-v1" ]] ||
+    fail "Run the approved Alpha26 batch --execute; no direct database mutation without authorization"
 [[ ! -L "$TEST_ROOT" ]] || fail "Symlink at test root."
 mkdir -p "$TEST_ROOT"
 exec 9>"$TEST_ROOT/.rollback.lock"
