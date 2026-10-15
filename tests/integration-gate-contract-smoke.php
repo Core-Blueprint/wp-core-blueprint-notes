@@ -8,6 +8,8 @@ $config = (string) file_get_contents( __DIR__ . '/wp-tests-config.php' );
 $bootstrap = (string) file_get_contents( __DIR__ . '/phpunit-notes-bootstrap.php' );
 $suite = (string) file_get_contents( __DIR__ . '/phpunit-notes.xml.dist' );
 $integration = (string) file_get_contents( __DIR__ . '/integration/NotesRuntimePrivacyIntegrationTest.php' );
+$recovery = (string) file_get_contents( __DIR__ . '/integration/NotesRuntimeRecoveryIntegrationTest.php' );
+$sharing = (string) file_get_contents( __DIR__ . '/integration/NotesRuntimeMutationSharingIntegrationTest.php' );
 $checks = [
     'Unique Notes schema is generated inside approved execution; no existing database reset' =>
         str_contains( $runner, 'DB_NAME="core_blueprint_notes_int_$(php -r' )
@@ -41,7 +43,9 @@ $checks = [
     'PHPUnit config and actual tests enforce isolated random Notes identifier' =>
         str_contains( $config, "'/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D'" )
         && str_contains( $config, "'127.0.0.1:3307' !== \$db_host" )
-        && str_contains( $integration, "'/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D'" ),
+        && str_contains( $integration, "'/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D'" )
+        && str_contains( $recovery, "'/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D'" )
+        && str_contains( $sharing, "'/^core_blueprint_notes_int_[a-f0-9]{12}_test$/D'" ),
     'Base schema activation precedes Notes boot' =>
         str_contains( $bootstrap, "tests_add_filter( 'muplugins_loaded'" )
         && str_contains( $bootstrap, 'CB_TEST_BASE_PLUGIN_FILE' )
