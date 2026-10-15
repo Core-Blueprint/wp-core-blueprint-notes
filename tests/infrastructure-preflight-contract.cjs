@@ -20,9 +20,12 @@ must(guard.includes('HostConfig.PortBindings') && guard.includes('INFORMATION_SC
     guard.includes('volume=${MOUNT#volume:}'), 'Bounded read-only DB/port/volume checks');
 must(!/\bdocker (run|start|rm)\b|\bCREATE DATABASE\b|\bDROP DATABASE\b/.test(guard),
     'Preflight may not mutate container or SQL');
+// The shell must escape SQL identifier backticks inside double-quoted strings.
+// Match the actual shell source, not the unescaped SQL after Bash expansion.
+const quotedDbIdentifier = '\\`$DB_NAME\\`';
 must(integration.includes('CB_NOTES_DB_MUTATION_APPROVED') &&
-    integration.includes('CREATE DATABASE `$DB_NAME`') &&
-    integration.includes('DROP DATABASE `$DB_NAME`') &&
+    integration.includes('CREATE DATABASE ' + quotedDbIdentifier) &&
+    integration.includes('DROP DATABASE ' + quotedDbIdentifier) &&
     integration.includes('core_blueprint_notes_int_$(php -r') &&
     integration.includes('random_bytes(6)') &&
     !integration.includes('DROP DATABASE IF EXISTS core_blueprint_notes_test'),
