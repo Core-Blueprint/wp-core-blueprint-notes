@@ -12,9 +12,9 @@ git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
 HEAD="$(git -C "$ROOT" rev-parse HEAD)"
 # Remove an old attestation before any new build.
 rm -f -- "$STAMP"
-bash "$ROOT/tools/build-release"
+bash "$ROOT/tools/build-alpha26-fixture"
 SHA1="$(sha256sum "$ZIP" | cut -d' ' -f1)"
-bash "$ROOT/tools/build-release"
+bash "$ROOT/tools/build-alpha26-fixture"
 SHA2="$(sha256sum "$ZIP" | cut -d' ' -f1)"
 [[ "$SHA1" == "$SHA2" && "$SHA2" =~ ^[a-f0-9]{64}$ ]] ||
     { echo 'Alpha26 ZIP deterministic comparison failed' >&2; exit 1; }
@@ -24,7 +24,7 @@ trap 'rm -f -- "$TMP"' EXIT
 printf '%s\n%s\n' "$HEAD" "$SHA2" > "$TMP"
 chmod 0600 "$TMP"
 mv -f -- "$TMP" "$STAMP"
-echo "Notes Alpha26 deterministic builds: PASS"
+echo "Notes Alpha26 internal fixture deterministic builds: PASS"
 echo "Notes source HEAD: $HEAD"
 echo "Notes Alpha26 ZIP SHA-256: $SHA2"
 echo "Evidence: $STAMP"
