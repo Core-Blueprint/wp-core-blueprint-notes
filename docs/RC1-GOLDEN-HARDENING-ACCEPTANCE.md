@@ -27,15 +27,12 @@ node --version
 php -l src/Sharing/Controller.php
 php -l src/Organization/Catalog.php
 node tests/rc1-source-contract.cjs
-bash tools/check
-
-bash tools/build-release
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
+bash tools/check-alpha26-artifact
 zip='dist/core-blueprint-notes-0.1.0-alpha26.zip'
 unzip -t "$zip"
-sha256sum "$zip" | tee /tmp/cb-notes-alpha26-build1.sha256
-bash tools/build-release
-sha256sum "$zip" | tee /tmp/cb-notes-alpha26-build2.sha256
-diff -u /tmp/cb-notes-alpha26-build1.sha256 /tmp/cb-notes-alpha26-build2.sha256
+sha256sum "$zip"
 git status --short
 SH
 ```
@@ -46,15 +43,14 @@ Record actual local HEAD and SHA-256. `?? dist/` is expected untracked output, b
 
 Alpha24 includes a Notes-only integration provisioner and real WordPress/PHPUnit privacy and sharing tests. These are *test-infrastructure changes only*, not product feature changes. Operator evidence on 2026-10-14 confirms **PASS: 9 tests, 221 assertions** on **WordPress 7.0** and separately **WordPress 7.1.3**, from Notes HEAD `e194dffa36b607afc68b8d580d32edad42adc62f`. The earlier 7-test/142-assertion suite also passed on both versions. The new source contract runs under `bash tools/check`.
 
-The runner `bash tools/check-integration` follows the established Work handbook pattern: it stages current Notes and Base source into a disposable directory, downloads an exact WordPress core and compatible wp-phpunit fixture, installs Base schema before booting Notes, and uses only the `core_blueprint_notes_test` database on the pre-existing `cb-base-test-db` MariaDB 10.11.19 container at `127.0.0.1:3307`. The runner resets **only this specifically named disposable database**. It does not touch the Base, Work, or operator WordPress databases. It refuses modified tracked source, a missing Base vendor PHPUnit installation and an unexpected DB image/port. No arbitrary DB name, host or temporary root may be supplied.
+The current runner `bash tools/check-integration --execute` stages Notes and Base in a disposable workspace and uses only a newly generated `core_blueprint_notes_int_<12 lowercase hex>_test` schema on the canonical MariaDB helper. It **never resets the historical** `core_blueprint_notes_test` schema. It drops only its own successfully created schema on cleanup. The historical fixed-schema description below is superseded by this change. It refuses modified tracked source, a missing Base vendor PHPUnit installation and an unexpected DB image/port. No arbitrary DB name, host or temporary root may be supplied.
 
 Run from the clean local Notes featurebranch:
 
 ```bash
 cd ~/Downloads/wp-core-blueprint-notes
-bash tools/check
-bash tools/check-integration
-CB_TEST_WP_VERSION=7.1.3 bash tools/check-integration
+bash tools/check-rc1-alpha26-batch --preflight
+bash tools/check-rc1-alpha26-batch --execute
 ```
 
 A single invocation covers only one WP version. The first (default) is WP 7.0 and the second is WP 7.1.3. Both must be executed and evidenced independently. Tests are configured with `tests/phpunit-notes.xml.dist` and `tests/phpunit-notes-bootstrap.php` and do not require `wp-config.php` in an interactive website directory.
@@ -156,7 +152,7 @@ The final report must state both positives and `NOT RUN`/blocking outcomes. Unti
 
 Alpha26 introduces durable, per-grant, non-autoload Secure Share revocation recovery, an administrator-only, nonce-protected bounded retry action, and explicit failure instead of false success when a private-mode Stop sharing write fails. Source and release version are bumped to `0.1.0-alpha26`; historical Alpha25/24 artifacts must not be overwritten.
 
-**Required before RC1:** run `bash tools/verify-alpha26-build` to double-build and attest the ZIP to this exact HEAD; then WordPress 7.0 + 7.1.3 integration, full SQL restore, local HTTP origin, historical E1/E2 rollback recovery and real Secure Share runtime, followed by the R01–R13 browser/host/i18n/scale/manual gates. See `docs/RC1-ONE-BATCH-TEST-HANDOVER.md`. **No source-only test counts as browser, TLS or CDN evidence.**
+**Required before RC1:** run the shared read-only preflight and WordPress 7.0 + 7.1.3 integration first, then the automatic double-built non-customer Alpha26 fixture, full SQL restore, local HTTP origin, historical E1/E2 rollback recovery and real Secure Share runtime, followed by the R01–R13 browser/host/i18n/scale/manual gates. See `docs/RC1-ONE-BATCH-TEST-HANDOVER.md`. **No source-only test counts as browser, TLS or CDN evidence.**
 
 ## Alpha26 Handbook-aligned local validation (October 2026)
 
