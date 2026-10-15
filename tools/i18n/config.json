@@ -1,0 +1,26 @@
+{
+  "product": "Core Blueprint Notes",
+  "domain": "core-blueprint-notes",
+  "main_file": "core-blueprint-notes.php",
+  "version_constant": "CB_NOTES_VERSION",
+  "exclude": [
+    ".git",
+    ".github",
+    "docs",
+    "languages",
+    "tests",
+    "tools",
+    "dist",
+    "build",
+    "vendor",
+    "node_modules"
+  ],
+  "skip_js": false,
+  "commit_mo": false,
+  "commit_l10n_php": false,
+  "source_paths": [
+    "core-blueprint-notes.php",
+    "src",
+    "assets"
+  ]
+}
