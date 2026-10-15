@@ -1,0 +1,6 @@
+# Generated release/test and localization review artifacts; never source authority.
+/dist/
+
+# Python runtime bytecode, not release payload.
+__pycache__/
+*.py[cod]

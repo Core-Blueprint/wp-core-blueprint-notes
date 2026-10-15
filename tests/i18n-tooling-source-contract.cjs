@@ -29,6 +29,13 @@ for (const name of ['check','update']) {
 }
 assert.match(read('tools/i18n/check'), /tools\/i18n\/check-reference/);
 assert.match(read('tools/build-release'), /Notes customer release BLOCKED/);
+for (const cmd of ['check', 'update', 'prepare-review']) {
+  assert.match(read('tools/i18n/' + cmd), /export PYTHONDONTWRITEBYTECODE=1/,
+    cmd + ' must not emit Python cache files');
+}
+const ignored = read('.gitignore');
+assert.match(ignored, /^\/dist\/$/m, 'generated dist must remain untracked');
+assert.match(ignored, /^__pycache__\/$/m, 'Python cache must remain untracked');
 const pluginBootstrap = read('core-blueprint-notes.php');
 assert.match(pluginBootstrap, /\* Domain Path:\s+\/languages/);
 assert.match(pluginBootstrap, /load_plugin_textdomain\(/);
