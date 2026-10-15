@@ -77,3 +77,21 @@ by SHA, branch-scoped, and requires a clean Git source state. Generated catalog
 content remains untracked until explicitly committed and reviewed. A successful
 candidate still needs the installation/UI/locale/HTTPS/browser and editor approval
 specified in RC1 acceptance documentation before release promotion.
+
+## 2026-10-15: Git-owned localization candidate
+
+All 7 canonical content files are now directly versioned under `languages/` on
+`feature/notes-rc1-i18n-foundation-v1`: the 305-message POT and six 305-message
+PO catalogs. The old external ZIP import workflow has been removed. The source
+contract pins all seven Git blob SHAs. The build runs solely from a Git checkout;
+MO and 30 WordPress script JSON outputs are generated in temporary staging.
+
+The PO files have had `fuzzy` removed **solely for installed-site runtime testing**;
+they remain AI-assisted translation proposals and lack independent editorial
+acceptance. Historical sections above describe earlier proposals/ZIPs and are
+superseded operationally by this section.
+
+Next step: `bash tools/check`, `bash tools/i18n/check`, then
+`bash tools/build-localized-candidate --execute`. No user download is required.
+Keep customer builder fail-closed pending language review and the R01–R13
+HTTP/TLS/CDN/browser/security tests.

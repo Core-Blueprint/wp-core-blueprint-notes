@@ -7,9 +7,9 @@ fail() { printf 'Notes localized candidate BLOCKED: %s\n' "$*" >&2; exit 1; }
 for cmd in wp php node python3 zip unzip sha256sum msgfmt; do
   command -v "$cmd" >/dev/null || fail "Missing required command $cmd"
 done
-[[ -f "$ROOT/languages/core-blueprint-notes.pot" ]] || fail 'Install audited locale candidate first'
-bash "$ROOT/tools/check-rc1-alpha26-batch" --execute
+[[ -f "$ROOT/languages/core-blueprint-notes.pot" ]] || fail 'Missing Git-tracked catalogs; git pull the i18n foundation branch'
 bash "$ROOT/tools/i18n/check"
+bash "$ROOT/tools/check-rc1-alpha26-batch" --execute
 STAGE="$(mktemp -d)"
 trap 'rm -rf -- "$STAGE"' EXIT
 PACKAGE="$STAGE/core-blueprint-notes"
@@ -36,8 +36,11 @@ for locale in ('nl_NL','de_DE','fr_FR','es_ES','it_IT','pt_PT'):
         if not file.is_file():
             raise SystemExit('Notes JS runtime missing: ' + name)
         data = json.loads(file.read_text(encoding='utf-8'))
-        if data.get('domain') != 'core-blueprint-notes' or data.get('source','').replace('\\','/') != source:
+        if data.get('domain') != 'messages' or data.get('source','').replace('\\','/') != source:
             raise SystemExit('Notes JS locale/domain mismatch: ' + name)
+        header = data.get('locale_data',{}).get('messages',{}).get('',{})
+        if header.get('lang') != locale:
+            raise SystemExit('Wrong JS locale header: ' + name)
         if len(data.get('locale_data',{}).get('messages',{})) < 2:
             raise SystemExit('Empty JS translations: ' + name)
 print('30 WordPress script translation artifacts: PASS')
