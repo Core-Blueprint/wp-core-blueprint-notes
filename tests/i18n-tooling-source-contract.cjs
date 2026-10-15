@@ -47,5 +47,18 @@ assert.match(prepare, /catalog\.source_stamp\(/);
 assert.match(prepare, /catalog\.key_set\(/);
 assert.match(prepare, /"dist" \/ "i18n-review"/);
 assert.match(read('tools/i18n/prepare-review'), /tools\/i18n\/prepare-review\.py/);
+const draftWrapper = read('tools/i18n/prepare-drafts');
+const draftSource = read('tools/i18n/prepare-drafts.py');
+assert.match(draftWrapper, /PYTHONDONTWRITEBYTECODE=1/);
+assert.match(draftWrapper, /tools\/i18n\/prepare-drafts\.py/);
+assert.match(draftSource, /\"state\": \"UNREVIEWED\"/);
+assert.match(draftSource, /must_be_blank=True/);
+assert.match(draftSource, /verify_draft\(/);
+assert.match(draftSource, /if DRAFTS\.exists\(\)/);
+assert.match(draftSource, /saved != manifest/);
+assert.match(draftSource, /os\.rename\(stage, DRAFTS\)/);
+assert.match(draftSource, /--no-translator/);
+assert.doesNotMatch(draftSource, /CREATE DATABASE|DROP DATABASE|shutil\.rmtree\(DRAFTS\)/);
+
 assert.doesNotMatch(prepare, /machine.translate|requests\.post|subprocess\.run/);
 console.log('Notes i18n tooling source: PASS (six-locale CONTENT HOLD; runtime NOT RUN)');

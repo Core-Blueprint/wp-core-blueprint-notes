@@ -35,3 +35,17 @@ it is ignored and is not deleted by the tooling. No operator cleanup is needed.
 The wrapper commands disable future Python bytecode writes. Reviewed catalogs
 must be deliberately placed in \`languages/\` and committed as translation source,
 not copied unreviewed from \`dist/i18n-review/\`.
+
+### Unreviewed PO preparation (six locales)
+
+After source extraction, run `bash tools/i18n/prepare-drafts`. This invokes gettext
+`msginit --no-translator` for nl_NL, de_DE, fr_FR, es_ES, it_IT and pt_PT,
+checks that their message IDs exactly match the current POT, and refuses any
+automatically prefilled translation. Drafts are stored exclusively under
+`dist/i18n-review/drafts/` with an `UNREVIEWED` manifest.
+
+Re-running with an unchanged POT preserves any existing editorial progress.
+If the POT changes, it fails rather than overwriting drafts; reconcile with the
+canonical `msgmerge` flow after review. Nothing is copied into `languages/`
+automatically, and customer packaging remains blocked until the six POs are
+reviewed and accepted through the canonical check.
