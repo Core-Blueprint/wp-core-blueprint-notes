@@ -18,7 +18,8 @@ umask 077
 [[ "$#" == 0 ]] || fail "No arguments allowed."
 NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
 [[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
-   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ||
+    "$NOTES_BRANCH" == "feature/notes-rc1-portability-data-exchange-v1" ]] ||
     fail "Expected isolated Notes featurebranch."
 for source in "$ROOT" "$BASE" "$SECURE"; do
     [[ -d "$source/.git" || -f "$source/.git" ]] || fail "Required local source checkout missing: $source"

@@ -44,6 +44,10 @@ Permission and completeness invariants:
 
 **P5:** AI integration may reference the same canonical Notes application boundary, but **no Data Exchange export ability is MCP-exposed** by this work. Base Luna's AI Activity/Abilities/MCP audit remains pending and is a separate hard prerequisite for the Golden Audit.
 
+## Exact-branch runtime runner inheritance
+
+The existing Alpha26 disposable test harness accepts only explicit branch names. P1 adds this exact portability branch to eight guarded runners and the source contract. No wildcard, database authority, fixture or runtime policy is relaxed.
+
 ## Verification and governance
 
 The source-only smoke `php tests/portability-export-smoke.php` is wired into `bash tools/check`. It covers registration, strict owner scoping, Gutenberg + catalog + marker content, invalid references, malformed catalogs, overflow and import denial. **It is not a true Base Engine/WordPress runtime proof.** Full `bash tools/check`, `bash tools/i18n/check` and an exact HEAD localized candidate build must pass in the owner's checkout before field testing.

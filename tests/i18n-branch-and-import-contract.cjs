@@ -11,6 +11,7 @@ for(const runner of runners){
  assert.match(s,/NOTES_BRANCH/);
  assert.ok(s.includes('feature/notes-rc1-golden-hardening-v1'));
  assert.ok(s.includes('feature/notes-rc1-i18n-foundation-v1'));
+ assert.ok(s.includes('feature/notes-rc1-portability-data-exchange-v1'));
  assert.ok(!/feature\/notes-rc1-\*/.test(s));
 }
 assert.ok(!fs.existsSync(path.join(root,'tools/i18n/import-candidate')));

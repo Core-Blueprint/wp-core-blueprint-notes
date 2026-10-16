@@ -17,7 +17,8 @@ umask 077
 [[ "$#" == 0 ]] || fail "No command-line arguments allowed."
 NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
 [[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
-   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ||
+    "$NOTES_BRANCH" == "feature/notes-rc1-portability-data-exchange-v1" ]] ||
     fail "Unexpected branch."
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     fail "Notes tracked source modified."

@@ -8,7 +8,8 @@ fail() { echo "Notes Alpha26 package BLOCKED: $*" >&2; exit 1; }
 [[ "$#" == 0 ]] || fail "No arguments permitted"
 NOTES_BRANCH="$(git -C "$ROOT" branch --show-current)"
 [[ "$NOTES_BRANCH" == "feature/notes-rc1-golden-hardening-v1" ||
-   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ]] ||
+   "$NOTES_BRANCH" == "feature/notes-rc1-i18n-foundation-v1" ||
+    "$NOTES_BRANCH" == "feature/notes-rc1-portability-data-exchange-v1" ]] ||
     fail "Wrong branch"
 git -C "$ROOT" diff --quiet && git -C "$ROOT" diff --cached --quiet ||
     fail "Tracked source changed after the package was built"
