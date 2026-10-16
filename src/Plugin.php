@@ -11,6 +11,7 @@ use CB\Notes\Organization\Catalog;
 use CB\Notes\Library\Page as LibraryPage;
 use CB\Notes\Library\Markers;
 use CB\Notes\Library\Bulk;
+use CB\Notes\Portability\Provider as PortabilityProvider;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -40,6 +41,7 @@ final class Plugin {
         add_action('template_redirect',[Controller::class,'deliver_public'],-99);
         add_action('init',[self::class,'register_events'],9);
         add_action('core_blueprint_register_extensions',[self::class,'register_extension']);
+        add_action('core_blueprint_register_interoperability_implementations',[PortabilityProvider::class,'register']);
         SettingsPage::init();
         SecureRevocationRecovery::register();
         Catalog::init();
