@@ -23,11 +23,11 @@ final class ImportJournal {
             || $owner !== get_current_user_id() || !current_user_can('cb_notes_edit')) {
             return self::fail('cb_notes_import_journal_forbidden');
         }
-        $salt = wp_salt('auth');
-        if (!is_string($salt) || strlen($salt) < 32) {
-            return self::fail('cb_notes_import_journal_unavailable');
-        }
-        return self::PREFIX . hash_hmac('sha256', $owner . "\0" . $digest . "\0" . $reference, $salt);
+        // This key is only a deduplication identifier, never an access token.
+        // It MUST survive normal WordPress AUTH_KEY/salt rotation; otherwise
+        // importing the same archive again could miss a completed receipt.
+        // Authorization is independently checked on every read/write.
+        return self::PREFIX . hash('sha256', $owner . "\0" . $digest . "\0" . $reference);
     }
 
     /** Unique option insertion reserves exactly one attempt per owner/file/ref. */

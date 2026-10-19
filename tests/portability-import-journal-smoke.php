@@ -47,6 +47,11 @@ namespace {
     $digest = str_repeat('a', 64);
     $new = ImportJournal::receipt(10, $digest, 'note:11');
     expect_journal($new === ['state' => 'new'], 'no receipt means no previous attempt');
+    $id_before = ImportJournal::key(10, $digest, 'note:11');
+    $GLOBALS['rotated_wp_salts'] = true;
+    $id_after = ImportJournal::key(10, $digest, 'note:11');
+    expect_journal(is_string($id_before) && $id_before === $id_after,
+        'journal lookup stable across WordPress authentication-salt changes');
     $reserved = ImportJournal::reserve(10, $digest, 'note:11');
     expect_journal(is_string($reserved), 'create unique write-ahead intent');
     expect_journal(ImportJournal::reserve(10, $digest, 'note:11') instanceof WP_Error,
