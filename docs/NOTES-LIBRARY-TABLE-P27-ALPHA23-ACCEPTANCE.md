@@ -1,8 +1,8 @@
 # Notes Library Table View P2.7 — Alpha23 acceptance
 
-**Status:** source candidate, not Golden/production-ready.  
-**Base:** main after Alpha18 PR #1, commit `2530ee11b2fcb84a94146ecb71901f309474417f`  
-**Branch:** `feature/notes-library-table-view-p27-v1`  
+**Status:** source candidate, not Golden/production-ready.\
+**Base:** main after Alpha18 PR #1, commit `2530ee11b2fcb84a94146ecb71901f309474417f`\
+**Branch:** `feature/notes-library-table-view-p27-v1`\
 **Artifact:** `dist/core-blueprint-notes-0.1.0-alpha23.zip`
 
 ## Local sourcegate and release

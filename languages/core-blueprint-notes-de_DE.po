@@ -1462,4 +1462,3 @@ msgid "No tags yet. Use Add new to create your first tag."
 msgstr ""
 "Noch keine Schlagwörter. Verwende Neu hinzufügen, um dein erstes Schlagwort"
 " anzulegen."
-

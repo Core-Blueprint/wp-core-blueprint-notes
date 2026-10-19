@@ -1450,4 +1450,3 @@ msgid "No tags yet. Use Add new to create your first tag."
 msgstr ""
 "Aucune étiquette pour le moment. Utilisez Ajouter pour créer votre première"
 " étiquette."
-

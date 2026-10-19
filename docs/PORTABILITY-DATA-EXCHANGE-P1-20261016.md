@@ -1,9 +1,9 @@
 # Notes Portability P1: Base Data Exchange export adapter
 
-**Date:** 2026-10-16  
-**Branch:** `feature/notes-rc1-portability-data-exchange-v1`  
-**Derived from:** Notes `9625ba3c95de76a865c0d2c70ca255bfc12d62ff`  
-**Base reference:** `Core-Blueprint/wp-core-blueprint@1cab1e41bda30334fbd54dec24b105812b5aee0c`, public API 1.2  
+**Date:** 2026-10-16\
+**Branch:** `feature/notes-rc1-portability-data-exchange-v1`\
+**Derived from:** Notes `9625ba3c95de76a865c0d2c70ca255bfc12d62ff`\
+**Base reference:** `Core-Blueprint/wp-core-blueprint@1cab1e41bda30334fbd54dec24b105812b5aee0c`, public API 1.2\
 **State:** EXPORT-PROVIDER FOUNDATION ONLY. **No browser, download endpoint, import writes, zip transport, RC1 release or Golden status.**
 
 ## Scope and public contract

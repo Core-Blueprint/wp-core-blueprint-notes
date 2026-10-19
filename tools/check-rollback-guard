@@ -186,4 +186,3 @@ printf 'Notes historical share recovery guard: PASS (old HTTP 404; reissued HTTP
 printf 'Notes recovery test SQL SHA-256: %s\n' "$SQL_SHA"
 printf 'Notes Alpha26 test ZIP SHA-256: %s\n' "$ARTIFACT_SHA"
 printf 'CDN, full-host rollback and real Secure Share: NOT RUN\n'
-

@@ -1,6 +1,6 @@
 # Notes RC1 — implemented architecture and data lifecycle
 
-**Status:** source-backed RC1 hardening inventory, 2026-10-14. NOT runtime-certified.  
+**Status:** source-backed RC1 hardening inventory, 2026-10-14. NOT runtime-certified.\
 **Candidate branch:** `feature/notes-rc1-golden-hardening-v1` (Alpha26; source tree not yet frozen).
 
 This is the architecture **actually implemented**, distinct from the historical `ARCHITECTURE-V1-RFC.md` *proposal*. That original RFC's hierarchical `cb_notebook` taxonomy and export interface were **not shipped**.
