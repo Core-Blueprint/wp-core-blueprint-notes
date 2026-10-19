@@ -18,18 +18,20 @@ final class Page {
 
     public static function init(): void {
         add_action('admin_menu', [self::class, 'register_menu'], 15);
+        add_action('admin_menu', [self::class, 'hide_menu_row'], 50);
         add_action('admin_post_' . self::ACTION, [self::class, 'download']);
     }
 
     public static function url(): string {
-        return admin_url('admin.php?page=' . self::SLUG);
+        return admin_url('edit.php?post_type=' . Plugin::TYPE . '&page=' . self::SLUG);
     }
 
     public static function register_menu(): void {
-        // Hidden route, linked from the Library. Do not add a new permanent
-        // Notes submenu or replace the canonical Library workspace.
+        // Register a normal Notes parent/child admin screen for stable
+        // WordPress load-hooks, then hide only its menu row. No duplicate
+        // permanent Notes submenu or untyped null parent is necessary.
         self::$hook = (string)add_submenu_page(
-            null,
+            'edit.php?post_type=' . Plugin::TYPE,
             __('Data portability', 'core-blueprint-notes'),
             __('Data portability', 'core-blueprint-notes'),
             'cb_notes_edit',
@@ -41,6 +43,10 @@ final class Page {
                 'components' => ['buttons', 'panels', 'form-controls', 'fields', 'notices'],
             ]);
         }
+    }
+
+    public static function hide_menu_row(): void {
+        remove_submenu_page('edit.php?post_type=' . Plugin::TYPE, self::SLUG);
     }
 
     private static function owner(): bool {

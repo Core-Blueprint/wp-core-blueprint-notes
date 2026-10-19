@@ -10,8 +10,10 @@ const provider = read('src/Portability/Provider.php');
 const entity = read('src/Portability/NotesEntity.php');
 assert.ok(plugin.includes('PortabilityPage::init()'), 'Owner page registered by plugin');
 assert.ok(library.includes('Portability\\Page::url()'), 'Library links to secondary page');
-assert.ok(page.includes('add_submenu_page(\n            null,'),
-    'No permanent sidebar menu added');
+assert.ok(page.includes("'edit.php?post_type=' . Plugin::TYPE") &&
+    page.includes('remove_submenu_page(') &&
+    page.includes("add_action('admin_menu', [self::class, 'hide_menu_row'], 50)"),
+    'Registered WordPress Notes screen hides only the submenu row');
 assert.ok(page.includes('admin_post_') && page.includes('check_admin_referer(self::ACTION)'),
     'Download action authenticated and nonce-bound');
 assert.ok(page.includes("['json', 'markdown']") &&
