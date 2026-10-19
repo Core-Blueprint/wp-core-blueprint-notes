@@ -1442,3 +1442,57 @@ msgstr "Navigatie tonen"
 #: src/Library/Page.php
 msgid "Hide navigation"
 msgstr "Navigatie verbergen"
+
+#: src/Portability/Page.php
+msgid "Data portability"
+msgstr "Gegevensportabiliteit"
+
+#: src/Portability/Page.php
+msgid "Notes export is unavailable or exceeds the allowed size."
+msgstr "Notities exporteren is niet beschikbaar of overschrijdt de toegestane grootte."
+
+#: src/Portability/Page.php
+msgid "Export your own private notes or review a Notes JSON archive before import."
+msgstr "Exporteer je eigen privénotities of controleer een Notes JSON-archief voordat je importeert."
+
+#: src/Portability/Page.php
+msgid "Export"
+msgstr "Exporteren"
+
+#: src/Portability/Page.php
+msgid "JSON retains supported Gutenberg content and note relationships. Markdown ZIP includes readable notes and original block-source files; it does not include sharing grants, media or revisions."
+msgstr "JSON bewaart ondersteunde Gutenberg-inhoud en notitierelaties. Markdown ZIP bevat leesbare notities en de oorspronkelijke blokbronbestanden, maar geen deelmachtigingen, media of revisies."
+
+#: src/Portability/Page.php
+msgid "Export JSON"
+msgstr "JSON exporteren"
+
+#: src/Portability/Page.php
+msgid "Export Markdown ZIP"
+msgstr "Markdown ZIP exporteren"
+
+#: src/Portability/Page.php
+msgid "Import preview"
+msgstr "Importvoorbeeld"
+
+#: src/Portability/Page.php
+msgid "Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes."
+msgstr "Importeren is nog niet ingeschakeld. Je kunt het hele archief controleren en het doelplan bekijken zonder notities te wijzigen."
+
+#: src/Portability/Page.php
+msgid "Select Notes JSON file"
+msgstr "Selecteer Notes JSON-bestand"
+
+#: src/Portability/Page.php
+msgid "Preview import"
+msgstr "Import bekijken"
+
+#: src/Portability/Page.php
+msgid "The archive could not be validated. No notes were changed."
+msgstr "Het archief kon niet worden gevalideerd. Er zijn geen notities gewijzigd."
+
+#: src/Portability/Page.php
+#. translators: 1: new notes, 2: already imported notes
+#, php-format
+msgid "Preview: %1$d new notes, %2$d already imported. No changes made."
+msgstr "Voorbeeld: %1$d nieuwe notities, %2$d al geïmporteerd. Geen wijzigingen aangebracht."

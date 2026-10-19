@@ -1345,3 +1345,57 @@ msgstr ""
 #: src/Library/Page.php
 msgid "Hide navigation"
 msgstr ""
+
+#: src/Portability/Page.php
+msgid "Data portability"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Notes export is unavailable or exceeds the allowed size."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Export your own private notes or review a Notes JSON archive before import."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Export"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "JSON retains supported Gutenberg content and note relationships. Markdown ZIP includes readable notes and original block-source files; it does not include sharing grants, media or revisions."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Export JSON"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Export Markdown ZIP"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Import preview"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Select Notes JSON file"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Preview import"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "The archive could not be validated. No notes were changed."
+msgstr ""
+
+#: src/Portability/Page.php
+#. translators: 1: new notes, 2: already imported notes
+#, php-format
+msgid "Preview: %1$d new notes, %2$d already imported. No changes made."
+msgstr ""

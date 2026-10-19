@@ -1466,3 +1466,57 @@ msgstr "Navigation anzeigen"
 #: src/Library/Page.php
 msgid "Hide navigation"
 msgstr "Navigation ausblenden"
+
+#: src/Portability/Page.php
+msgid "Data portability"
+msgstr "Datenportabilität"
+
+#: src/Portability/Page.php
+msgid "Notes export is unavailable or exceeds the allowed size."
+msgstr "Der Notizenexport ist nicht verfügbar oder überschreitet die zulässige Größe."
+
+#: src/Portability/Page.php
+msgid "Export your own private notes or review a Notes JSON archive before import."
+msgstr "Exportiere deine privaten Notizen oder prüfe ein Notes-JSON-Archiv vor dem Import."
+
+#: src/Portability/Page.php
+msgid "Export"
+msgstr "Exportieren"
+
+#: src/Portability/Page.php
+msgid "JSON retains supported Gutenberg content and note relationships. Markdown ZIP includes readable notes and original block-source files; it does not include sharing grants, media or revisions."
+msgstr "JSON bewahrt unterstützte Gutenberg-Inhalte und Notizbeziehungen. Markdown-ZIP enthält lesbare Notizen und originale Blockquelldateien, jedoch keine Freigaben, Medien oder Revisionen."
+
+#: src/Portability/Page.php
+msgid "Export JSON"
+msgstr "JSON exportieren"
+
+#: src/Portability/Page.php
+msgid "Export Markdown ZIP"
+msgstr "Markdown-ZIP exportieren"
+
+#: src/Portability/Page.php
+msgid "Import preview"
+msgstr "Importvorschau"
+
+#: src/Portability/Page.php
+msgid "Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes."
+msgstr "Der Import ist noch nicht aktiviert. Du kannst das vollständige Archiv und den Zielplan prüfen, ohne Notizen zu ändern."
+
+#: src/Portability/Page.php
+msgid "Select Notes JSON file"
+msgstr "Notes-JSON-Datei auswählen"
+
+#: src/Portability/Page.php
+msgid "Preview import"
+msgstr "Import prüfen"
+
+#: src/Portability/Page.php
+msgid "The archive could not be validated. No notes were changed."
+msgstr "Das Archiv konnte nicht geprüft werden. Keine Notizen wurden geändert."
+
+#: src/Portability/Page.php
+#. translators: 1: new notes, 2: already imported notes
+#, php-format
+msgid "Preview: %1$d new notes, %2$d already imported. No changes made."
+msgstr "Vorschau: %1$d neue Notizen, %2$d bereits importiert. Keine Änderungen vorgenommen."
