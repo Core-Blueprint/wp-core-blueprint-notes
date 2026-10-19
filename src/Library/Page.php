@@ -611,7 +611,8 @@ final class Page {
         }
         echo '<details class="cb-notes-library__compact-nav"><summary>'
             . '<span class="dashicons dashicons-category" aria-hidden="true"></span>'
-            . '<span>' . esc_html($context_label) . '</span></summary>';
+            . '<span class="cb-notes-library__compact-context">' . esc_html($context_label) . '</span>'
+            . '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></summary>';
         echo '<div class="cb-notes-library__compact-menu"><nav class="cb-notes-library__nav" aria-label="'
             . esc_attr__('Notes Library navigation', 'core-blueprint-notes') . '">';
         echo '<h2>' . esc_html__('Quick access', 'core-blueprint-notes') . '</h2>';

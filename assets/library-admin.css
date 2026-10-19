@@ -86,6 +86,14 @@
 .cb-notes-library__compact-nav summary:hover {
     background: var(--cb-surface-2);
 }
+.cb-notes-library__compact-context {
+    min-width: 0;
+    flex: 1;
+}
+.cb-notes-library__compact-nav summary > .dashicons:last-child {
+    flex: 0 0 auto;
+    margin-inline-start: auto;
+}
 .cb-notes-library__compact-menu {
     position: absolute;
     z-index: 10;

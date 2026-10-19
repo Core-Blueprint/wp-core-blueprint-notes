@@ -46,7 +46,9 @@ assert.ok(render.includes("Display::sidebar($owner)") &&
     render.includes('cb-notes-library__sidebar-open') &&
     render.includes('cb-notes-library__sidebar-close') &&
     render.includes('cb-notes-library__compact-nav') &&
-    render.includes('Display::sidebar_url($target, $state)'),
+    render.includes('Display::sidebar_url($target, $state)') &&
+    render.includes('dashicons-arrow-down-alt2') &&
+    css.includes('.cb-notes-library__compact-context {'),
     'Sidebar show/hide stays server-rendered and linked to current filter state');
 assert.ok(css.includes('.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar {') &&
     css.includes('display: none;') &&
