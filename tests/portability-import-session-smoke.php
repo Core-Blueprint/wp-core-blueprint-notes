@@ -11,6 +11,18 @@ namespace CB\Notes\Organization {
         }
     }
 }
+namespace CB\Notes\Portability {
+    final class ImportJournal {
+        public static function receipt(int $owner, string $digest, string $reference): array|\WP_Error {
+            if (($GLOBALS['mock_receipt_state'] ?? 'new') === 'pending') {
+                return new \WP_Error('cb_notes_import_journal_needs_review', 'Review required.');
+            }
+            return ($GLOBALS['mock_receipt_state'] ?? 'new') === 'complete'
+                ? ['state' => 'complete', 'post_id' => 101]
+                : ['state' => 'new'];
+        }
+    }
+}
 namespace {
     final class WP_Error {
         public function __construct(public string $code, public string $message) {}
@@ -62,6 +74,17 @@ namespace {
         return true;
     });
     verify($observed === true, 'validated session executes once');
+    $GLOBALS['mock_receipt_state'] = 'complete';
+    $skip = ImportSession::with_validated_json($json,
+        static fn(array $context): array|\WP_Error =>
+            ImportSession::record($note, $context));
+    verify(is_array($skip) && $skip['preview']['skip_count'] === 1,
+        'owner-verified completed receipt creates idempotent skip');
+    $GLOBALS['mock_receipt_state'] = 'pending';
+    verify(ImportSession::with_validated_json($json, static fn(): bool => true)
+        instanceof WP_Error, 'interrupted earlier import fails before planning');
+    unset($GLOBALS['mock_receipt_state']);
+
     verify(!ImportSession::authorized(['cb_notes_import_ticket' => 'forged']), 'session cleared');
     $bad = $envelope;
     $bad['records'][1]['notebook_id'] = str_repeat('f', 32);

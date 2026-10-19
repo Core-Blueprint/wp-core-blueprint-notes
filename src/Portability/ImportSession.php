@@ -55,7 +55,21 @@ final class ImportSession {
         // Deliberately accept no client-provided owner, source identity or
         // previously-completed receipts. The journal will supply verified
         // receipts at the later, explicitly gated P2-B stage.
-        $plan = ImportPreview::plan($archive, $target, $owner, $secret);
+        $completed = [];
+        foreach ($archive['notes'] as $note) {
+            $receipt = ImportJournal::receipt($owner, $archive['digest'], $note['reference']);
+            if ($receipt instanceof \WP_Error) {
+                // A pending or mismatched receipt is an explicit recovery stop:
+                // never silently retry a possibly already-created note.
+                return $receipt;
+            }
+            if (($receipt['state'] ?? null) === 'complete') {
+                $completed[$archive['digest'] . ':' . $note['reference']] = $receipt['post_id'];
+            } elseif (($receipt['state'] ?? null) !== 'new') {
+                return self::error('cb_notes_import_session_unavailable');
+            }
+        }
+        $plan = ImportPreview::plan($archive, $target, $owner, $secret, $completed);
         if ($plan instanceof \WP_Error) {
             return $plan;
         }

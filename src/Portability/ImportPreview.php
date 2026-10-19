@@ -145,6 +145,7 @@ final class ImportPreview {
             'create_count' => $create,
             'skip_count' => $skip,
             'catalog' => $new_catalog,
+            'previous_catalog' => $target_catalog,
             'source_id_map' => $map,
             'plans' => $plans,
         ];

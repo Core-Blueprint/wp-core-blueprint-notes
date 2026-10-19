@@ -31,7 +31,8 @@ final class ImportPlanner {
             // may attach translated opaque IDs. Import service must use a
             // verified CAS boundary before applying this record.
             return [
-                'operation' => Foundation::OP_CREATE,
+                'operation' => $destination['catalog'] === $destination['previous_catalog']
+                    ? Foundation::OP_SKIP : Foundation::OP_CREATE,
                 'reference' => 'catalog:personal',
                 'payload' => [
                     'record_type' => 'catalog',
