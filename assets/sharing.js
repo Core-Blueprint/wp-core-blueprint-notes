@@ -191,7 +191,11 @@
                 }
             }
         }
-        return el(Panel, { name: 'cb-notes-sharing', title: __('Sharing', 'core-blueprint-notes') }, controls);
+        return el(Panel, {
+            name: 'cb-notes-sharing',
+            title: __('Sharing', 'core-blueprint-notes'),
+            className: 'cb-notes-sharing-panel'
+        }, controls);
     }
 
     wp.plugins.registerPlugin('cb-notes-sharing', { render: SharingPanel, icon: 'share' });

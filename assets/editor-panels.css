@@ -1,0 +1,9 @@
+/**
+ * Notes-specific Gutenberg panel composition only.
+ * Core Blueprint Base owns all spacing scales and component theme presentation.
+ * Never style native selects, notice colours, or WordPress control states here.
+ */
+.cb-notes-sharing-panel .components-notice,
+.cb-notes-editor-organization .components-notice {
+    margin-block-end: var(--cb-space-4);
+}

@@ -226,6 +226,10 @@ final class Plugin {
         if (class_exists(Assets::class)) {
             Assets::enqueue_modals(Assets::MODAL_PRESENTATION_WP_NATIVE);
         }
+        // Notes-owned Gutenberg panel geometry only. Base owns the spacing tokens.
+        wp_enqueue_style('cb-notes-editor-panels',
+            plugins_url('assets/editor-panels.css',CB_NOTES_FILE),
+            [], CB_NOTES_VERSION);
         wp_enqueue_script('cb-notes-sharing',
             plugins_url('assets/sharing.js',CB_NOTES_FILE),
             ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch','wp-i18n'],
