@@ -144,7 +144,10 @@ final class ArchivePreflight {
     }
 
     private static function gmt(string $value): bool {
-        // WordPress uses this exact SQL datetime form for exported GMT fields.
+        // WordPress may export an unset GMT field for an unscheduled draft.
+        if ($value === '0000-00-00 00:00:00') {
+            return true;
+        }
         $dt = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value, new \DateTimeZone('UTC'));
         return $dt instanceof \DateTimeImmutable && $dt->format('Y-m-d H:i:s') === $value;
     }

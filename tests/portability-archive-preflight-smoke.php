@@ -85,6 +85,10 @@ namespace {
     $broken = $records;
     $broken[0]['catalog']['notebook'][0]['name'] = str_repeat('é', 81);
     expect_bad($broken, 'cb_notes_portability_catalog');
+    $draft = $records;
+    $draft[1]['status'] = 'draft';
+    $draft[1]['created_gmt'] = '0000-00-00 00:00:00';
+    check(is_array(ArchivePreflight::inspect($draft)), 'WordPress unset draft GMT date preserved');
     $broken = $records;
     $broken[1]['created_gmt'] = '2026-02-31 12:00:00';
     expect_bad($broken, 'cb_notes_portability_record');
