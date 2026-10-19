@@ -48,6 +48,14 @@ namespace {
         'repeated preview stable with same target and owner');
     check_preview($preview['fingerprint'] !== ImportPreview::plan($checked, $empty, 32, $secret)['fingerprint'],
         'independent owner and identity');
+    $tampered = $checked;
+    $tampered['notes'][0]['title'] = 'Changed after preflight';
+    check_preview(ImportPreview::plan($tampered, $empty, 31, $secret) instanceof WP_Error,
+        'tampered inspection content rejected before mapping');
+    $tampered = $checked;
+    $tampered['digest'] = str_repeat('1', 64);
+    check_preview(ImportPreview::plan($tampered, $empty, 31, $secret) instanceof WP_Error,
+        'unbound caller digest rejected');
     $collision = $empty;
     $collision['notebook'][] = ['id' => str_repeat('c', 32), 'name' => 'Work'];
     $err = ImportPreview::plan($checked, $collision, 31, $secret);

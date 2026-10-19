@@ -34,6 +34,18 @@ final class ImportPreview {
             || $archive['count'] !== count($archive['notes'])) {
             return self::error('cb_notes_import_plan_invalid');
         }
+        // Never trust a caller-assembled "validated" array. Rebuild its
+        // complete canonical record graph and match the independently
+        // calculated digest before producing destination mappings.
+        $rechecked = ArchivePreflight::inspect(array_merge([[
+            'record_type' => 'catalog',
+            'reference' => 'catalog:personal',
+            'catalog' => $archive['catalog'],
+        ]], $archive['notes']));
+        if ($rechecked instanceof \WP_Error
+            || !hash_equals($rechecked['digest'], $archive['digest'])) {
+            return self::error('cb_notes_import_plan_invalid');
+        }
         $map = [];
         $new_catalog = $target_catalog;
         foreach (self::KINDS as $kind) {
