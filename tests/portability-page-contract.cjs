@@ -14,6 +14,9 @@ assert.ok(page.includes("'edit.php?post_type=' . Plugin::TYPE") &&
     page.includes('remove_submenu_page(') &&
     page.includes("add_action('admin_menu', [self::class, 'hide_menu_row'], 50)"),
     'Registered WordPress Notes screen hides only the submenu row');
+assert.ok(page.includes("add_action('load-' . self::$hook, [self::class, 'private_screen_headers'])") &&
+    page.includes('function private_screen_headers(): void'),
+    'Preview screen no-store headers are set before admin HTML renders');
 assert.ok(page.includes('admin_post_') && page.includes('check_admin_referer(self::ACTION)'),
     'Download action authenticated and nonce-bound');
 assert.ok(page.includes("['json', 'markdown']") &&

@@ -39,9 +39,21 @@ final class Page {
             [self::class, 'render']
         );
         if (self::$hook !== '') {
+            add_action('load-' . self::$hook, [self::class, 'private_screen_headers']);
             AdminTheme::register_screen(self::$hook, [
                 'components' => ['buttons', 'panels', 'form-controls', 'fields', 'notices'],
             ]);
+        }
+    }
+
+    public static function private_screen_headers(): void {
+        // Run before the WordPress admin header renders. A private preview
+        // must not be cached by a reverse proxy or shared browser cache.
+        if (self::owner()) {
+            nocache_headers();
+            header('Cache-Control: private, no-store, no-cache, max-age=0, must-revalidate', true);
+            header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+            header('X-Content-Type-Options: nosniff', true);
         }
     }
 
