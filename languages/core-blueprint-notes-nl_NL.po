@@ -211,10 +211,6 @@ msgstr ""
 "Notities weergeven, notities zoeken en een notitie lezen. Er zijn geen "
 "abilities geregistreerd om notities te maken, wijzigen of verwijderen."
 
-#: src/Admin/SettingsPage.php:181
-msgid "Open AI Access settings"
-msgstr "Instellingen voor AI-toegang openen"
-
 #: src/Library/Bulk.php:112 src/Library/Display.php:46 src/Library/Page.php:518
 #: src/Organization/Catalog.php:114 src/Organization/Catalog.php:551
 msgid "Access denied."
@@ -772,10 +768,6 @@ msgstr "Privénotities in Gutenberg ingeschakeld"
 #, php-format, python-format
 msgid "Notes: %s"
 msgstr "Notes: %s"
-
-#: src/Plugin.php:240
-msgid "Notes AI Access"
-msgstr "AI-toegang voor Notes"
 
 #: src/Plugin.php:271
 msgid "Settings"

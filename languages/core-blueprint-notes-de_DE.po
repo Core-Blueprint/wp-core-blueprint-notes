@@ -212,10 +212,6 @@ msgstr ""
 "Notizen auflisten, durchsuchen und eine Notiz lesen. Abilities zum "
 "Erstellen, Aktualisieren oder Löschen sind nicht registriert."
 
-#: src/Admin/SettingsPage.php:181
-msgid "Open AI Access settings"
-msgstr "Einstellungen für KI-Zugriff öffnen"
-
 #: src/Library/Bulk.php:112 src/Library/Display.php:46 src/Library/Page.php:518
 #: src/Organization/Catalog.php:114 src/Organization/Catalog.php:551
 msgid "Access denied."
@@ -774,10 +770,6 @@ msgstr "Private Gutenberg-Notizen aktiviert"
 #, php-format, python-format
 msgid "Notes: %s"
 msgstr "Notes: %s"
-
-#: src/Plugin.php:240
-msgid "Notes AI Access"
-msgstr "Notes-KI-Zugriff"
 
 #: src/Plugin.php:271
 msgid "Settings"

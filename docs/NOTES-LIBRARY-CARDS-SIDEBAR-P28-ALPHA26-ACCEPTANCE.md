@@ -1,8 +1,8 @@
 # Notes Library P2.8 — Cards and responsive sidebar acceptance
 
-**Date:** 2026-10-19  
-**Candidate branch:** `feature/notes-rc1-portability-data-exchange-v1`  
-**Status:** SOURCE CANDIDATE; not accepted Golden, not a public release.  
+**Date:** 2026-10-19
+**Candidate branch:** `feature/notes-rc1-portability-data-exchange-v1`
+**Status:** SOURCE CANDIDATE; not accepted Golden, not a public release.
 **Scope:** presentation and personal display preferences only, no new queries, note metadata, REST endpoints or sharing changes.
 
 ## Focused development checks
