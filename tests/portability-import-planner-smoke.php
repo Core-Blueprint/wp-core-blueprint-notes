@@ -20,7 +20,10 @@ namespace CB\Notes\Portability {
             return [
                 'preview' => [
                     'owner' => 3, 'archive_digest' => str_repeat('a', 64),
-                    'catalog' => ['notebook' => [], 'category' => [], 'tag' => []],
+                    'catalog' => ['notebook' => [
+                        ['id' => str_repeat('a', 32), 'name' => 'Work']
+                    ], 'category' => [], 'tag' => []],
+                    'previous_catalog' => ['notebook' => [], 'category' => [], 'tag' => []],
                     'plans' => [
                         ['source_reference' => 'note:11', 'operation' => 'create',
                             'title' => 'A', 'status' => 'private',
