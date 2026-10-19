@@ -547,10 +547,27 @@ final class Page {
         $query = new \WP_Query(Query::args($owner, $state));
         $create_url = admin_url('post-new.php?post_type=' . Plugin::TYPE);
         $organize_url = admin_url('edit.php?post_type=' . Plugin::TYPE . '&page=cb-notes-organize');
+        $sidebar = Display::sidebar($owner);
+        $context_label = __('All Notes', 'core-blueprint-notes');
+        if ($state['view'] === 'favorites') {
+            $context_label = __('Favorites', 'core-blueprint-notes');
+        } elseif ($state['view'] === 'pinned') {
+            $context_label = __('Pinned', 'core-blueprint-notes');
+        } elseif ($state['notebook'] === 'unfiled') {
+            $context_label = __('Unfiled', 'core-blueprint-notes');
+        } elseif ($state['notebook'] !== '') {
+            foreach ($catalog['notebook'] as $item) {
+                if ($item['id'] === $state['notebook']) {
+                    $context_label = (string)$item['name'];
+                    break;
+                }
+            }
+        }
 
         echo '<div class="wrap cb-core-wrap cb-core-page cb-core-form-scope cb-notes-library"'
             . ' data-cb-notes-ajax-url="' . esc_url(admin_url('admin-ajax.php')) . '"'
             . ' data-cb-notes-view="' . esc_attr($state['view']) . '"'
+            . ' data-cb-notes-sidebar="' . esc_attr($sidebar) . '"'
             . ' data-cb-notes-bulk-nonce="' . esc_attr(wp_create_nonce(Bulk::NONCE_ACTION)) . '">';
         echo '<header class="cb-notes-library__heading"><div><h1 class="cb-core-title">'
             . esc_html__('Notes Library', 'core-blueprint-notes') . '</h1>';
@@ -580,6 +597,34 @@ final class Page {
             . '</svg><span>' . esc_html__('Organize notes', 'core-blueprint-notes')
             . '</span></a></div></aside>';
         echo '<main class="cb-notes-library__main cb-core-panel" id="cb-notes-library-results">';
+        echo '<div class="cb-notes-library__navigation-tools">';
+        foreach ([
+            'expanded' => ['label' => __('Show navigation', 'core-blueprint-notes'), 'icon' => 'dashicons-menu-alt3'],
+            'collapsed' => ['label' => __('Hide navigation', 'core-blueprint-notes'), 'icon' => 'dashicons-menu-alt3'],
+        ] as $target => $control) {
+            $class = $target === 'expanded' ? 'cb-notes-library__sidebar-open' : 'cb-notes-library__sidebar-close';
+            echo '<a class="button cb-core-button cb-core-button--secondary cb-core-button--compact '
+                . esc_attr($class) . '" href="' . esc_url(Display::sidebar_url($target, $state)) . '"'
+                . ' aria-label="' . esc_attr($control['label']) . '" title="' . esc_attr($control['label']) . '">'
+                . '<span class="dashicons ' . esc_attr($control['icon']) . '" aria-hidden="true"></span>'
+                . '<span>' . esc_html($control['label']) . '</span></a>';
+        }
+        echo '<details class="cb-notes-library__compact-nav"><summary>'
+            . '<span class="dashicons dashicons-category" aria-hidden="true"></span>'
+            . '<span>' . esc_html($context_label) . '</span></summary>';
+        echo '<div class="cb-notes-library__compact-menu"><nav class="cb-notes-library__nav" aria-label="'
+            . esc_attr__('Notes Library navigation', 'core-blueprint-notes') . '">';
+        echo '<h2>' . esc_html__('Quick access', 'core-blueprint-notes') . '</h2>';
+        self::nav_link(__('All Notes', 'core-blueprint-notes'), $state, '');
+        self::view_link(__('Favorites', 'core-blueprint-notes'), $state, 'favorites');
+        self::view_link(__('Pinned', 'core-blueprint-notes'), $state, 'pinned');
+        echo '<h2>' . esc_html__('Notebooks', 'core-blueprint-notes') . '</h2>';
+        self::nav_link(__('Unfiled', 'core-blueprint-notes'), $state, 'unfiled');
+        foreach ($catalog['notebook'] as $notebook) {
+            self::nav_link((string)$notebook['name'], $state, (string)$notebook['id']);
+        }
+        echo '</nav><a class="cb-notes-library__organize-link" href="' . esc_url($organize_url) . '">'
+            . esc_html__('Organize notes', 'core-blueprint-notes') . '</a></div></details></div>';
         echo '<p class="cb-notes-library__feedback" role="alert" aria-live="assertive" hidden></p>';
         self::render_filters($state, $catalog);
         $heading = match ($state['view']) {
@@ -611,6 +656,10 @@ final class Page {
                 'name' => __('Table view', 'core-blueprint-notes'),
                 'icon' => 'dashicons-editor-table',
             ],
+            'cards' => [
+                'name' => __('Cards view', 'core-blueprint-notes'),
+                'icon' => 'dashicons-grid-view',
+            ],
         ] as $mode => $display) {
             $active = $layout === $mode;
             $variant = $active ? 'primary' : 'secondary';
@@ -630,7 +679,8 @@ final class Page {
             if ($layout === 'table') {
                 self::render_table($query->posts, $owner, $state);
             } else {
-                echo '<ul class="cb-notes-library__notes">';
+                echo '<ul class="cb-notes-library__notes'
+                    . ($layout === 'cards' ? ' cb-notes-library__notes--cards' : '') . '">';
                 foreach ($query->posts as $post) {
                     if ($post instanceof \WP_Post) {
                         self::render_note($post, $owner);

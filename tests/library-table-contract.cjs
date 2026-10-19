@@ -16,7 +16,7 @@ function check(condition, name) {
 check(page.includes('Display::init()') &&
     page.includes('Display::current($owner)') &&
     page.includes('Display::switch_url($mode, $state)'),
-    'One per-user List/Table control on the existing Library page');
+    'One per-user List/Table/Cards control on the existing Library page');
 check(page.includes("'icon' => 'dashicons-list-view'") &&
     page.includes("'icon' => 'dashicons-editor-table'") &&
     page.includes('cb-core-button--compact cb-core-button--icon-only cb-core-button--') &&
@@ -33,7 +33,7 @@ check(css.includes('.cb-notes-library__display-toggle .cb-core-button--icon-only
 check(page.includes('render_table($query->posts, $owner, $state)') &&
     page.includes('self::render_note($post, $owner)') &&
     page.includes('new \\WP_Query(Query::args($owner, $state))'),
-    'Both modes use exactly the same owner-bound WordPress query');
+    'All display modes use exactly the same owner-bound WordPress query');
 check((page.match(/new \\WP_Query/g) || []).length === 1,
     'Table does not introduce a second WP_Query or separate pagination');
 check(page.includes('private static function render_table(') &&

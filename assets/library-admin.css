@@ -1,7 +1,7 @@
 /* Library-specific composition only; Base owns shared button/panel/control visuals. */
 .cb-notes-library {
     --cb-notes-library-sidebar: 244px;
-    max-width: 1480px;
+    max-width: none;
 }
 .cb-notes-library__heading {
     display: flex;
@@ -30,6 +30,82 @@
     margin: 0 0 var(--cb-space-3, 12px);
     font-size: 1rem;
     line-height: 1.4;
+}
+/* The sidebar can be fully removed from the grid; owner-only navigation stays
+ * available in the compact details menu. Base owns visual tokens. */
+.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__layout {
+    grid-template-columns: minmax(0, 1fr);
+}
+.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar {
+    display: none;
+}
+.cb-notes-library__navigation-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cb-space-3);
+    margin-block-end: var(--cb-space-4);
+}
+.cb-notes-library__navigation-tools .dashicons {
+    width: auto;
+    height: auto;
+    font-size: var(--cb-icon-size-default);
+}
+.cb-notes-library__sidebar-open,
+.cb-notes-library__compact-nav {
+    display: none;
+}
+.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar-open {
+    display: inline-flex;
+}
+.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar-close {
+    display: none;
+}
+.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__compact-nav {
+    display: block;
+}
+.cb-notes-library__compact-nav {
+    position: relative;
+    flex: 1 1 12rem;
+    min-width: min(100%, 12rem);
+    max-width: 26rem;
+}
+.cb-notes-library__compact-nav summary {
+    display: flex;
+    align-items: center;
+    gap: var(--cb-space-2);
+    width: 100%;
+    padding: var(--cb-space-2) var(--cb-space-3);
+    border: 1px solid var(--cb-border);
+    border-radius: var(--cb-radius-sm);
+    background: var(--cb-surface-1);
+    color: var(--cb-text-strong);
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+.cb-notes-library__compact-nav summary:hover {
+    background: var(--cb-surface-2);
+}
+.cb-notes-library__compact-menu {
+    position: absolute;
+    z-index: 10;
+    inset-block-start: calc(100% + var(--cb-space-1));
+    inset-inline-start: 0;
+    width: min(100%, 26rem);
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: var(--cb-space-3);
+    border: 1px solid var(--cb-border);
+    border-radius: var(--cb-radius-md);
+    background: var(--cb-surface-1);
+    box-shadow: var(--cb-shadow-md);
+}
+.cb-notes-library__compact-menu .cb-notes-library__organize-link {
+    margin-block-start: var(--cb-space-3);
+    border-block-start: 1px solid var(--cb-border);
+}
+.cb-notes-library__compact-menu .cb-notes-library__nav h2:not(:first-child) {
+    margin-block-start: var(--cb-space-4);
 }
 /* Keep Quick access and Notebooks visually separate. */
 .cb-notes-library__nav h2:not(:first-child) { margin-block-start: var(--cb-space-4, 16px); }
@@ -314,6 +390,36 @@
 .cb-notes-library__select-all input { margin: 0; }
 .cb-notes-library__note-content { min-width: 0; }
 
+/* Cards reuse each authorized List item, including the same selection,
+ * favorite/pin, Edit and Base-confirmed Trash controls. No content previews. */
+.cb-notes-library__notes--cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: var(--cb-space-4);
+    margin-block-start: var(--cb-space-4);
+}
+.cb-notes-library__notes--cards .cb-notes-library__note {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    min-width: 0;
+    padding: var(--cb-space-4);
+    border: 1px solid var(--cb-border);
+    border-radius: var(--cb-radius-md);
+    background: var(--cb-surface-1);
+}
+.cb-notes-library__notes--cards .cb-notes-library__identity {
+    align-items: flex-start;
+}
+.cb-notes-library__notes--cards .cb-notes-library__classification {
+    align-items: flex-start;
+}
+.cb-notes-library__notes--cards .cb-notes-library__actions {
+    margin-block-start: auto;
+    padding-block-start: var(--cb-space-3);
+    justify-content: flex-end;
+}
 /* Bulk selection exists only with active JavaScript. Native WP/Base CSS may
  * otherwise override [hidden] with display:flex or display:block. */
 .cb-core-wrap .cb-notes-library__select[hidden],
@@ -513,6 +619,18 @@
 }
 @media (max-width: 1000px) {
     .cb-notes-library__layout { grid-template-columns: minmax(0, 1fr); }
+    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar {
+        display: none;
+    }
+    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar-open {
+        display: inline-flex;
+    }
+    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar-close {
+        display: none;
+    }
+    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__compact-nav {
+        display: block;
+    }
     .cb-notes-library__nav { flex-direction: row; flex-wrap: wrap; }
     .cb-notes-library__nav h2 { flex-basis: 100%; }
     .cb-notes-library__nav-link.is-active { box-shadow: inset 0 -3px var(--cb-accent); }

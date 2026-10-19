@@ -11,6 +11,14 @@
 - The obsolete legacy shortcut and redirect callbacks are removed. Existing owner-scoped Library, Gutenberg editor and native post-list deep links remain intact.
 - A focused Settings Hub and WordPress menu source regression is required before dev-build acceptance. This is a development-only navigation change, not RC1 Golden or public release approval.
 
+## 2026-10-19 — Library Cards + collapsible navigation (development)
+
+- Cards joins List/Table as the third owner-private Library presentation using the identical list note renderer, record query, status, classification and marker/Trash/bulk semantics; no note previews.
+- The sidebar can be completely hidden. An accessible compact selector retains notebooks, Favorites, Pinned, Unfiled and Organize. A separate owner user-meta preference is protected by the existing display admin-post action, validation and nonce. Auto mode shows navigation at wide viewport sizes but hides it by default on narrow screens.
+- The Library removes its prior fixed 1480px cap, allowing the Notes results to use available width. All new CSS uses Base semantic tokens.
+- New i18n keys: Cards view, Show navigation, Hide navigation. Six-locale catalog reconciliation and Git blob pinning required before candidate build acceptance.
+- No new REST endpoint, data import, author query, permission, sharing or global UI API. Exact-head source/i18n checks plus Light/Dark/mobile/browser owner/bulk acceptance are outstanding.
+
 ## RC1 integrated hardening (Alpha24)
 
 - One release-hardening branch inherits Alpha23 without merging it to main. The single-batch release boundary is documented in `docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Suite Overseer Notes roadmap.
