@@ -65,4 +65,23 @@ assert.ok(!query.includes('cbn_layout') && !query.includes('library_display') &&
     bulk.includes("document.querySelectorAll('[data-cb-notes-select-id]')"),
     'No query/data/REST changes or bulk selection forks');
 assert.doesNotMatch(css, /#[0-9a-fA-F]{3,8}\b/, 'No local color palette');
+/* Visibility must beat Base's public display:inline-flex button rule for each
+ * state; no global button override or CSS !important is permitted. */
+for (const [scope, suffix, expectedDisplay] of [
+    ['', 'open', 'none'],
+    ['', 'close', 'inline-flex'],
+    ['[data-cb-notes-sidebar="collapsed"]', 'open', 'inline-flex'],
+    ['[data-cb-notes-sidebar="collapsed"]', 'close', 'none'],
+    ['[data-cb-notes-sidebar="auto"]', 'open', 'inline-flex'],
+    ['[data-cb-notes-sidebar="auto"]', 'close', 'none'],
+]) {
+    const selector = '.cb-core-wrap.cb-notes-library' + scope
+        + ' .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-' + suffix;
+    const rule = selector + ' {\n        display: ' + expectedDisplay + ';\n    }';
+    const topLevelRule = selector + ' {\n    display: ' + expectedDisplay + ';\n}';
+    assert.ok(css.includes(rule) || css.includes(topLevelRule),
+        'Base-compatible sidebar toggle rule: ' + suffix + ' ' + (scope || 'desktop'));
+}
+assert.ok(!css.includes('display: none !important'),
+    'Navigation visibility must not override Base with !important');
 console.log('Notes Library Cards and collapsible sidebar: SOURCE PASS (browser acceptance pending)');

@@ -51,14 +51,22 @@
     height: auto;
     font-size: var(--cb-icon-size-default);
 }
-.cb-notes-library__sidebar-open,
-.cb-notes-library__compact-nav {
+/* Base's canonical button primitive uses display:inline-flex. A single
+ * unscoped display:none loses in the cascade and shows both toggle actions.
+ * Scope just the visibility of the two links without changing Base buttons. */
+.cb-core-wrap.cb-notes-library .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-open {
     display: none;
 }
-.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar-open {
+.cb-core-wrap.cb-notes-library .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-close {
     display: inline-flex;
 }
-.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__sidebar-close {
+.cb-core-wrap.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-open {
+    display: inline-flex;
+}
+.cb-core-wrap.cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-close {
+    display: none;
+}
+.cb-notes-library__compact-nav {
     display: none;
 }
 .cb-notes-library[data-cb-notes-sidebar="collapsed"] .cb-notes-library__compact-nav {
@@ -630,10 +638,10 @@
     .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar {
         display: none;
     }
-    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar-open {
+    .cb-core-wrap.cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-open {
         display: inline-flex;
     }
-    .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__sidebar-close {
+    .cb-core-wrap.cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__navigation-tools a.cb-notes-library__sidebar-close {
         display: none;
     }
     .cb-notes-library[data-cb-notes-sidebar="auto"] .cb-notes-library__compact-nav {
