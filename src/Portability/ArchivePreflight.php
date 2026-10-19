@@ -49,11 +49,11 @@ final class ArchivePreflight {
                     || !is_string($item['name'])
                     || $item['name'] !== trim($item['name'])
                     || $item['name'] === ''
-                    || mb_strlen($item['name'], 'UTF-8') > 80
+                    || self::length($item['name']) > 80
                     || preg_match('/[\x00-\x1f\x7f]/', $item['name']) === 1) {
                     return self::error('cb_notes_portability_catalog');
                 }
-                $name_key = mb_strtolower($item['name'], 'UTF-8');
+                $name_key = self::lower($item['name']);
                 if (isset($known[$kind][$item['id']]) || isset($names[$name_key])) {
                     return self::error('cb_notes_portability_catalog_collision');
                 }
@@ -113,6 +113,19 @@ final class ArchivePreflight {
         }
         return ['digest' => hash('sha256', $serialized), 'count' => count($notes),
             'catalog' => $catalog, 'notes' => $notes];
+    }
+
+    private static function length(string $value): int {
+        if (function_exists('mb_strlen')) {
+            return mb_strlen($value, 'UTF-8');
+        }
+        // mbstring is optional. Count Unicode codepoints without truncation.
+        $count = preg_match_all('/./us', $value);
+        return $count === false ? PHP_INT_MAX : $count;
+    }
+
+    private static function lower(string $value): string {
+        return function_exists('mb_strtolower') ? mb_strtolower($value, 'UTF-8') : strtolower($value);
     }
 
     private static function object_keys(mixed $record, array $required): bool {

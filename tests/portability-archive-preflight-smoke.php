@@ -79,6 +79,13 @@ namespace {
     $broken[0]['catalog']['notebook'][0]['name'] = ' Work ';
     expect_bad($broken, 'cb_notes_portability_catalog');
     $broken = $records;
+    $broken[0]['catalog']['notebook'][0]['name'] = 'Café';
+    check(is_array(ArchivePreflight::inspect($broken)),
+        'UTF-8 names accepted even when optional mbstring is absent');
+    $broken = $records;
+    $broken[0]['catalog']['notebook'][0]['name'] = str_repeat('é', 81);
+    expect_bad($broken, 'cb_notes_portability_catalog');
+    $broken = $records;
     $broken[1]['created_gmt'] = '2026-02-31 12:00:00';
     expect_bad($broken, 'cb_notes_portability_record');
     $broken = $records;
