@@ -1,6 +1,6 @@
 # Notes P2-A: Portable record and full-graph preflight (development)
 
-**Branch:** `feature/notes-rc1-portability-roundtrip-batch-20261019`  
+**Branch:** `feature/notes-rc1-portability-roundtrip-batch-20261019`
 **Status:** READ-ONLY source implementation; importer and UI are not yet enabled. No Golden or release approval.
 
 ## Canonical schema v1
