@@ -1438,3 +1438,15 @@ msgstr ""
 #: assets/organization-admin.js:1
 msgid "No tags yet. Use Add new to create your first tag."
 msgstr "Nog geen tags. Gebruik Nieuw toevoegen om je eerste tag te maken."
+
+#: src/Library/Page.php
+msgid "Cards view"
+msgstr "Kaartenweergave"
+
+#: src/Library/Page.php
+msgid "Show navigation"
+msgstr "Navigatie tonen"
+
+#: src/Library/Page.php
+msgid "Hide navigation"
+msgstr "Navigatie verbergen"

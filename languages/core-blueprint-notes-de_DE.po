@@ -1462,3 +1462,15 @@ msgid "No tags yet. Use Add new to create your first tag."
 msgstr ""
 "Noch keine Schlagwörter. Verwende Neu hinzufügen, um dein erstes Schlagwort"
 " anzulegen."
+
+#: src/Library/Page.php
+msgid "Cards view"
+msgstr "Kartenansicht"
+
+#: src/Library/Page.php
+msgid "Show navigation"
+msgstr "Navigation anzeigen"
+
+#: src/Library/Page.php
+msgid "Hide navigation"
+msgstr "Navigation ausblenden"

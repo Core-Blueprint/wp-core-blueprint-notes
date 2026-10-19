@@ -1437,3 +1437,15 @@ msgid "No tags yet. Use Add new to create your first tag."
 msgstr ""
 "Ainda não existem etiquetas. Utilize Adicionar novo para criar a sua "
 "primeira etiqueta."
+
+#: src/Library/Page.php
+msgid "Cards view"
+msgstr "Vista em cartões"
+
+#: src/Library/Page.php
+msgid "Show navigation"
+msgstr "Mostrar navegação"
+
+#: src/Library/Page.php
+msgid "Hide navigation"
+msgstr "Ocultar navegação"
