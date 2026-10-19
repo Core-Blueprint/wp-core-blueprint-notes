@@ -98,6 +98,28 @@ final class ImportSession {
         }
     }
 
+    /** Original catalog source, never the generated destination catalog. */
+    public static function catalog(array $context): array|\WP_Error {
+        if (!self::authorized($context)) {
+            return self::error('cb_notes_import_session_forbidden');
+        }
+        return self::record(self::$active['records']['catalog:personal'], $context);
+    }
+
+    /** Attested destination catalog state for a single owner request. */
+    public static function target_plan(): array|\WP_Error {
+        if (self::$active === null || self::$active['owner'] !== get_current_user_id()
+            || !current_user_can('cb_notes_edit')) {
+            return self::error('cb_notes_import_session_forbidden');
+        }
+        return self::$active['plan'];
+    }
+
+    public static function target_catalog(): array {
+        $plan = self::target_plan();
+        return $plan instanceof \WP_Error ? [] : $plan['catalog'];
+    }
+
     public static function authorized(array $context): bool {
         $session = self::$active;
         $candidate = $context['cb_notes_import_ticket'] ?? null;
