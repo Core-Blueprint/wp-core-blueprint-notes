@@ -5,13 +5,13 @@ const path = require('node:path');
 const cp = require('node:child_process');
 const root = path.resolve(__dirname,'..');
 const expected = {
- 'core-blueprint-notes.pot': '59ec3650c90d36a843b3bffdc9e96d61357c4562',
- 'core-blueprint-notes-nl_NL.po': '572b4dbf7ae993b09dada658bb2dd02c2209c2d1',
- 'core-blueprint-notes-de_DE.po': '6786dcc5e452e3a98825148b1c14e52ee1dbb27e',
- 'core-blueprint-notes-fr_FR.po': '9e9ea20834e3b9d3f3a8ccfa9f370b6c184f7e76',
- 'core-blueprint-notes-es_ES.po': 'd059ce8376e874033095a5ae466bc43070d33a41',
- 'core-blueprint-notes-it_IT.po': '5a4927f4280278d9cbc4c0b81a6945c7963dfdd5',
- 'core-blueprint-notes-pt_PT.po': 'e5d7b4c2b5bf851f1ad513ef0f360f29561322be',
+ 'core-blueprint-notes.pot': 'eaa0844135410ae834830b2f0410570fda38f136',
+ 'core-blueprint-notes-nl_NL.po': '519175ebbf9222f4afe40d9cffef3a1ebafc4338',
+ 'core-blueprint-notes-de_DE.po': '8c66c81712f32130a4525640d37f8fc9d8ceb190',
+ 'core-blueprint-notes-fr_FR.po': '936daaeadc91134758f658dbf418f2599cc0a9da',
+ 'core-blueprint-notes-es_ES.po': 'd96f673574f0d9d7d920a99a40e62d0baf0326e3',
+ 'core-blueprint-notes-it_IT.po': '57c94e38545042a2813c97fa296a8b96fc9a107d',
+ 'core-blueprint-notes-pt_PT.po': '4ea9f45ea83d64ab732421e9e410cb59ff75c238',
 };
 for (const [name, gitBlob] of Object.entries(expected)) {
  const rel='languages/'+name, source=fs.readFileSync(path.join(root,rel),'utf8');
