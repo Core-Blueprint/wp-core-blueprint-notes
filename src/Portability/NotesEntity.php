@@ -24,8 +24,9 @@ final class NotesEntity implements EntityInterface {
     }
 
     public function supports_schema_version(int $schema_version): bool {
-        // Import is not registered or authorized until the reviewed import phase.
-        return false;
+        // The entity understands schema v1, but Base must still require the
+        // independently accepted/advertised import capability.
+        return $schema_version === 1;
     }
 
     public function can_export(array $context = []): bool {
@@ -38,7 +39,7 @@ final class NotesEntity implements EntityInterface {
     }
 
     public function can_import(array $context = []): bool {
-        return false;
+        return ImportSession::authorized($context);
     }
 
     public function export_records(array $context = []): iterable|\WP_Error {
@@ -175,11 +176,18 @@ final class NotesEntity implements EntityInterface {
     }
 
     public function plan_import(array $record, string $mode, int $source_schema_version, array $context = []): array|\WP_Error {
-        return self::error('cb_notes_import_not_ready', 'Notes import is not available in this candidate.');
+        // Only the private, validated whole-archive request session may enter.
+        if (!$this->can_import($context)) {
+            return self::error('cb_notes_import_not_ready', 'Notes import is not available in this candidate.');
+        }
+        return ImportPlanner::plan_record($record, $mode, $source_schema_version, $context);
     }
 
     public function apply_import(array $plan, array $context = []): array|\WP_Error {
-        return self::error('cb_notes_import_not_ready', 'Notes import is not available in this candidate.');
+        if (!$this->can_import($context)) {
+            return self::error('cb_notes_import_not_ready', 'Notes import is not available in this candidate.');
+        }
+        return ImportApplier::apply($plan, $context);
     }
 
     private static function error(string $code, string $message): \WP_Error {

@@ -20,8 +20,8 @@ assert.ok(!source.includes('add_action(') && !source.includes('register_rest_rou
 assert.ok(provider.includes("Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON") &&
     !provider.includes('Foundation::SUPPORT_IMPORT'),
     'import remains unadvertised until complete P2-B safety');
-assert.ok(entity.includes('public function can_import(array $context = []): bool {\n        return false;'),
-    'all importer writes still fail closed');
+assert.ok(entity.includes('public function can_import(array $context = []): bool {\n        return ImportSession::authorized($context);'),
+    'import only possible via request session; provider still not advertised');
 assert.ok(archive.includes('@unlink($temp)') && archive.includes('finally {'),
     'ZIP staging file removed even on errors');
 console.log('Notes P3 read-only export service source contract: PASS (runtime not run)');

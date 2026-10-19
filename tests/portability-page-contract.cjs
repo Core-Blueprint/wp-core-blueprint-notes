@@ -35,6 +35,6 @@ assert.ok(!page.includes('apply_json(') && !page.includes('wp_insert_post(') &&
     'No writable import endpoint or hidden mutation');
 assert.ok(provider.includes("Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON") &&
     !provider.includes('Foundation::SUPPORT_IMPORT') &&
-    entity.includes('public function can_import(array $context = []): bool {\n        return false;'),
-    'Base import remains closed until owner write/recovery accepted');
+    entity.includes('public function can_import(array $context = []): bool {\n        return ImportSession::authorized($context);'),
+    'Base import remains undiscoverable until owner write/recovery accepted');
 console.log('Notes owner portability page read-only source contract: PASS (browser pending)');
