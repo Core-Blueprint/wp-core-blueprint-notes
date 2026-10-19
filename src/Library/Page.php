@@ -573,7 +573,10 @@ final class Page {
             . esc_html__('Notes Library', 'core-blueprint-notes') . '</h1>';
         echo '<p class="cb-core-intro">' . esc_html__('Your private space to find, organize and write notes.', 'core-blueprint-notes')
             . '</p></div><a class="button button-primary" href="' . esc_url($create_url) . '">'
-            . esc_html__('New note', 'core-blueprint-notes') . '</a></header>';
+            . esc_html__('New note', 'core-blueprint-notes') . '</a>'
+            . '<a class="button cb-core-button cb-core-button--secondary" href="'
+            . esc_url(\CB\Notes\Portability\Page::url()) . '">'
+            . esc_html__('Data portability', 'core-blueprint-notes') . '</a></header>';
         echo '<div class="cb-notes-library__layout"><aside class="cb-notes-library__sidebar cb-core-panel">';
         echo '<nav class="cb-notes-library__nav" aria-label="' . esc_attr__('Notes Library navigation', 'core-blueprint-notes') . '">';
         echo '<h2>' . esc_html__('Quick access', 'core-blueprint-notes') . '</h2>';

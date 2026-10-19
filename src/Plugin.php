@@ -12,6 +12,7 @@ use CB\Notes\Library\Page as LibraryPage;
 use CB\Notes\Library\Markers;
 use CB\Notes\Library\Bulk;
 use CB\Notes\Portability\Provider as PortabilityProvider;
+use CB\Notes\Portability\Page as PortabilityPage;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -46,6 +47,7 @@ final class Plugin {
         SecureRevocationRecovery::register();
         Catalog::init();
         LibraryPage::init();
+        PortabilityPage::init();
         Markers::init();
         Bulk::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);
