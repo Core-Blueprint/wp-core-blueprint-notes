@@ -4,6 +4,13 @@
 **Branch:** `feature/notes-rc1-golden-hardening-v1` (from Alpha23 P2.7 branch, unmerged).
 **Status:** RC1 one-batch integrated Alpha26 hardening in progress, not Golden and not production-ready. Alpha23 UI was visually accepted; full exact-head sourcegate/build, WordPress privacy/security, lifecycle, i18n and compatibility acceptance still open.
 
+## 2026-10-19 — AI Access menu consolidation (development)
+
+- Notes retains its WordPress admin menu with Library, Add Note and Organize. The separate `Notes → AI Access` submenu is no longer registered or displayed, including in leftover menu arrays.
+- AI Access remains in Base Settings Hub under Core Blueprint → Extensions → Notes → AI Access. Existing option `cb_notes_mcp_read_enabled`, administrator capability checks, disabled-by-default behavior, and read-only Abilities remain unchanged.
+- The obsolete legacy shortcut and redirect callbacks are removed. Existing owner-scoped Library, Gutenberg editor and native post-list deep links remain intact.
+- A focused Settings Hub and WordPress menu source regression is required before dev-build acceptance. This is a development-only navigation change, not RC1 Golden or public release approval.
+
 ## RC1 integrated hardening (Alpha24)
 
 - One release-hardening branch inherits Alpha23 without merging it to main. The single-batch release boundary is documented in `docs/RC1-GOLDEN-HARDENING-ACCEPTANCE.md` and the Suite Overseer Notes roadmap.

@@ -60,7 +60,6 @@ final class Plugin {
         add_action('untrashed_post',[self::class,'audit_restore'],20);
         add_action('before_delete_post',[self::class,'audit_delete'],20,2);
         add_action('enqueue_block_editor_assets',[self::class,'editor_assets']);
-        add_action('admin_menu',[self::class,'admin_menu']);
         add_action('admin_init',[self::class,'admin_settings']);
         add_action('admin_init',[self::class,'ensure_share_routes'],20);
         add_action('admin_init',[self::class,'migrate_legacy_published_notes'],21);
@@ -240,15 +239,6 @@ final class Plugin {
             ['wp-plugins','wp-edit-post','wp-components','wp-data','wp-element','wp-api-fetch','wp-i18n'],
             CB_NOTES_VERSION,true);
         wp_set_script_translations('cb-notes-editor', 'core-blueprint-notes', CB_NOTES_DIR . 'languages');
-    }
-    public static function admin_menu(): void {
-        $hook=add_submenu_page('edit.php?post_type='.self::TYPE,
-            __('Notes AI Access','core-blueprint-notes'),
-            __('AI Access','core-blueprint-notes'),
-            'manage_options','cb-notes-ai',[SettingsPage::class,'legacy_link']);
-        if (is_string($hook) && '' !== $hook) {
-            add_action('load-'.$hook,[SettingsPage::class,'redirect_legacy']);
-        }
     }
     public static function admin_settings(): void {
         register_setting('cb_notes_settings',self::AI_OPTION,[

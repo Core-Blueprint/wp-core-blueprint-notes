@@ -79,20 +79,21 @@ namespace {
     $slugs = array_map(static fn(array $row): string => (string)$row[2], $sorted);
     assert_menu($slugs === [
         'cb-notes-library', 'post-new.php?post_type=cb_note',
-        'cb-notes-organize', 'partner-notes-page', 'cb-notes-ai',
-    ], 'Library canonical, duplicate All Notes hidden, other entries retained');
-    assert_menu($sorted[0] === $library && $sorted[4] === $ai &&
+        'cb-notes-organize', 'partner-notes-page',
+    ], 'Library canonical; duplicate All Notes and legacy AI Access hidden');
+    assert_menu($sorted[0] === $library && count($sorted) === 4 &&
         $sorted[1] === $create && $sorted[2] === $organize &&
         $sorted[3] === $thirdParty,
-        'visible callbacks, capabilities and third-party rows untouched');
+        'Notes workspace and third-party rows retained; AI Access removed');
     assert_menu(Menu::order($sorted) === $sorted, 'reordering is idempotent');
+    assert_menu(!in_array('cb-notes-ai', $slugs, true), 'legacy AI Access row never displayed');
     $withoutAi = Menu::order([$all, $create, $organize, $library]);
     assert_menu(count($withoutAi) === 3 &&
         $withoutAi[0] === $library && $withoutAi[1] === $create &&
         $withoutAi[2] === $organize, 'editor menu shows Library, Add Note and Organize');
     $withoutLibrary = Menu::order([$all, $create, $organize, $ai]);
-    assert_menu($withoutLibrary[0] === $all && end($withoutLibrary) === $ai
-        && count($withoutLibrary) === 4, 'native All Notes remains visible when Library absent');
+    assert_menu($withoutLibrary[0] === $all && end($withoutLibrary) === $organize
+        && count($withoutLibrary) === 3, 'native All Notes remains fallback; AI Access stays hidden');
 
     $GLOBALS['submenu'] = [
         'edit.php?post_type=cb_note' => $initial,

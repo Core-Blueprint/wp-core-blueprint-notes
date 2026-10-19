@@ -147,12 +147,17 @@ namespace {
     check(str_contains($ai_on, 'checked="checked"'), 'stored true renders checked');
     check(str_contains($ai_on, 'Only users with cb_notes_use_ai'), 'capability boundary explained');
 
-    \CB\Notes\Plugin::admin_menu();
-    check(($GLOBALS['submenu']['slug'] ?? '') === 'cb-notes-ai', 'legacy Notes submenu retained');
-    check(isset($GLOBALS['hooks']['load-cb_note_page_cb-notes-ai']), 'legacy submenu redirects before admin header');
+    $plugin_source = file_get_contents(dirname(__DIR__) . '/src/Plugin.php');
+    check(is_string($plugin_source) &&
+        !str_contains($plugin_source, "add_action('admin_menu',[self::class,'admin_menu'])") &&
+        !str_contains($plugin_source, "'cb-notes-ai'"),
+        'Notes registers no dedicated AI Access submenu');
     check(SettingsPage::url('ai-access') ===
         'https://example.test/wp-admin/admin.php?page=core-blueprint-settings&extension=core-blueprint-notes&tab=ai-access',
         'canonical hub deep link generated');
+    check(isset(SettingsRegistry::$registered['core-blueprint-notes']) &&
+        str_contains($ai_off, 'AI & MCP access'),
+        'AI Access remains available under Core Blueprint Extensions Settings Hub');
 
     $GLOBALS['user_id'] = 0;
     try {

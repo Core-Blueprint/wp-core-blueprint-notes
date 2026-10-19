@@ -16,7 +16,6 @@ defined('ABSPATH') || exit;
 final class Menu {
     private const LIBRARY = 'cb-notes-library';
     private const ORGANIZE = 'cb-notes-organize';
-    private const AI = 'cb-notes-ai';
 
     public static function reorder(): void {
         global $submenu;
@@ -54,7 +53,6 @@ final class Menu {
             self::ORGANIZE => [],
         ];
         $additional = [];
-        $ai = [];
 
         foreach ($entries as $entry) {
             // Don't reinterpret the entry: WordPress keeps title, capability,
@@ -62,8 +60,10 @@ final class Menu {
             $slug = is_array($entry) && isset($entry[2]) && is_string($entry[2])
                 ? $entry[2] : '';
 
-            if ($slug === self::AI) {
-                $ai[] = $entry;
+            // The former AI shortcut is only accessible through Base Settings Hub.
+            // Do not reintroduce its visible row if old menu providers are present.
+            if ($slug === 'cb-notes-ai') {
+                continue;
             } elseif ($has_library && $slug === $native) {
                 // Library is canonical. Do not mutate or redirect the native
                 // screen; simply omit its duplicate visible submenu item.
@@ -80,8 +80,7 @@ final class Menu {
             $groups[$native],
             $groups[$new],
             $groups[self::ORGANIZE],
-            $additional,
-            $ai
+            $additional
         ));
     }
 }

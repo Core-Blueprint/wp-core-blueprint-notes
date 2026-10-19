@@ -163,21 +163,4 @@ final class SettingsPage {
         echo '</section>';
     }
 
-    /**
-     * Legacy Notes -> AI Access item remains a shortcut; redirect before the
-     * WordPress admin header is rendered (on the load-$hook action).
-     */
-    public static function redirect_legacy(): void {
-        if (!current_user_can('manage_options')) {
-            wp_die(esc_html__('You do not have permission to manage Notes settings.', 'core-blueprint-notes'));
-        }
-        wp_safe_redirect(self::url(self::TAB_AI), 302);
-        exit;
-    }
-
-    /** Fallback for an unusual admin execution path without load-$hook. */
-    public static function legacy_link(): void {
-        echo '<p><a href="' . esc_url(self::url(self::TAB_AI)) . '">' .
-            esc_html__('Open AI Access settings', 'core-blueprint-notes') . '</a></p>';
-    }
 }
