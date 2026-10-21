@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+// WP-CLI eval-file executes this fixture through eval(); do not use a
+// strict_types declaration here, because WP-CLI can prepend statements.
 
 /**
  * P4 synthetic Site A -> Site B installed-WordPress portability checks.

@@ -91,6 +91,14 @@ OWN_B=1
 stage_site() {
   local label="$1" site="$2" database="$3"
   cp -a "$RUN/wp-source/." "$site/"
+  # Isolated P4 environments must never try to send account/activation mail.
+  # WordPress loads MU plugins during installation and all subsequent WP-CLI runs.
+  mkdir -p "$site/wp-content/mu-plugins"
+  cat > "$site/wp-content/mu-plugins/cb-notes-p4-no-mail.php" <<'PHP'
+<?php
+defined('ABSPATH') || exit;
+add_filter('pre_wp_mail', static fn(): bool => true, PHP_INT_MAX);
+PHP
   mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
   tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
     --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |

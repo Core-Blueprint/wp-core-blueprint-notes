@@ -8,6 +8,12 @@ const canonical = read('tools/check-integration');
 const helper = read('tools/check-portability-p4');
 const site = read('tests/portability/p4-site.php');
 const provider = read('src/Portability/Provider.php');
+assert.ok(!/\bdeclare\s*\(\s*strict_types\s*=/.test(site),
+    'WP-CLI eval-file test fixtures cannot contain a strict_types declaration');
+assert.ok(helper.includes('cb-notes-p4-no-mail.php') &&
+    helper.includes("add_filter('pre_wp_mail', static fn(): bool => true") &&
+    helper.indexOf('cb-notes-p4-no-mail.php') < helper.indexOf('wp --path="$site" core install'),
+    'Mail must be intercepted before any P4 WordPress install or user notification');
 
 assert.ok(canonical.includes('if [[ "$MODE" == "--p4-preflight" || "$MODE" == "--p4-execute" ]]') &&
     canonical.includes('bash "$ROOT/tools/check-portability-p4" "--${MODE#--p4-}"'),
