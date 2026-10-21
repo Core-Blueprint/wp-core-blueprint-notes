@@ -41,6 +41,7 @@ for (const name of [
     'test_real_pending_journal_blocks_retry_without_creating_duplicate',
     'test_owner_markdown_zip_keeps_gutenberg_source_and_excludes_foreign_notes',
     'test_base_engine_requires_attested_notes_session_for_public_import',
+    'test_real_base_public_fingerprint_confirm_and_stale_rejection',
     'test_real_wordpress_insert_failure_leaves_reviewable_pending_intent'
 ]) {
     assert.ok(suite.includes('function ' + name + '('), 'Required real WP test missing: ' + name);

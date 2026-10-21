@@ -410,6 +410,50 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertCount(0, $this->target_posts($f['target']));
     }
 
+    public function test_real_base_public_fingerprint_confirm_and_stale_rejection(): void {
+        $f = $this->fixture();
+        wp_set_current_user($f['target']);
+        $preview = \CB\Notes\Portability\ImportFlow::preview_json($f['json']);
+        self::assertIsArray($preview);
+        self::assertSame(1, $preview['create_count']);
+        self::assertCount(0, $this->target_posts($f['target']));
+        $this->assertWPError(\CB\Notes\Portability\ImportFlow::apply_json(
+            $f['json'], str_repeat('a', 64), $preview['base_fingerprint']
+        ));
+        self::assertCount(0, $this->target_posts($f['target']), 'Wrong file SHA cannot create Notes');
+
+        // Change destination after preview. Base must detect stale planning
+        // before any catalog or note write.
+        $revision = ['notebook' => [['id' => str_repeat('e', 32), 'name' => 'Unrelated']],
+            'category' => [], 'tag' => []];
+        self::assertNotFalse(update_user_meta($f['target'], Catalog::USER_META, $revision));
+        $this->assertWPError(\CB\Notes\Portability\ImportFlow::apply_json(
+            $f['json'], $preview['file_sha256'], $preview['base_fingerprint']
+        ));
+        self::assertCount(0, $this->target_posts($f['target']), 'Stale target must not create Notes');
+        self::assertTrue(delete_user_meta($f['target'], Catalog::USER_META));
+
+        $fresh = \CB\Notes\Portability\ImportFlow::preview_json($f['json']);
+        self::assertIsArray($fresh);
+        $applied = \CB\Notes\Portability\ImportFlow::apply_json(
+            $f['json'], $fresh['file_sha256'], $fresh['base_fingerprint']
+        );
+        self::assertIsArray($applied);
+        self::assertSame('complete', $applied['status']);
+        self::assertCount(1, $this->target_posts($f['target']));
+        $repeat = \CB\Notes\Portability\ImportFlow::preview_json($f['json']);
+        self::assertIsArray($repeat);
+        self::assertSame(1, $repeat['skip_count']);
+        $completed = \CB\Notes\Portability\ImportFlow::apply_json(
+            $f['json'], $repeat['file_sha256'], $repeat['base_fingerprint']
+        );
+        self::assertIsArray($completed);
+        self::assertSame('complete', $completed['status']);
+        self::assertCount(1, $this->target_posts($f['target']));
+        wp_set_current_user(0);
+        $this->assertWPError(\CB\Notes\Portability\ImportFlow::preview_json($f['json']));
+    }
+
     public function test_real_wordpress_insert_failure_leaves_reviewable_pending_intent(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);
