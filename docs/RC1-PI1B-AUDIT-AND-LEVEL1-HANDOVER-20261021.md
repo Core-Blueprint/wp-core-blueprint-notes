@@ -26,6 +26,25 @@ The user authorized PI-1B Notes-only source work, not Base changes, protected da
 | Recovery | Pending journal retains intent, no automatic retry. UI distinguishes recovery-required from invalid upload. | SOURCE design; real failure recovery UI/runtime still HOLD |
 | i18n | New import/recovery text is not yet reconciled with the pinned seven 319-entry POT/PO source files. `tools/check` source contracts do **not** imply locale editorial or `tools/i18n/check` acceptance. | PI-1D CONTENT HOLD |
 
+## Operator Level 1 acceptance receipt — 21 October 2026
+
+**SOURCE PASS** for exact Notes product SHA `9372dfb73020408004a20184978f5fe3ed6e0db3` on branch `feature/notes-rc1-portability-roundtrip-batch-20261019`.
+
+Operator reported:
+- Focused `php tests/pi1b-import-flow-smoke.php`: `Notes PI-1B Base fingerprint flow smoke: PASS (mocked Base)`, exitcode `0`.
+- Full `bash tools/check`: `Notes source checks: PASS`, exitcode `0`.
+- Prior focused PHP lint for `src/Portability/MappingSeed.php`, `ImportFlow.php`, and `Page.php`: PASS.
+- PI-1B public import source contract and mocked WordPress mapping seed smoke: PASS.
+- P4 runner source contracts, Level 2 safety source contracts, independent Public Share epoch and Notes i18n tooling contracts: PASS; **real WordPress/HTTP runtime explicitly not executed**.
+- Seven tracked POT/PO catalogs still pin **319 messages per source**; six-language editorial CONTENT HOLD. The PI-1B new UI text has not been editorially reconciled.
+- Final `git status --short` produced no changes. No new schemas, integrations, site deployment, release build, merge or CI authorized/executed.
+
+Earlier focused run failed on a **mock-only counter expectation**, not a demonstrated WordPress security failure: fault injection deliberately simulated a second committed write before yielding an ambiguous Base result. The final anonymous test wrongly asserted the counter remained at `1`. The test was repaired to snapshot the counter immediately before the anonymous call, assert a `WP_Error`, and assert **no further write**. Only `tests/pi1b-import-flow-smoke.php` changed in `9372dfb73020408004a20184978f5fe3ed6e0db3` versus the preceding `cc3061e587c2b9ac2c66a4449e009cd882414435`. Re-execution then passed both focused and full Level 1 source gates.
+
+**Decision:** PI-1B **Level 1 SOURCE PASS**; PI-1B overall **RUNTIME/SECURITY HOLD**. This source qualification is not an approval to install the current `SUPPORT_IMPORT` candidate or to claim public import Golden.
+
+**Next test gate:** PI-1C operator first runs `bash tools/check-integration --preflight` for WordPress 7.0 and 7.1.3 (read-only), then after **separate GO** runs new-only bounded MariaDB Level 2 for both versions, with exact Notes/Base SHAs and post-run cleanup verification. P4 also must be re-run under a separately approved new-only two-site schema batch because PI-1B changed product code. Browser/HTTPS/cache/nonce/owner field test and translations remain PI-1D HOLD.
+
 ## Remaining gates (do not claim pass until observed)
 
 1. **Level 1 local operator run on this exact HEAD:** focused PHP 8.4 syntax, Node syntax/guard and mocked seed/import-flow tests; full `bash tools/check` with exitcode and failing log tail. Verify clean Git worktree. On RED, stop for one scoped repair, no blind test relaxation.
