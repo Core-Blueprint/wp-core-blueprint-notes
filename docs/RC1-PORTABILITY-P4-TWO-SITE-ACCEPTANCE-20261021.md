@@ -2,8 +2,8 @@
 
 **Date:** 21 October 2026  
 **Branch:** `feature/notes-rc1-portability-roundtrip-batch-20261019`  
-**Candidate source:** runner/tests implemented on the feature branch; runtime evidence is **NOT RUN**.  
-**Release:** P4 HOLD; RC1 Golden NO-GO. No Base, main, CI or production change.
+**Runtime evidence:** **P4 two-site round-trip PASS** on WordPress 7.0 and 7.1.3, exact Notes source `1954e3152d69586bc83004dd886628b3cf3d99de`, exact Base source `dcbf5da9b7729efde77cf508a3b90f2929b8d0b1`. This PASS is limited to the internal import adapter and synthetic P4 fixture.  
+**Release:** P4 bounded runtime acceptance PASS; public import activation HOLD; RC1 Golden NO-GO. No Base, main, CI or production change.
 
 ## First installed-site execution (source SHA 4f61d84, 21 Oct 2026)
 
@@ -35,6 +35,22 @@
 - Corrective code now restores both original UTC and local dates with an owner/post-type-constrained SQL update, verifies the cached/reloaded post timestamps, and only then completes the import journal. A failed update must remain pending and prohibit automatic retry.
 - Mocked fault-injection exercises denied database timestamp updates, no premature journal completion and no duplicate retry. Real WordPress PHPUnit timestamp fixture now uses distinct historical created/modified dates. P4 reporting will disclose **field names only** for any remaining mismatch, never note bodies or labels.
 - Source checks and WP 7.0/7.1.3 runtime on the amended SHA are **NOT RUN**. Do not award P4 Golden; public `SUPPORT_IMPORT` remains disabled. A new operator GO is required before creating fresh P4 schemas.
+
+## Final P4 acceptance receipt (21 October 2026)
+
+**Decision: P4 independent Site A → Site B synthetic runtime contract PASS on both tested WordPress versions.** This closes the narrowly scoped P4 round-trip gate; it does not activate public import or close the full RC1 Golden R01–R13 matrix.
+
+- Notes feature source under test: `1954e3152d69586bc83004dd886628b3cf3d99de`. Base source: `dcbf5da9b7729efde77cf508a3b90f2929b8d0b1`. Both source identities were printed and verified by the local runner.
+- Operator reported canonical Notes sourcegate exitcode `0`, focused PHP mock fault smoke PASS, P4 JavaScript contract PASS, and both read-only P4 preflights PASS on the exact Notes candidate before execution.
+- WordPress 7.0: execution exitcode `0`; Site A and Site B installation/activation PASS, Site A owner-only JSON + Markdown ZIP export PASS, Site B real internal owner-bound create-only import PASS, independent repeat SKIP/journal PASS, Site B owner-only reexport PASS, semantic source-to-destination comparison and historical UTC time fidelity PASS. Run-owned schemas `core_blueprint_notes_p4_e941ee21b271_a_test` and `core_blueprint_notes_p4_e941ee21b271_b_test` were eligible for cleanup under this invocation. Post-run read-only P4 preflight PASS, with no residual matching P4 test schemas reported.
+- WordPress 7.1.3: execution exitcode `0`, same ordered stages and assertions PASS. Run-owned schemas `core_blueprint_notes_p4_b650d8e42db4_a_test` and `core_blueprint_notes_p4_b650d8e42db4_b_test`. Independent final read-only P4 preflight PASS, with no residual matching P4 test schemas reported.
+- Historical protected `core_blueprint_notes_test` schema remained present at both preflights. Shared MariaDB `cb-base-test-db` was reused; no Base changes or service reset.
+- The P4 fixture additionally rejected unauthorized/orphaned relations and forged sharing-authority fields before writes, and asserted public Base import continues to fail closed.
+- The repaired import path restores original created/modified UTC timestamps before a complete journal receipt; the exact real WordPress Site A/B round-trip now passes with distinct historical timestamps on both versions.
+
+**Boundaries:** Public `Provider::SUPPORT_IMPORT` is still absent, `Engine::apply_json` public end-to-end orchestration/fingerprint remains unproven, and confirmed browser apply + negative upload/nonce/session checks are not complete. Browser Light/Dark/mobile/a11y, HTTPS/CDN response headers, large-size/performance, six-locale human editorial approval, production-like package validation, and detailed crash/concurrency/recovery tests remain HOLD. Existing Level 2 PHPUnit receipts are on prior SHAs; do not attribute those receipts to this candidate.
+
+**Governance:** P4 PASS is evidence for the stated source SHA; a documentation-only follow-up commit is not a second runtime execution. No merge, provider activation, CI/Actions, release build, tag, distribution or deployment is authorized by this P4 result.
 
 ## Ownership and architecture
 
