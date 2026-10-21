@@ -40,7 +40,7 @@ for (const name of [
     'test_missing_receipt_meta_after_post_insert_blocks_automatic_retry',
     'test_real_pending_journal_blocks_retry_without_creating_duplicate',
     'test_owner_markdown_zip_keeps_gutenberg_source_and_excludes_foreign_notes',
-    'test_base_engine_rejects_public_import_even_during_private_preview',
+    'test_base_engine_requires_attested_notes_session_for_public_import',
     'test_real_wordpress_insert_failure_leaves_reviewable_pending_intent'
 ]) {
     assert.ok(suite.includes('function ' + name + '('), 'Required real WP test missing: ' + name);
@@ -51,10 +51,11 @@ assert.ok(suite.includes('ImportSession::with_validated_json(') &&
     suite.includes('ImportJournal::reserve(') &&
     suite.includes("add_filter('wp_insert_post_empty_content'"),
     'Suite must exercise real WordPress persistence and fail-closed runtime');
-assert.ok(!provider.includes('Foundation::SUPPORT_IMPORT') &&
-    !page.includes('Engine::apply_json(') &&
-    !page.includes('ImportApplier::apply('),
-    'Import remains unadvertised and no public write endpoint is available');
+assert.ok(provider.includes('Foundation::SUPPORT_IMPORT') &&
+    page.includes('ImportFlow::apply_json(') &&
+    !page.includes('ImportApplier::apply(') &&
+    read('src/Portability/ImportFlow.php').includes('Engine::apply_json('),
+    'Import exposed only through Notes-authorized canonical Base Engine flow');
 assert.ok(infra.includes('Expected existing mariadb:10.11.19 helper') &&
     infra.includes('Existing helper stopped; do not create or start a container automatically'),
     'Container must never be provisioned or started by a read-only preflight');

@@ -19,6 +19,7 @@ namespace CoreBlueprint\Core\DataExchange {
         public const CONTRACT_ID = 'data-exchange.entity';
         public const CONTRACT_VERSION = '1';
         public const SUPPORT_EXPORT = 'export';
+        public const SUPPORT_IMPORT = 'import';
         public const SUPPORT_JSON = 'format.json';
     }
 }
@@ -159,10 +160,11 @@ namespace {
     expect(count(Registry::$entries) === 1, 'One Base Data Exchange provider registered');
     $entry = Registry::$entries[0];
     expect($entry['provider'] === 'core-blueprint-notes' && $entry['id'] === 'personal-notes', 'Stable Notes entity identity');
-    expect($entry['supports'] === ['export', 'format.json'], 'Read-only JSON export advertised; import/CSV not advertised');
+    expect($entry['supports'] === ['export', 'import', 'format.json'],
+        'Import descriptor advertised, but direct unauthorized import still denied');
     $entity = ($entry['factory'])();
     expect($entity instanceof NotesEntity && $entity->schema_version() === 1, 'Versioned provider factory');
-    expect($entity->can_export() && !$entity->can_import(), 'Owner export allowed but import remains unavailable');
+    expect($entity->can_export() && !$entity->can_import(), 'Owner export allowed; no ambient import without session');
     expect(!$entity->can_import(['cb_notes_import_ticket' => 'forged']),
         'Unattested import ticket refused even for authorized export owner');
     $records = $entity->export_records();

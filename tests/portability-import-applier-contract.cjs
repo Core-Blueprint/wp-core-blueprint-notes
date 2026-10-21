@@ -36,11 +36,12 @@ assert.ok(!body.includes('share_mode') && !body.includes('public_share')
     'No restored sharing/grant or destructive cleanup');
 assert.ok(session.includes('function target_plan()') && session.includes('function catalog('),
     'Only owner-attested mapping is allowed');
-assert.ok(provider.includes("Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON")
-    && !provider.includes('Foundation::SUPPORT_IMPORT') &&
+assert.ok(provider.includes('Foundation::SUPPORT_EXPORT')
+    && provider.includes('Foundation::SUPPORT_IMPORT')
+    && provider.includes('Foundation::SUPPORT_JSON') &&
     notes.includes('public function can_import(array $context = []): bool {\n        return ImportSession::authorized($context);') &&
     notes.includes('if (!$this->can_import($context)) {') &&
     notes.includes('return ImportPlanner::plan_record($record, $mode, $source_schema_version, $context);') &&
     notes.includes('return ImportApplier::apply($plan, $context);'),
-    'Provider remains export-only; private Base callbacks require a validated import session');
+    'Import descriptor is always gated by validated owner-bound Notes request session');
 console.log('Notes inert P2-B write adapter source contract: PASS (runtime NOT RUN)');

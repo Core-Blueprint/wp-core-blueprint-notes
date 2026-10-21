@@ -77,10 +77,10 @@ assert.ok(site.includes('OwnerExport::json()') &&
     site.includes('FOREIGN-TARGET-SECRET') &&
     site.includes('ZipArchive'),
     'P4 must compare owner isolation, raw blocks, journal, timestamps and Markdown');
-assert.ok(!provider.includes('Foundation::SUPPORT_IMPORT') &&
+assert.ok(provider.includes('Foundation::SUPPORT_IMPORT') &&
     !helper.includes('wp db reset') &&
     !helper.includes('wp core install --force') &&
     !helper.includes('docker start ') &&
     !helper.includes('docker run '),
-    'Provider stays export-only; no container bootstrap or destructive reset');
+    'P4 must deny direct unauthenticated Base import; no destructive resource reset');
 console.log('Notes P4 installed-Site-A/B source contract: PASS (WP runtime NOT RUN)');

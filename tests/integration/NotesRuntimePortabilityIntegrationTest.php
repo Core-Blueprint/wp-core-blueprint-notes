@@ -77,7 +77,7 @@ final class NotesRuntimePortabilityIntegrationTest extends WP_UnitTestCase {
                 && ( $definition['id'] ?? '' ) === 'personal-notes'
         ) );
         self::assertCount( 1, $matches, 'Notes must actually register through the Base interoperability lifecycle.' );
-        self::assertSame( [ Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON ], $matches[0]['supports'] );
+        self::assertSame( [ Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_IMPORT, Foundation::SUPPORT_JSON ], $matches[0]['supports'] );
         $resolved = Registry::resolve(
             Foundation::CONTRACT_OWNER, Foundation::CONTRACT_ID, Foundation::CONTRACT_VERSION,
             'core-blueprint-notes', 'personal-notes'

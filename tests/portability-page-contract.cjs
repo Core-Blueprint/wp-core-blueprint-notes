@@ -32,14 +32,15 @@ assert.ok(page.includes("current_user_can('cb_notes_edit')") &&
 assert.ok(page.includes('is_uploaded_file(') &&
     page.includes('UPLOAD_ERR_OK') && page.includes('10 * 1024 * 1024'),
     'Untrusted upload validated and bounded');
-assert.ok(page.includes('ImportSession::with_validated_json(') &&
-    page.includes('ImportSession::record('),
-    'Complete owner-scoped document validation precedes preview');
-assert.ok(!page.includes('apply_json(') && !page.includes('wp_insert_post(') &&
+assert.ok(page.includes('ImportFlow::preview_json(') &&
+    page.includes('ImportFlow::apply_json(') &&
+    page.includes('check_admin_referer(self::CONFIRM_NONCE)') &&
+    page.includes('cb_notes_confirm_create_only'),
+    'Base-backed preview and explicit, nonce-protected confirmed apply');
+assert.ok(!page.includes('ImportApplier::apply(') && !page.includes('wp_insert_post(') &&
     !page.includes('update_user_meta('),
-    'No writable import endpoint or hidden mutation');
-assert.ok(provider.includes("Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON") &&
-    !provider.includes('Foundation::SUPPORT_IMPORT') &&
+    'UI cannot directly write Note domain state or bypass Base');
+assert.ok(provider.includes('Foundation::SUPPORT_IMPORT') &&
     entity.includes('public function can_import(array $context = []): bool {\n        return ImportSession::authorized($context);'),
-    'Base import remains undiscoverable until owner write/recovery accepted');
-console.log('Notes owner portability page read-only source contract: PASS (browser pending)');
+    'Public descriptor import still requires unforgeable Notes request session');
+console.log('Notes owner portability source contract: PASS (browser NOT RUN)');

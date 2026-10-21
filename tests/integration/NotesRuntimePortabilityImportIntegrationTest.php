@@ -15,7 +15,7 @@ use CoreBlueprint\Core\DataExchange\Foundation;
  * P2-B real WordPress / MariaDB acceptance for the DORMANT Notes import path.
  *
  * Deliberately exercises private session-gated entity callbacks, never
- * advertises Base SUPPORT_IMPORT or registers any owner-visible apply action.
+ * supplies a verified private Base Engine ticket or a nonce-confirmed owner action.
  * This is a two-OWNER test inside ONE disposable WP installation. A separate
  * source/destination WordPress-site round-trip remains required for Golden.
  */
@@ -29,6 +29,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         );
         self::assertSame('127.0.0.1:3307', (string) DB_HOST);
         Plugin::grant_roles();
+        self::assertTrue(\CB\Notes\Portability\MappingSeed::provision());
         Catalog::register_meta();
         self::assertTrue(post_type_exists(Plugin::TYPE));
     }
@@ -388,19 +389,19 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         $this->assertWPError(\CB\Notes\Portability\OwnerExport::markdown_zip());
     }
 
-    public function test_base_engine_rejects_public_import_even_during_private_preview(): void {
+    public function test_base_engine_requires_attested_notes_session_for_public_import(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);
         $this->assertWPError(Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY));
         $result = ImportSession::with_validated_json(
             $f['json'],
             function (array $context) use ($f): bool {
+                $preview = Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY, $context);
+                self::assertIsArray($preview);
+                self::assertTrue($preview['valid']);
                 $this->assertWPError(
-                    Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY, $context),
-                    'The public registry must not advertise import while the writer is under review.'
-                );
-                $this->assertWPError(
-                    Engine::apply_json($f['json'], Foundation::MODE_CREATE_ONLY, str_repeat('f', 64), $context)
+                    Engine::apply_json($f['json'], Foundation::MODE_CREATE_ONLY, str_repeat('f', 64), $context),
+                    'A forged/stale Base fingerprint must never write.'
                 );
                 return true;
             }

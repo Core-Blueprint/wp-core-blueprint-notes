@@ -21,7 +21,7 @@ final class Provider {
             'contract_owner' => Foundation::CONTRACT_OWNER,
             'contract' => Foundation::CONTRACT_ID,
             'contract_version' => Foundation::CONTRACT_VERSION,
-            'supports' => [Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON],
+            'supports' => [Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_IMPORT, Foundation::SUPPORT_JSON],
             'factory' => static fn(): NotesEntity => new NotesEntity(),
         ]);
     }

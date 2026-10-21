@@ -17,11 +17,12 @@ assert.ok(source.includes('MarkdownArchive::zip($records)') &&
 assert.ok(!source.includes('add_action(') && !source.includes('register_rest_route(')
     && !source.includes('header(') && !source.includes('readfile('),
     'no exposed endpoint or HTTP side effect in exporter');
-assert.ok(provider.includes("Foundation::SUPPORT_EXPORT, Foundation::SUPPORT_JSON") &&
-    !provider.includes('Foundation::SUPPORT_IMPORT'),
-    'import remains unadvertised until complete P2-B safety');
+assert.ok(provider.includes('Foundation::SUPPORT_EXPORT') &&
+    provider.includes('Foundation::SUPPORT_IMPORT') &&
+    provider.includes('Foundation::SUPPORT_JSON'),
+    'JSON provider registers import only behind request-local Notes authorization');
 assert.ok(entity.includes('public function can_import(array $context = []): bool {\n        return ImportSession::authorized($context);'),
-    'import only possible via request session; provider still not advertised');
+    'import only possible via server-attested request session');
 assert.ok(archive.includes('@unlink($temp)') && archive.includes('finally {'),
     'ZIP staging file removed even on errors');
 console.log('Notes P3 read-only export service source contract: PASS (runtime not run)');

@@ -8,7 +8,8 @@
  * Invoked only with "wp eval-file" by the gated Notes P4 runner.
  * This is a first-party test fixture, never shipped in the Notes plugin ZIP.
  * It intentionally uses the Notes internal import adapter while the public
- * Base provider does not advertise import. This does NOT prove public apply.
+ * Direct Base import without an owner session must be refused even when
+ * the provider advertises import. This does NOT test confirmed HTTP apply.
  */
 
 use CB\Notes\Library\Markers;
@@ -163,7 +164,7 @@ function cbp4_transfer(string $path, bool $replay): void {
     $owner = cbp4_user('cb_notes_p4_target_owner', false);
     wp_set_current_user($owner);
     cbp4_assert(is_wp_error(Engine::preview_json($bytes, Foundation::MODE_CREATE_ONLY)),
-        'unadvertised Base import must still fail closed');
+        'unauthorized direct Base import must still fail closed');
     $count_before = count(cbp4_owner_posts($owner));
     cbp4_assert($count_before === ($replay ? 2 : 0), 'destination has expected pre-import count');
     if (!$replay) {
