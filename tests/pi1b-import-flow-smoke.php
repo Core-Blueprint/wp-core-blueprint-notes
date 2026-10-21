@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace CoreBlueprint\Core\DataExchange {
     final class Foundation {
         public const MODE_CREATE_ONLY = 'create_only';
+        public const OP_CREATE = 'create';
+        public const OP_SKIP = 'skip';
         public const MAX_INPUT_BYTES = 10485760;
     }
     final class Engine {
@@ -23,7 +25,11 @@ namespace CoreBlueprint\Core\DataExchange {
                 return new \WP_Error('stale', 'Target plan changed');
             }
             ++$GLOBALS['mutations'];
-            return ['status' => 'complete', 'applied_count' => 2, 'skipped_count' => 0];
+            return ['status' => 'complete', 'applied_count' => 2, 'skipped_count' => 0,
+                'items' => [
+                    ['operation' => 'create', 'reference' => 'catalog:personal'],
+                    ['operation' => 'create', 'reference' => 'note:9'],
+                ]];
         }
     }
 }
@@ -78,7 +84,8 @@ namespace {
     $GLOBALS['target_revision'] = 'v1';
     $result = ImportFlow::apply_json($archive, $preview['file_sha256'], $preview['base_fingerprint']);
     assert_flow(is_array($result) && $result['status'] === 'complete'
-        && $GLOBALS['mutations'] === 1, 'explicit Base apply can proceed on matching fingerprint');
+        && $result['applied_count'] === 1 && $result['skipped_count'] === 0
+        && $GLOBALS['mutations'] === 1, 'only actually applied Notes counted, catalog excluded');
     $GLOBALS['actor'] = 0;
     assert_flow(ImportFlow::apply_json($archive, $preview['file_sha256'],
         $preview['base_fingerprint']) instanceof WP_Error && $GLOBALS['mutations'] === 1,

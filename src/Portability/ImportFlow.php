@@ -79,10 +79,26 @@ final class ImportFlow {
                     || !in_array($result['status'] ?? null, ['complete', 'partial', 'failed'], true)) {
                     return self::error('cb_notes_import_result_invalid');
                 }
+                // Base counts the catalog as a record. User-visible Notes
+                // counts must come only from actually processed note entries.
+                $applied_notes = 0;
+                $skipped_notes = 0;
+                foreach ($result['items'] ?? [] as $item) {
+                    if (!is_array($item)
+                        || !is_string($item['reference'] ?? null)
+                        || preg_match('/^note:[1-9][0-9]*$/D', $item['reference']) !== 1) {
+                        continue;
+                    }
+                    if (($item['operation'] ?? null) === Foundation::OP_CREATE) {
+                        ++$applied_notes;
+                    } elseif (($item['operation'] ?? null) === Foundation::OP_SKIP) {
+                        ++$skipped_notes;
+                    }
+                }
                 return [
                     'status' => $result['status'],
-                    'applied_count' => self::count($result['applied_count'] ?? null),
-                    'skipped_count' => self::count($result['skipped_count'] ?? null),
+                    'applied_count' => $applied_notes,
+                    'skipped_count' => $skipped_notes,
                     'failed_index' => is_int($result['failed_index'] ?? null)
                         ? $result['failed_index'] : null,
                     'needs_review' => ($result['status'] ?? null) !== 'complete'
@@ -99,10 +115,6 @@ final class ImportFlow {
                 ];
             }
         );
-    }
-
-    private static function count(mixed $value): int {
-        return is_int($value) && $value >= 0 ? min(5000, $value) : 0;
     }
 
     private static function owner(): bool {
