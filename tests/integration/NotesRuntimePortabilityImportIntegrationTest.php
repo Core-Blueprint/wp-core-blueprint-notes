@@ -121,7 +121,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                     $note_plan['payload']['mapped']['notebook_id'],
                     'Destination must not reuse the foreign source catalog ID.'
                 );
-                self::assertWPError($entity->apply_import($note_plan, []));
+                $this->assertWPError($entity->apply_import($note_plan, []));
                 self::assertSame(
                     ['reference' => 'catalog:personal'],
                     $entity->apply_import($catalog_plan, $context)
@@ -164,12 +164,12 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
 
         $repeat = ImportSession::with_validated_json(
             $f['json'],
-            static function (array $context) use ($f, $entity): bool {
+            function (array $context) use ($f, $entity): bool {
                 $catalog = $entity->plan_import($f['records'][0], Foundation::MODE_CREATE_ONLY, 1, $context);
                 $note = $entity->plan_import($f['records'][1], Foundation::MODE_CREATE_ONLY, 1, $context);
                 self::assertSame(Foundation::OP_SKIP, $catalog['operation']);
                 self::assertSame(Foundation::OP_SKIP, $note['operation']);
-                self::assertWPError($entity->apply_import($note, $context));
+                $this->assertWPError($entity->apply_import($note, $context));
                 return true;
             }
         );
@@ -203,7 +203,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         $f = $this->fixture();
         $other = self::factory()->user->create(['role' => 'editor']);
         wp_set_current_user(0);
-        self::assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
+        $this->assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
         wp_set_current_user($f['target']);
         $malformed = json_decode($f['json'], true, 32, JSON_THROW_ON_ERROR);
         $malformed['records'][1]['tag_ids'] = [str_repeat('e', 32)];
@@ -213,7 +213,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
             $called = true;
             return true;
         });
-        self::assertWPError($refused);
+        $this->assertWPError($refused);
         self::assertFalse($called, 'No callback may run when any catalog relationship is unresolved.');
         self::assertCount(0, $this->target_posts($f['target']));
 
@@ -223,7 +223,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
             'notebook' => [['id' => str_repeat('f', 32), 'name' => 'Notes migration']],
             'category' => [], 'tag' => [],
         ]));
-        self::assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
+        $this->assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
         self::assertCount(0, $this->target_posts($other));
         self::assertSame(str_repeat('f', 32), Catalog::catalog($other)['notebook'][0]['id']);
     }
@@ -234,7 +234,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         $key = ImportJournal::reserve($f['target'], $f['digest'], $f['note_ref']);
         self::assertIsString($key);
         self::assertSame('pending', get_option($key)['state']);
-        self::assertWPError(ImportJournal::reserve($f['target'], $f['digest'], $f['note_ref']));
+        $this->assertWPError(ImportJournal::reserve($f['target'], $f['digest'], $f['note_ref']));
         for ($i = 0; $i < 2; ++$i) {
             $called = false;
             $denied = ImportSession::with_validated_json(
@@ -244,7 +244,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                     return true;
                 }
             );
-            self::assertWPError($denied);
+            $this->assertWPError($denied);
             self::assertSame('cb_notes_import_journal_needs_review', $denied->get_error_code());
             self::assertFalse($called);
         }
@@ -267,13 +267,13 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                 add_filter('add_user_metadata', $deny, 999, 5);
                 try {
                     $failed = $entity->apply_import($catalog, $context);
-                    self::assertWPError($failed);
+                    $this->assertWPError($failed);
                     self::assertSame('cb_notes_import_catalog_write_failed', $failed->get_error_code());
                 } finally {
                     remove_filter('add_user_metadata', $deny, 999);
                 }
                 $blocked = $entity->apply_import($note, $context);
-                self::assertWPError($blocked, 'No note may be written without its destination labels.');
+                $this->assertWPError($blocked, 'No note may be written without its destination labels.');
                 self::assertSame('cb_notes_import_catalog_stale', $blocked->get_error_code());
                 return true;
             }
@@ -310,7 +310,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                 add_filter('add_post_metadata', $drop, 999, 5);
                 try {
                     $failed = $entity->apply_import($note, $context);
-                    self::assertWPError($failed);
+                    $this->assertWPError($failed);
                     self::assertSame('cb_notes_import_create_uncertain', $failed->get_error_code());
                 } finally {
                     remove_filter('add_post_metadata', $drop, 999);
@@ -324,9 +324,9 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         $post_id = (int)$posts[0];
         self::assertSame('', get_post_meta($post_id, ImportJournal::META, true));
         $pending = ImportJournal::receipt($f['target'], $f['digest'], $f['note_ref']);
-        self::assertWPError($pending);
+        $this->assertWPError($pending);
         self::assertSame('cb_notes_import_journal_needs_review', $pending->get_error_code());
-        self::assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
+        $this->assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
         self::assertCount(1, $this->target_posts($f['target']), 'Never duplicate an unverified import.');
     }
 
@@ -373,21 +373,21 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertIsString($other);
         self::assertNotSame($bytes, $other, 'Independent owners must not share the same archive.');
         wp_set_current_user(0);
-        self::assertWPError(\CB\Notes\Portability\OwnerExport::markdown_zip());
+        $this->assertWPError(\CB\Notes\Portability\OwnerExport::markdown_zip());
     }
 
     public function test_base_engine_rejects_public_import_even_during_private_preview(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);
-        self::assertWPError(Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY));
+        $this->assertWPError(Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY));
         $result = ImportSession::with_validated_json(
             $f['json'],
-            static function (array $context) use ($f): bool {
-                self::assertWPError(
+            function (array $context) use ($f): bool {
+                $this->assertWPError(
                     Engine::preview_json($f['json'], Foundation::MODE_CREATE_ONLY, $context),
                     'The public registry must not advertise import while the writer is under review.'
                 );
-                self::assertWPError(
+                $this->assertWPError(
                     Engine::apply_json($f['json'], Foundation::MODE_CREATE_ONLY, str_repeat('f', 64), $context)
                 );
                 return true;
@@ -416,7 +416,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                 add_filter('wp_insert_post_empty_content', $refuse, 999, 2);
                 try {
                     $failed = $entity->apply_import($note, $context);
-                    self::assertWPError($failed);
+                    $this->assertWPError($failed);
                 } finally {
                     remove_filter('wp_insert_post_empty_content', $refuse, 999);
                 }
@@ -425,9 +425,9 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         );
         self::assertTrue($result);
         $receipt = ImportJournal::receipt($f['target'], $f['digest'], $f['note_ref']);
-        self::assertWPError($receipt);
+        $this->assertWPError($receipt);
         self::assertSame('cb_notes_import_journal_needs_review', $receipt->get_error_code());
         self::assertCount(0, $this->target_posts($f['target']));
-        self::assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
+        $this->assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
     }
 }
