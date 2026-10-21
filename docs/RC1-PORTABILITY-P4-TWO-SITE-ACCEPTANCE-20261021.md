@@ -15,6 +15,16 @@
 - Test-only corrective work: removed `strict_types` from the WP-CLI eval-file fixture, installed a test-site-only `pre_wp_mail` interceptor before site installation, and added a read-only preflight inventory that refuses **any existing P4-namespaced schema** instead of adopting/dropping it.
 - The amended P4 source and real preflight must be rerun on the final exact SHA before any new executable batch. A new batch must receive its own operator approval for two fresh schemas per version. Protected historical schemas are never eligible for cleanup.
 
+## Second installed-site execution (source SHA 588e4b, 21 October 2026)
+
+- Both P4 read-only preflights PASS (WordPress 7.0 and 7.1.3).
+- WordPress 7.0 installed two independent fresh sites and their separate Notes-only schemas; Base + Notes activation PASS on both.
+- First `wp eval-file` source phase failed with `Notes P4 requires a named, runner-owned phase`. Export/import did **not** execute, and no product-code defect was demonstrated. WP 7.1.3 did not execute.
+- Root cause confirmed against the official WP-CLI `eval-file` command contract: positional parameters are provided as **local** `$args`; the fixture's `global $args;` statement shadowed them.
+- Test-only fix removes the global declaration and adds an independent read-only `wp eval-file ... p4-argv-probe --skip-wordpress` check. This test must PASS in both P4 preflights **before** provisioning SQL schemas; Level 1 also checks the probe is wired and cannot be bypassed.
+- The runner logged `cleanup attempted; overall exitcode=1` with no explicit DROP failure. Pre-existing schema inventory was PASS before this run; subsequent fresh preflight is required to independently confirm absence of stranded P4 databases. Do not assume the failing process status alone proves cleanup.
+- Source/test gate on the exact new SHA and real WP-CLI argument probe remain **NOT RUN** by the operator. No P4 runtime PASS awarded. A fresh SQL-execute batch requires a new explicit operator GO.
+
 ## Ownership and architecture
 
 P4 extends the existing Notes-owned `tools/check-integration` canonical Level 2 entrypoint. It does **not** create a second canonical runner or a second MariaDB service.
