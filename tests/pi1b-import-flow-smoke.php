@@ -16,7 +16,8 @@ namespace CoreBlueprint\Core\DataExchange {
             }
             return [
                 'valid' => true,
-                'fingerprint' => hash('sha256', $bytes . ($GLOBALS['target_revision'] ?? 'v1')),
+                'fingerprint' => hash('sha256', $bytes . ($GLOBALS['target_revision'] ?? 'v1')
+                    . (($GLOBALS['replay'] ?? false) ? ':replay' : '')),
             ];
         }
         public static function apply_json(string $bytes, string $mode, string $fingerprint, array $context): array|\WP_Error {
@@ -101,8 +102,12 @@ namespace {
         && $result['applied_count'] === 1 && $result['skipped_count'] === 0
         && $GLOBALS['mutations'] === 1, 'only actually applied Notes counted, catalog excluded');
     $GLOBALS['replay'] = true;
-    $skipped = ImportFlow::apply_json($archive, $preview['file_sha256'],
-        $preview['base_fingerprint']);
+    $replay_preview = ImportFlow::preview_json($archive);
+    assert_flow(is_array($replay_preview)
+        && $replay_preview['base_fingerprint'] !== $preview['base_fingerprint'],
+        'Base fingerprint changes when records become SKIP');
+    $skipped = ImportFlow::apply_json($archive, $replay_preview['file_sha256'],
+        $replay_preview['base_fingerprint']);
     assert_flow(is_array($skipped) && $skipped['status'] === 'complete'
         && $skipped['applied_count'] === 0 && $skipped['skipped_count'] === 1
         && $GLOBALS['mutations'] === 1,
