@@ -120,9 +120,16 @@ namespace {
         && $ambiguous['needs_review'] === true && $ambiguous['applied_count'] === 0,
         'truncated Base success must never become false green after writes');
     unset($GLOBALS['truncate_result']);
+    // The deliberately truncated Base result came AFTER a simulated write.
+    // Verify that the anonymous request itself never adds another write.
+    $writes_before_anonymous = $GLOBALS['mutations'];
+    assert_flow($writes_before_anonymous === 2,
+        'fault injection represented a committed write before ambiguous response');
     $GLOBALS['actor'] = 0;
-    assert_flow(ImportFlow::apply_json($archive, $preview['file_sha256'],
-        $preview['base_fingerprint']) instanceof WP_Error && $GLOBALS['mutations'] === 1,
-        'anonymous caller refused');
+    $anonymous = ImportFlow::apply_json($archive, $preview['file_sha256'],
+        $preview['base_fingerprint']);
+    assert_flow($anonymous instanceof WP_Error
+        && $GLOBALS['mutations'] === $writes_before_anonymous,
+        'anonymous caller refused without writes');
     echo "Notes PI-1B Base fingerprint flow smoke: PASS (mocked Base)\n";
 }
