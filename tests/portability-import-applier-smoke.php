@@ -72,6 +72,10 @@ namespace {
         public function __construct(public string $code, public string $message) {}
     }
     final class WP_Post {
+        public string $post_date = '2026-10-21 12:00:00';
+        public string $post_date_gmt = '2026-10-21 12:00:00';
+        public string $post_modified = '2026-10-21 12:00:00';
+        public string $post_modified_gmt = '2026-10-21 12:00:00';
         public function __construct(
             public int $ID, public int $post_author, public string $post_type,
             public string $post_status, public string $post_title, public string $post_content
@@ -93,6 +97,31 @@ namespace {
     $GLOBALS['posts'] = [];
     $GLOBALS['post_meta'] = [];
     $GLOBALS['reserved'] = [];
+    // Mock WordPress posts table: model a failed, conditional SQL date write.
+    $GLOBALS['wpdb'] = new class {
+        public string $posts = 'wp_posts';
+        public bool $fail_date_write = false;
+        public function update(string $table, array $values, array $where,
+            array $value_formats, array $where_formats): int|false {
+            if ($this->fail_date_write || $table !== $this->posts
+                || $where['post_type'] !== 'cb_note'
+                || $where['post_author'] !== $GLOBALS['owner']
+                || $value_formats !== ['%s', '%s', '%s', '%s']
+                || $where_formats !== ['%d', '%s', '%d']) {
+                return false;
+            }
+            $post = $GLOBALS['posts'][$where['ID']] ?? null;
+            if (!$post instanceof WP_Post
+                || $post->post_author !== $where['post_author']
+                || $post->post_type !== $where['post_type']) {
+                return false;
+            }
+            foreach ($values as $key => $value) {
+                $post->$key = $value;
+            }
+            return 1;
+        }
+    };
     function get_current_user_id(): int { return $GLOBALS['owner']; }
     function current_user_can(string $cap): bool { return $cap === 'cb_notes_edit'; }
     function get_user_meta(int $id, string $key, bool $single): mixed {
@@ -122,6 +151,9 @@ namespace {
         );
         $GLOBALS['post_meta'][$id] = $values['meta_input'];
         return $id;
+    }
+    function clean_post_cache(int $id): void {
+        $GLOBALS['cleaned_post_cache'][] = $id;
     }
     function get_post(int $id): ?WP_Post { return $GLOBALS['posts'][$id] ?? null; }
     function get_post_meta(int $id, string $key, bool $single): mixed {
@@ -153,7 +185,7 @@ namespace {
         'record_type' => 'note', 'reference' => 'note:11',
         'title' => 'Draft text', 'content' => '<!-- wp:paragraph --><p>Text</p><!-- /wp:paragraph -->',
         'status' => 'private', 'created_gmt' => '2026-10-19 10:00:00',
-        'modified_gmt' => '2026-10-19 10:00:00',
+        'modified_gmt' => '2026-10-20 17:31:20',
         'notebook_id' => str_repeat('a', 32), 'category_id' => '',
         'tag_ids' => [], 'favorite' => true, 'pinned' => false,
     ];
@@ -174,6 +206,11 @@ namespace {
     $created = ImportApplier::apply($notePlan, $ctx);
     check_apply(is_array($created) && $created['reference'] === 'note:11'
         && count($GLOBALS['posts']) === 1, 'authorized record created once');
+    check_apply($GLOBALS['posts'][101]->post_date_gmt === $source['created_gmt']
+        && $GLOBALS['posts'][101]->post_modified_gmt === $source['modified_gmt']
+        && ($GLOBALS['reserved']['10:' . $digest . ':note:11'] ?? '') === 'complete'
+        && in_array(101, $GLOBALS['cleaned_post_cache'] ?? [], true),
+        'creation and modification time restored before completed journal receipt');
     check_apply($GLOBALS['post_meta'][101]['cb_notes_notebook_id'] === str_repeat('b', 32)
         && ($GLOBALS['post_meta'][101]['_cb_notes_favorite'] ?? '') === '1'
         && !isset($GLOBALS['post_meta'][101]['_cb_notes_public_snapshot']),
@@ -196,5 +233,21 @@ namespace {
     $GLOBALS['fail_insert'] = false;
     check_apply(ImportApplier::apply($other, $ctx) instanceof WP_Error,
         'uncertain prior attempt blocks auto retry');
+    $dateFailure = $notePlan;
+    $dateFailure['reference'] = 'note:13';
+    $dateFailure['payload']['source']['reference'] = 'note:13';
+    $dateFailure['payload']['mapped']['source_reference'] = 'note:13';
+    $GLOBALS['expected_plan'] = $dateFailure;
+    $GLOBALS['wpdb']->fail_date_write = true;
+    $dateResult = ImportApplier::apply($dateFailure, $ctx);
+    check_apply($dateResult instanceof WP_Error
+        && $dateResult->code === 'cb_notes_import_timestamp_write_failed'
+        && count($GLOBALS['posts']) === 2
+        && ($GLOBALS['reserved']['10:' . $digest . ':note:13'] ?? '') === 'pending',
+        'failed timestamp write remains pending, never completed');
+    $GLOBALS['wpdb']->fail_date_write = false;
+    check_apply(ImportApplier::apply($dateFailure, $ctx) instanceof WP_Error
+        && count($GLOBALS['posts']) === 2,
+        'timestamp write failure blocks automatic duplicate retry');
     echo "Notes P2-B inert create-only applier fault smoke: PASS (mocked)\n";
 }

@@ -131,13 +131,40 @@ final class ImportApplier {
         if ($id instanceof \WP_Error || !is_int($id) || $id < 1) {
             return self::fail('cb_notes_import_create_uncertain');
         }
+        // WordPress assigns a new modification timestamp on insert. A
+        // portability import must restore BOTH UTC timestamps before the
+        // journal may become complete. A failed write leaves a pending intent
+        // that is never automatically retried or silently marked successful.
+        $source_local = static fn(string $gmt): string =>
+            $gmt === '0000-00-00 00:00:00' ? $gmt : get_date_from_gmt($gmt);
+        global $wpdb;
+        $dates_written = $wpdb->update(
+            $wpdb->posts,
+            [
+                'post_date' => $source_local($record['created_gmt']),
+                'post_date_gmt' => $record['created_gmt'],
+                'post_modified' => $source_local($record['modified_gmt']),
+                'post_modified_gmt' => $record['modified_gmt'],
+            ],
+            ['ID' => $id, 'post_type' => Plugin::TYPE, 'post_author' => $owner],
+            ['%s', '%s', '%s', '%s'],
+            ['%d', '%s', '%d']
+        );
+        if ($dates_written === false) {
+            return self::fail('cb_notes_import_timestamp_write_failed');
+        }
+        clean_post_cache($id);
         $post = get_post($id);
         if (!$post instanceof \WP_Post
             || (int)$post->post_author !== $owner
             || $post->post_type !== Plugin::TYPE
             || $post->post_status !== $mapped['status']
             || $post->post_title !== $record['title']
-            || $post->post_content !== $record['content']) {
+            || $post->post_content !== $record['content']
+            || $post->post_date_gmt !== $record['created_gmt']
+            || $post->post_modified_gmt !== $record['modified_gmt']
+            || $post->post_date !== $source_local($record['created_gmt'])
+            || $post->post_modified !== $source_local($record['modified_gmt'])) {
             return self::fail('cb_notes_import_create_uncertain');
         }
         foreach ($meta as $field => $value) {

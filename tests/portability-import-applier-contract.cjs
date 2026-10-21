@@ -16,6 +16,15 @@ assert.ok(body.includes('ImportJournal::reserve(') &&
 assert.ok(body.includes('ImportJournal::complete(') &&
     body.indexOf('ImportJournal::complete(') > body.indexOf('get_post_meta('),
     'Completion follows object/meta validation');
+assert.ok(body.includes('$wpdb->update(') &&
+    body.includes('clean_post_cache($id)') &&
+    body.includes("'post_modified_gmt' => $record['modified_gmt']") &&
+    body.includes("'post_date_gmt' => $record['created_gmt']") &&
+    body.includes('cb_notes_import_timestamp_write_failed') &&
+    body.indexOf('$wpdb->update(') > body.indexOf('wp_insert_post(') &&
+    body.indexOf('clean_post_cache($id)') > body.indexOf('$wpdb->update(') &&
+    body.indexOf('ImportJournal::complete(') > body.indexOf('clean_post_cache($id)'),
+    'Conditional SQL restore verifies both UTC dates before marking journal complete');
 assert.ok(body.includes("count(get_user_meta($owner, Catalog::USER_META, false)) !== 1") &&
     body.includes('update_user_meta($owner, Catalog::USER_META, $target, $old)'),
     'Owner catalog uses previous-value compare and detects duplicates');

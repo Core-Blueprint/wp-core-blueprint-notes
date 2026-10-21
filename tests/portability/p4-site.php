@@ -243,8 +243,23 @@ function cbp4_verify(string $source, string $destination): void {
     [, $target] = cbp4_read($destination);
     cbp4_assert(count($origin['records']) === 3 && count($target['records']) === 3,
         'site-to-site reexport includes two Notes and one catalog');
-    cbp4_assert(cbp4_normalized($origin['records']) === cbp4_normalized($target['records']),
-        'semantic content, statuses, Gutenberg, classifications, markers and UTC timestamps');
+    $source_notes = cbp4_normalized($origin['records']);
+    $target_notes = cbp4_normalized($target['records']);
+    if ($source_notes !== $target_notes) {
+        // Only fixed schema field names are surfaced, never Note titles,
+        // body blocks, catalog labels or private values.
+        $changed_fields = [];
+        foreach ($source_notes as $index => $note) {
+            foreach ($note as $field => $value) {
+                if (($target_notes[$index][$field] ?? null) !== $value) {
+                    $changed_fields[$field] = true;
+                }
+            }
+        }
+        cbp4_assert(false,
+            'semantic round-trip mismatch (field names only: '
+            . implode(', ', array_keys($changed_fields)) . ')');
+    }
     foreach (['notebook', 'category', 'tag'] as $kind) {
         cbp4_assert($origin['records'][0]['catalog'][$kind][0]['id']
             !== $target['records'][0]['catalog'][$kind][0]['id'], 'opaque IDs remapped per installation');

@@ -62,6 +62,11 @@ assert.ok(helper.includes('stage_site a "$A" "$DB_A"') &&
 for (const phase of ['source','target-init','import','replay','export-target','verify']) {
     assert.ok(site.includes("case '" + phase + "':"), 'Missing Site A/B phase: ' + phase);
 }
+assert.ok(site.includes('semantic round-trip mismatch (field names only:') &&
+    site.includes('array_keys($changed_fields)') &&
+    !site.includes('print_r($source_notes') &&
+    !site.includes('var_dump($target_notes'),
+    'Portability diagnostics must reveal field names, not private note content');
 assert.ok(site.includes('OwnerExport::json()') &&
     site.includes('OwnerExport::markdown_zip()') &&
     site.includes('ImportSession::with_validated_json(') &&
