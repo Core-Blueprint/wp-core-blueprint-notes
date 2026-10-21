@@ -238,6 +238,84 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertSame('pending', get_option($key)['state'], 'Do not auto-delete ambiguous intent.');
     }
 
+    public function test_real_catalog_write_failure_stops_before_first_note_or_journal(): void {
+        $f = $this->fixture();
+        wp_set_current_user($f['target']);
+        $entity = new NotesEntity();
+        $result = ImportSession::with_validated_json(
+            $f['json'],
+            function (array $context) use ($f, $entity): bool {
+                $catalog = $entity->plan_import($f['records'][0], Foundation::MODE_CREATE_ONLY, 1, $context);
+                $note = $entity->plan_import($f['records'][1], Foundation::MODE_CREATE_ONLY, 1, $context);
+                self::assertIsArray($catalog);
+                self::assertIsArray($note);
+                $deny = static fn(): bool => false;
+                add_filter('add_user_metadata', $deny, 999, 5);
+                try {
+                    $failed = $entity->apply_import($catalog, $context);
+                    self::assertWPError($failed);
+                    self::assertSame('cb_notes_import_catalog_write_failed', $failed->get_error_code());
+                } finally {
+                    remove_filter('add_user_metadata', $deny, 999);
+                }
+                $blocked = $entity->apply_import($note, $context);
+                self::assertWPError($blocked, 'No note may be written without its destination labels.');
+                self::assertSame('cb_notes_import_catalog_stale', $blocked->get_error_code());
+                return true;
+            }
+        );
+        self::assertTrue($result);
+        self::assertSame('', get_user_meta($f['target'], Catalog::USER_META, true));
+        self::assertCount(0, $this->target_posts($f['target']));
+        self::assertSame(
+            ['state' => 'new'],
+            ImportJournal::receipt($f['target'], $f['digest'], $f['note_ref']),
+            'A catalog failure must not reserve a note that was never attempted.'
+        );
+    }
+
+    public function test_missing_receipt_meta_after_post_insert_blocks_automatic_retry(): void {
+        $f = $this->fixture();
+        wp_set_current_user($f['target']);
+        $entity = new NotesEntity();
+        $result = ImportSession::with_validated_json(
+            $f['json'],
+            function (array $context) use ($f, $entity): bool {
+                $catalog = $entity->plan_import($f['records'][0], Foundation::MODE_CREATE_ONLY, 1, $context);
+                $note = $entity->plan_import($f['records'][1], Foundation::MODE_CREATE_ONLY, 1, $context);
+                self::assertSame(
+                    ['reference' => 'catalog:personal'],
+                    $entity->apply_import($catalog, $context)
+                );
+                // Suppress just the private import receipt. WordPress may still
+                // insert the post and other meta; returning "complete" would
+                // be incorrect because a recovery lookup cannot prove ownership.
+                $drop = static function ($short_circuit, $object_id, $key) {
+                    return $key === ImportJournal::META ? false : $short_circuit;
+                };
+                add_filter('add_post_metadata', $drop, 999, 5);
+                try {
+                    $failed = $entity->apply_import($note, $context);
+                    self::assertWPError($failed);
+                    self::assertSame('cb_notes_import_create_uncertain', $failed->get_error_code());
+                } finally {
+                    remove_filter('add_post_metadata', $drop, 999);
+                }
+                return true;
+            }
+        );
+        self::assertTrue($result);
+        $posts = $this->target_posts($f['target']);
+        self::assertCount(1, $posts, 'WordPress inserted a note despite metadata failure.');
+        $post_id = (int)$posts[0];
+        self::assertSame('', get_post_meta($post_id, ImportJournal::META, true));
+        $pending = ImportJournal::receipt($f['target'], $f['digest'], $f['note_ref']);
+        self::assertWPError($pending);
+        self::assertSame('cb_notes_import_journal_needs_review', $pending->get_error_code());
+        self::assertWPError(ImportSession::with_validated_json($f['json'], static fn(): bool => true));
+        self::assertCount(1, $this->target_posts($f['target']), 'Never duplicate an unverified import.');
+    }
+
     public function test_base_engine_rejects_public_import_even_during_private_preview(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);
