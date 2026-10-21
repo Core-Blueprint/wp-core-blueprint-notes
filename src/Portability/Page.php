@@ -151,6 +151,7 @@ final class Page {
         if ($result instanceof \WP_Error) {
             $code = $result->get_error_code();
             $state['status'] = str_starts_with($code, 'cb_notes_import_journal_')
+                || str_starts_with($code, 'cb_notes_import_mapping_seed_')
                 || in_array($code, ['cb_notes_import_create_uncertain', 'cb_notes_import_timestamp_write_failed'], true)
                     ? 'recovery' : 'failed';
         } elseif (is_array($result)) {
@@ -251,9 +252,16 @@ final class Page {
             echo '</p></div>';
         }
         if ($preview instanceof \WP_Error) {
-            echo '<div class="notice notice-error" role="alert"><p>'
-                . esc_html__('The archive could not be validated or has an import conflict. No notes were changed by preview.', 'core-blueprint-notes')
-                . '</p></div>';
+            $code = $preview->get_error_code();
+            $needs_review = str_starts_with($code, 'cb_notes_import_journal_')
+                || str_starts_with($code, 'cb_notes_import_mapping_seed_');
+            echo '<div class="notice notice-error" role="alert"><p>';
+            if ($needs_review) {
+                echo esc_html__('An earlier import or site mapping requires administrator review. Do not retry or reset import data.', 'core-blueprint-notes');
+            } else {
+                echo esc_html__('The archive could not be validated or has an import conflict. No notes were changed by preview.', 'core-blueprint-notes');
+            }
+            echo '</p></div>';
         } elseif (is_array($preview)) {
             echo '<div class="notice notice-info" role="status"><p>'
                 . esc_html(sprintf(

@@ -32,6 +32,10 @@ assert.ok(page.includes('check_admin_referer(self::PREVIEW_NONCE)') &&
     page.includes('cb_notes_confirm_create_only') &&
     page.includes('add_action(\'admin_post_\' . self::CONFIRM_ACTION, [self::class, \'confirm_import\'])'),
     'Explicit owner-bound two-request confirmation, no raw archive storage');
+assert.ok(page.includes('cb_notes_import_journal_') &&
+    page.includes('Do not retry or reset import data.') &&
+    page.includes('cb_notes_import_mapping_seed_'),
+    'Journal and mapping failures must display explicit recovery instructions');
 assert.ok(!page.includes('ImportApplier::apply(') &&
     !page.includes('wp_insert_post(') &&
     !page.includes('update_user_meta(') &&
