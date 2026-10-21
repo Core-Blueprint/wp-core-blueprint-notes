@@ -75,18 +75,20 @@ cleanup() {
 trap cleanup EXIT
 printf 'Notes P4 source=%s Base=%s WP=%s\n' \
   "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE" rev-parse HEAD)" "$WP_VERSION"
+# Validate the real WordPress distribution BEFORE provisioning SQL schemas.
+mkdir -p "$A" "$B" "$RUN/wp-source"
+curl --fail --silent --show-error --location --max-time 120 \
+  "https://wordpress.org/wordpress-$WP_VERSION.tar.gz" |
+  tar -xz --strip-components=1 -C "$RUN/wp-source"
+[[ -f "$RUN/wp-source/wp-settings.php" ]] || fail "WordPress distribution incomplete"
+
+# New-only CREATE, never a reset or adoption of a previously used database.
 docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
   -e "CREATE DATABASE \`$DB_A\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 OWN_A=1
 docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
   -e "CREATE DATABASE \`$DB_B\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 OWN_B=1
-
-mkdir -p "$A" "$B" "$RUN/wp-source"
-curl --fail --silent --show-error --location --max-time 120 \
-  "https://wordpress.org/wordpress-$WP_VERSION.tar.gz" |
-  tar -xz --strip-components=1 -C "$RUN/wp-source"
-[[ -f "$RUN/wp-source/wp-settings.php" ]] || fail "WordPress distribution incomplete"
 stage_site() {
   local label="$1" site="$2" database="$3"
   cp -a "$RUN/wp-source/." "$site/"
