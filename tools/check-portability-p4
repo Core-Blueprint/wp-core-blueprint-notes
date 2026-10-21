@@ -15,8 +15,7 @@ WORK="${CB_TEST_ROOT:-$HOME/Downloads/.core-blueprint-tests/core-blueprint-notes
    "$WORK" != *$'\n'* && "$WORK" != *$'\r'* ]] || fail "Unsafe Notes-only work root"
 [[ -f "$BASE/core-blueprint.php" && -f "$ROOT/core-blueprint-notes.php" &&
    -f "$ROOT/tests/portability/p4-site.php" ]] || fail "Canonical Base/Notes missing"
-[[ "$(git -C "$ROOT" branch --show-current)" ==
-   feature/notes-rc1-portability-roundtrip-batch-20261019 ]] ||
+[[ "$(git -C "$ROOT" branch --show-current)" == "feature/notes-rc1-portability-roundtrip-batch-20261019" ]] ||
   fail "Unexpected Notes branch"
 [[ -z "$(git -C "$ROOT" status --porcelain)" &&
    -z "$(git -C "$BASE" status --porcelain)" ]] || fail "Dirty Base or Notes source"
@@ -99,7 +98,7 @@ stage_site() {
   tar -C "$ROOT" --exclude='./.git' --exclude='./tests' --exclude='./tools' \
     --exclude='./dist' --exclude='./.github' -cf - . |
     tar -C "$site/wp-content/plugins/core-blueprint-notes" -xf -
-  [[ "$(sha256sum "$ROOT/src/Portability/NotesEntity.php" | cut -d' ' -f1)" ==
+  [[ "$(sha256sum "$ROOT/src/Portability/NotesEntity.php" | cut -d' ' -f1)" == \
      "$(sha256sum "$site/wp-content/plugins/core-blueprint-notes/src/Portability/NotesEntity.php" | cut -d' ' -f1)" ]] ||
     fail "Site $label Notes source mismatch"
   wp --path="$site" config create --dbname="$database" --dbuser=root --dbpass=root \
