@@ -27,6 +27,121 @@ php -r 'exit(class_exists("ZipArchive") ? 0 : 1);' ||
 # Existing shared helper must already be running on localhost, never started
 # or recreated by this script; protected schemas stay untouched.
 bash "$ROOT/tools/check-test-infrastructure"
+# Inspect only P4-namespaced schemas. Any orphan is protected and blocks
+# another P4 run until the operator reviews its provenance.
+P4_EXISTING="$(docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot -N -B \
+  -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME REGEXP '^core_blueprint_notes_p4_[0-9a-f]{12}_[ab]_test
+  printf 'Notes P4 preflight: PASS (WP %s; no sites or DBs created)\n' "$WP_VERSION"
+  exit 0
+fi
+[[ "${CB_NOTES_P4_DB_MUTATION_APPROVED:-}" == notes-p4-two-new-schemas-v1 ]] ||
+  fail "Separate operator authorization for two disposable P4 schemas required"
+umask 077
+[[ ! -L "$WORK/.p4.lock" ]] || fail "Unsafe lock path"
+mkdir -p "$WORK"
+exec 9>"$WORK/.p4.lock"
+flock -x 9
+TOKEN="$(php -r 'echo bin2hex(random_bytes(6));')"
+[[ "$TOKEN" =~ ^[a-f0-9]{12}$ ]] || fail "Bad random token"
+DB_A="core_blueprint_notes_p4_${TOKEN}_a_test"
+DB_B="core_blueprint_notes_p4_${TOKEN}_b_test"
+[[ "$DB_A" =~ ^core_blueprint_notes_p4_[a-f0-9]{12}_a_test$ &&
+   "$DB_B" =~ ^core_blueprint_notes_p4_[a-f0-9]{12}_b_test$ ]] ||
+  fail "Unsafe SQL schema name"
+RUN="$(mktemp -d "$WORK/p4.XXXXXXXX")"
+[[ -d "$RUN" && ! -L "$RUN" && "$RUN" == "$WORK"/p4.* ]] ||
+  fail "Unsafe created work directory"
+A="$RUN/site-a"
+B="$RUN/site-b"
+OWN_A=0
+OWN_B=0
+cleanup() {
+  local result=$?
+  trap - EXIT
+  if [[ "$OWN_B" == 1 ]]; then
+    docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+      -e "DROP DATABASE \`$DB_B\`;" >/dev/null ||
+      { printf 'Notes P4 cleanup failed for owned B schema %s\n' "$DB_B" >&2; result=1; }
+  fi
+  if [[ "$OWN_A" == 1 ]]; then
+    docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+      -e "DROP DATABASE \`$DB_A\`;" >/dev/null ||
+      { printf 'Notes P4 cleanup failed for owned A schema %s\n' "$DB_A" >&2; result=1; }
+  fi
+  if [[ -d "$RUN" && ! -L "$RUN" && "$RUN" == "$WORK"/p4.* ]]; then
+    rm -rf -- "$RUN" || result=1
+  fi
+  printf 'Notes P4 cleanup attempted for this run; overall exitcode=%s\n' "$result"
+  exit "$result"
+}
+trap cleanup EXIT
+printf 'Notes P4 source=%s Base=%s WP=%s\n' \
+  "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE" rev-parse HEAD)" "$WP_VERSION"
+# Validate the real WordPress distribution BEFORE provisioning SQL schemas.
+mkdir -p "$A" "$B" "$RUN/wp-source"
+curl --fail --silent --show-error --location --max-time 120 \
+  "https://wordpress.org/wordpress-$WP_VERSION.tar.gz" |
+  tar -xz --strip-components=1 -C "$RUN/wp-source"
+[[ -f "$RUN/wp-source/wp-settings.php" ]] || fail "WordPress distribution incomplete"
+
+# New-only CREATE, never a reset or adoption of a previously used database.
+docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+  -e "CREATE DATABASE \`$DB_A\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+OWN_A=1
+docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+  -e "CREATE DATABASE \`$DB_B\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+OWN_B=1
+printf 'Notes P4 created new-only schemas: A=%s B=%s\n' "$DB_A" "$DB_B"
+stage_site() {
+  local label="$1" site="$2" database="$3"
+  cp -a "$RUN/wp-source/." "$site/"
+  # Isolated P4 environments must never try to send account/activation mail.
+  # WordPress loads MU plugins during installation and all subsequent WP-CLI runs.
+  mkdir -p "$site/wp-content/mu-plugins"
+  cat > "$site/wp-content/mu-plugins/cb-notes-p4-no-mail.php" <<'PHP'
+<?php
+defined('ABSPATH') || exit;
+add_filter('pre_wp_mail', static fn(): bool => true, PHP_INT_MAX);
+PHP
+  mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
+  tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+    --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$site/wp-content/plugins/core-blueprint" -xf -
+  tar -C "$ROOT" --exclude='./.git' --exclude='./tests' --exclude='./tools' \
+    --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$site/wp-content/plugins/core-blueprint-notes" -xf -
+  [[ "$(sha256sum "$ROOT/src/Portability/NotesEntity.php" | cut -d' ' -f1)" == \
+     "$(sha256sum "$site/wp-content/plugins/core-blueprint-notes/src/Portability/NotesEntity.php" | cut -d' ' -f1)" ]] ||
+    fail "Site $label Notes source mismatch"
+  wp --path="$site" config create --dbname="$database" --dbuser=root --dbpass=root \
+    --dbhost=127.0.0.1:3307 --skip-check --quiet
+  wp --path="$site" core install --url="http://notes-p4-$label.test" \
+    --title="Notes P4 $label" --admin_user="p4_admin_$label" \
+    --admin_password="$(php -r 'echo bin2hex(random_bytes(24));')" \
+    --admin_email="p4_admin_$label@example.invalid" --skip-email --quiet
+  wp --path="$site" plugin activate core-blueprint --quiet
+  wp --path="$site" plugin activate core-blueprint-notes --quiet
+  wp --path="$site" eval 'if (!post_type_exists("cb_note")) { throw new RuntimeException("Notes CPT missing"); }' --quiet
+  printf 'Notes P4 Site %s: installed WP, own DB, Base + Notes PASS\n' "$label"
+}
+stage_site a "$A" "$DB_A"
+stage_site b "$B" "$DB_B"
+ARCHIVE="$RUN/source.json"
+ZIP="$RUN/source-markdown.zip"
+TARGET="$RUN/target.json"
+CASE="$ROOT/tests/portability/p4-site.php"
+# Archives never reside in either WordPress document root.
+wp --path="$A" eval-file "$CASE" source "$ARCHIVE" "$ZIP"
+wp --path="$B" eval-file "$CASE" target-init
+wp --path="$B" eval-file "$CASE" import "$ARCHIVE"
+wp --path="$B" eval-file "$CASE" replay "$ARCHIVE"
+wp --path="$B" eval-file "$CASE" export-target "$TARGET"
+wp --path="$B" eval-file "$CASE" verify "$ARCHIVE" "$TARGET"
+printf 'Notes P4 independent Site A -> Site B round-trip: PASS (WP %s)\n' "$WP_VERSION"
+ ORDER BY SCHEMA_NAME;")" ||
+  fail "P4 read-only schema inventory failed"
+[[ -z "$P4_EXISTING" ]] ||
+  fail "Existing P4 schemas require operator review (never auto-drop): $P4_EXISTING"
 if [[ "$MODE" == --preflight ]]; then
   printf 'Notes P4 preflight: PASS (WP %s; no sites or DBs created)\n' "$WP_VERSION"
   exit 0
