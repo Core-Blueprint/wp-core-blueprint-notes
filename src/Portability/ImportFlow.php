@@ -77,7 +77,11 @@ final class ImportFlow {
                 }
                 if (!is_array($result)
                     || !in_array($result['status'] ?? null, ['complete', 'partial', 'failed'], true)) {
-                    return self::error('cb_notes_import_result_invalid');
+                    // Base apply may already have written part of the batch:
+                    // never mislabel unexpected outcomes as safe "failed".
+                    return ['status' => 'recovery', 'applied_count' => 0,
+                        'skipped_count' => 0, 'failed_index' => null,
+                        'needs_review' => true];
                 }
                 // Base results include the catalog as record 0. Verify that
                 // every reported successful item belongs to our exact bound
@@ -89,17 +93,25 @@ final class ImportFlow {
                 $valid = is_array($expected) && array_is_list($expected)
                     && is_array($items) && array_is_list($items)
                     && is_int($result['record_count'] ?? null)
-                    && $result['record_count'] === count($expected) + 1;
+                    && $result['record_count'] === count($expected) + 1
+                    && count($items) <= count($expected) + 1;
                 $applied_notes = 0;
                 $skipped_notes = 0;
                 $base_applied = 0;
                 $base_skipped = 0;
                 if ($valid) {
                     foreach ($items as $position => $item) {
+                        $expected_note = $position > 0 ? ($expected[$position - 1] ?? null) : null;
+                        if ($position > 0 && !is_array($expected_note)) {
+                            $valid = false;
+                            break;
+                        }
                         $expected_ref = $position === 0 ? 'catalog:personal'
-                            : ($expected[$position - 1]['source_reference'] ?? null);
-                        $expected_op = $position === 0 ? Foundation::OP_CREATE
-                            : ($expected[$position - 1]['operation'] === 'skip'
+                            : ($expected_note['source_reference'] ?? null);
+                        $expected_op = $position === 0
+                            ? ($plan['catalog'] === $plan['previous_catalog']
+                                ? Foundation::OP_SKIP : Foundation::OP_CREATE)
+                            : (($expected_note['operation'] ?? null) === 'skip'
                                 ? Foundation::OP_SKIP : Foundation::OP_CREATE);
                         if (!is_array($item) || ($item['index'] ?? null) !== $position
                             || ($item['reference'] ?? null) !== $expected_ref

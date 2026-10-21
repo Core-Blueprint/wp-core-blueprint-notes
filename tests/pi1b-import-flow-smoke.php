@@ -24,6 +24,14 @@ namespace CoreBlueprint\Core\DataExchange {
             if ($plan instanceof \WP_Error || !hash_equals($plan['fingerprint'], $fingerprint)) {
                 return new \WP_Error('stale', 'Target plan changed');
             }
+            if ($GLOBALS['replay'] ?? false) {
+                return ['status' => 'complete', 'record_count' => 2,
+                    'applied_count' => 0, 'skipped_count' => 2,
+                    'items' => [
+                        ['index'=>0,'operation'=>'skip','reference'=>'catalog:personal'],
+                        ['index'=>1,'operation'=>'skip','reference'=>'note:9'],
+                    ]];
+            }
             ++$GLOBALS['mutations'];
             return ['status' => 'complete', 'record_count' => 2,
                 'applied_count' => 2, 'skipped_count' => 0,
@@ -47,8 +55,11 @@ namespace CB\Notes\Portability {
         public static function target_plan(): array {
             return [
                 'create_count' => 1, 'skip_count' => 0, 'record_count' => 1,
-                'catalog' => ['notebook' => [['id'=>'ab']]], 'previous_catalog' => ['notebook' => []],
-                'plans' => [['source_reference' => 'note:9', 'operation' => 'create', 'warnings' => []]],
+                'catalog' => ['notebook' => [['id'=>'ab']]],
+                'previous_catalog' => ($GLOBALS['replay'] ?? false)
+                    ? ['notebook' => [['id'=>'ab']]] : ['notebook' => []],
+                'plans' => [['source_reference' => 'note:9', 'operation' =>
+                    ($GLOBALS['replay'] ?? false) ? 'skip' : 'create', 'warnings' => []]],
             ];
         }
     }
@@ -89,6 +100,14 @@ namespace {
     assert_flow(is_array($result) && $result['status'] === 'complete'
         && $result['applied_count'] === 1 && $result['skipped_count'] === 0
         && $GLOBALS['mutations'] === 1, 'only actually applied Notes counted, catalog excluded');
+    $GLOBALS['replay'] = true;
+    $skipped = ImportFlow::apply_json($archive, $preview['file_sha256'],
+        $preview['base_fingerprint']);
+    assert_flow(is_array($skipped) && $skipped['status'] === 'complete'
+        && $skipped['applied_count'] === 0 && $skipped['skipped_count'] === 1
+        && $GLOBALS['mutations'] === 1,
+        'verified catalog plus Note SKIP must not cause false recovery or duplication');
+    unset($GLOBALS['replay']);
     $GLOBALS['truncate_result'] = true;
     $ambiguous = ImportFlow::apply_json($archive, $preview['file_sha256'],
         $preview['base_fingerprint']);
