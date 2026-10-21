@@ -37,6 +37,7 @@ for (const name of [
     'test_real_catalog_write_failure_stops_before_first_note_or_journal',
     'test_missing_receipt_meta_after_post_insert_blocks_automatic_retry',
     'test_real_pending_journal_blocks_retry_without_creating_duplicate',
+    'test_owner_markdown_zip_keeps_gutenberg_source_and_excludes_foreign_notes',
     'test_base_engine_rejects_public_import_even_during_private_preview',
     'test_real_wordpress_insert_failure_leaves_reviewable_pending_intent'
 ]) {

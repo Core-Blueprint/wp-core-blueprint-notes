@@ -330,6 +330,52 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertCount(1, $this->target_posts($f['target']), 'Never duplicate an unverified import.');
     }
 
+    public function test_owner_markdown_zip_keeps_gutenberg_source_and_excludes_foreign_notes(): void {
+        $f = $this->fixture();
+        self::assertTrue(
+            class_exists(\ZipArchive::class),
+            'Markdown ZIP is a required product feature; a missing PHP zip extension blocks acceptance.'
+        );
+        wp_set_current_user($f['source']);
+        $bytes = \CB\Notes\Portability\OwnerExport::markdown_zip();
+        self::assertIsString($bytes, 'Owner must be able to generate a complete private ZIP.');
+        self::assertGreaterThan(100, strlen($bytes));
+        $temp = tempnam(sys_get_temp_dir(), 'cb_notes_test_zip_');
+        self::assertIsString($temp);
+        try {
+            self::assertSame(strlen($bytes), file_put_contents($temp, $bytes));
+            $zip = new \ZipArchive();
+            self::assertTrue($zip->open($temp) === true);
+            try {
+                $name = substr($f['note_ref'], strlen('note:'));
+                $note = $zip->getFromName('notes/note-' . $name . '.md');
+                $raw = $zip->getFromName('sources/note-' . $name . '.gutenberg.txt');
+                $manifest = $zip->getFromName('manifest.json');
+                self::assertIsString($note);
+                self::assertSame($f['blocks'], $raw);
+                self::assertIsString($manifest);
+                self::assertStringContainsString('notebook: "Notes migration"', $note);
+                self::assertStringContainsString('  - "Privacy"', $note);
+                self::assertStringNotContainsString('cb_notes_secure_grant', $manifest);
+                $metadata = json_decode($manifest, true, 32, JSON_THROW_ON_ERROR);
+                self::assertSame(1, $metadata['note_count']);
+                self::assertSame('core-blueprint-notes-markdown', $metadata['format']);
+            } finally {
+                $zip->close();
+            }
+        } finally {
+            @unlink($temp);
+        }
+
+        // A second authenticated owner cannot export the source owner's Note.
+        wp_set_current_user($f['target']);
+        $other = \CB\Notes\Portability\OwnerExport::markdown_zip();
+        self::assertIsString($other);
+        self::assertNotSame($bytes, $other, 'Independent owners must not share the same archive.');
+        wp_set_current_user(0);
+        self::assertWPError(\CB\Notes\Portability\OwnerExport::markdown_zip());
+    }
+
     public function test_base_engine_rejects_public_import_even_during_private_preview(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);
