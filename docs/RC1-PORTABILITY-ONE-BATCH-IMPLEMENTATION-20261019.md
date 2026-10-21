@@ -76,6 +76,7 @@ No Base source patch is authorized or assumed. Escalate **only if** real impleme
 
 - Frozen prior Notes UI baseline: **operator visually stable**; toggle build PASS.
 - Existing P1 JSON export-only: **SOURCE / isolated Base runtime PASS** on earlier revisions.
-- This one-batch import/Markdown/owner UI: **IMPLEMENTATION NOT YET VERIFIED**; only branch and batch contract prepared.
+- P4 independent Site A/B **runtime PASS** on WordPress 7.0 and 7.1.3 for Notes source `1954e3152d69586bc83004dd886628b3cf3d99de` and Base `dcbf5da9b7729efde77cf508a3b90f2929b8d0b1`: JSON/Markdown export, owner-bound gated internal create-only import, repeat SKIP/journal, reexport, semantic fidelity and UTC timestamps, then independent cleanup preflights. See `docs/RC1-PORTABILITY-P4-TWO-SITE-ACCEPTANCE-20261021.md`.
+- One-batch public import and owner UI: **NOT YET ACCEPTED**. Public Base `SUPPORT_IMPORT` is deliberately disabled; Base `Engine::apply_json` + confirmed browser apply and its recovery/security/nonce controls still require a separately approved activation/test phase. Do not treat P4's internal adapter PASS as public import capability.
 - Any Base extension: **NOT PROPOSED / NOT IMPLEMENTED**.
 - Customer RC1 / Golden: **NO-GO** pending the complete above evidence.
