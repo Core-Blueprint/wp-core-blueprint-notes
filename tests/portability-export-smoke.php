@@ -124,6 +124,10 @@ namespace {
         echo "PASS: $label\n";
     }
 
+    // Load the real session guard: NotesEntity::can_import() is denied
+    // outside an attested request, even with a forged context. This smoke
+    // uses direct requires rather than the plugin's WordPress autoloader.
+    require dirname(__DIR__) . '/src/Portability/ImportSession.php';
     require dirname(__DIR__) . '/src/Portability/NotesEntity.php';
     require dirname(__DIR__) . '/src/Portability/Provider.php';
 
@@ -159,6 +163,8 @@ namespace {
     $entity = ($entry['factory'])();
     expect($entity instanceof NotesEntity && $entity->schema_version() === 1, 'Versioned provider factory');
     expect($entity->can_export() && !$entity->can_import(), 'Owner export allowed but import remains unavailable');
+    expect(!$entity->can_import(['cb_notes_import_ticket' => 'forged']),
+        'Unattested import ticket refused even for authorized export owner');
     $records = $entity->export_records();
     expect(is_array($records) && count($records) === 3, 'Complete catalog plus two own Notes exported');
     expect($records[0]['record_type'] === 'catalog' && $records[0]['catalog']['tag'][0]['name'] === 'Governance', 'Catalog names and opaque IDs retained');
