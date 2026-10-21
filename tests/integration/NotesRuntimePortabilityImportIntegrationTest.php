@@ -101,6 +101,10 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
                 self::assertTrue($entity->can_import($context));
                 self::assertFalse($entity->can_import(['cb_notes_import_ticket' => 'forged']));
                 self::assertFalse($entity->can_import());
+                wp_set_current_user($f['source']);
+                self::assertFalse($entity->can_import($context), 'Changing actors must invalidate an import ticket.');
+                wp_set_current_user($f['target']);
+                self::assertTrue($entity->can_import($context));
                 $catalog_plan = $entity->plan_import(
                     $f['records'][0], Foundation::MODE_CREATE_ONLY, 1, $context
                 );
@@ -178,6 +182,16 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertCount(2, $destination['records']);
         self::assertSame($f['blocks'], $destination['records'][1]['content']);
         self::assertSame('private', $destination['records'][1]['status']);
+        self::assertSame(
+            $f['records'][1]['created_gmt'],
+            $destination['records'][1]['created_gmt'],
+            'Archive round-trip must preserve note creation time.'
+        );
+        self::assertSame(
+            $f['records'][1]['modified_gmt'],
+            $destination['records'][1]['modified_gmt'],
+            'Archive round-trip must preserve last modification time or explicitly fail acceptance.'
+        );
         self::assertSame(['Privacy'], array_column($destination['records'][0]['catalog']['tag'], 'name'));
         self::assertNotSame(
             $f['records'][1]['notebook_id'],
