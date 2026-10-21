@@ -5,6 +5,16 @@
 **Candidate source:** runner/tests implemented on the feature branch; runtime evidence is **NOT RUN**.  
 **Release:** P4 HOLD; RC1 Golden NO-GO. No Base, main, CI or production change.
 
+## First installed-site execution (source SHA 4f61d84, 21 Oct 2026)
+
+- WordPress 7.0 and 7.1.3: read-only P4 preflight PASS.
+- WordPress 7.0: freshly installed Site A and Site B with staged Base and Notes both reached the post-activation checkpoint.
+- First `wp eval-file` step failed before real JSON export/import with `strict_types declaration must be the very first statement`. This is a **P4 fixture execution incompatibility**, not proof of a Notes import defect.
+- Runner printed `cleanup completed with status 1`. This reflects the failing test's overall exit code; the output did **not** report a particular `DROP DATABASE` failure, but schema absence is not independently verified.
+- Runtime PASS **not awarded** for P4. WordPress 7.1.3 execute was correctly not started.
+- Test-only corrective work: removed `strict_types` from the WP-CLI eval-file fixture, installed a test-site-only `pre_wp_mail` interceptor before site installation, and added a read-only preflight inventory that refuses **any existing P4-namespaced schema** instead of adopting/dropping it.
+- The amended P4 source and real preflight must be rerun on the final exact SHA before any new executable batch. A new batch must receive its own operator approval for two fresh schemas per version. Protected historical schemas are never eligible for cleanup.
+
 ## Ownership and architecture
 
 P4 extends the existing Notes-owned `tools/check-integration` canonical Level 2 entrypoint. It does **not** create a second canonical runner or a second MariaDB service.
