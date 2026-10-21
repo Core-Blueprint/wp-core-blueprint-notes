@@ -13,7 +13,7 @@ The existing Notes `tools/check-integration` owns its Level 2 execution, require
 
 ## New required suite and scope
 
-- `tests/integration/NotesRuntimePortabilityImportIntegrationTest.php` extends `WP_UnitTestCase`. Its seven execution-oriented test methods are discovered by `tests/phpunit-notes.xml.dist` (all `integration/*Test.php`) and invoked through canonical `tools/check-integration`.
+- `tests/integration/NotesRuntimePortabilityImportIntegrationTest.php` extends `WP_UnitTestCase`. Its eight execution-oriented test methods are discovered by `tests/phpunit-notes.xml.dist` (all `integration/*Test.php`) and invoked through canonical `tools/check-integration`.
 - `tests/portability-level2-integration-contract.cjs` is a **source-only** guard, called by `tools/check`. It verifies disposable schema naming, mandatory read-only preflight and execute opt-in, PHPUnit discovery/failure flags, and that public import remains OFF. Its PASS is **never** a WordPress runtime PASS.
 
 ### Genuine WordPress test intentions
@@ -29,6 +29,7 @@ The existing Notes `tools/check-integration` owns its Level 2 execution, require
 | Catalog CAS failure | Real WordPress `add_user_metadata` filter prevents destination catalog write; no post or journal may be created |
 | Receipt postmeta omission | Real WordPress `add_post_metadata` filter omits receipt after post creation; second import may not duplicate the resulting ambiguous note |
 | Temporal fidelity | Source `created_gmt` and `modified_gmt` must survive re-export unchanged; any mismatch is a legitimate RED requiring implementation repair, not an acceptance relaxation |
+| Markdown archive runtime | Owner-only private ZIP must contain readable YAML Markdown and exact Gutenberg source sidecars; missing PHP ZipArchive is a required runtime blocker |
 
 **Scope limitation:** Two isolated owners in one WP PHPUnit installation is **not** independent source Site A → target Site B migration. That remains an additional required P4 installed-WordPress profile, with separate owned schemas, no shared data tables and normalized re-export comparison. Likewise, a single simulated failure is **not** complete concurrency/power-loss proof, and no one should claim the import is recoverable in all conditions yet.
 
