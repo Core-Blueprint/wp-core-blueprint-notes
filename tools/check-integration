@@ -5,6 +5,13 @@ bash -n "$0"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 fail() { printf 'Notes integration BLOCKED: %s\n' "$*" >&2; exit 1; }
 MODE="${1:---preflight}"
+# P4 is a second installed-WordPress *profile*, not a competing Level 2 entrypoint.
+# Its helper retains an independent new-only approval token and cleanup scope.
+if [[ "$MODE" == "--p4-preflight" || "$MODE" == "--p4-execute" ]]; then
+  [[ "$#" -eq 1 ]] || fail "P4 takes no extra arguments"
+  bash "$ROOT/tools/check-portability-p4" "--${MODE#--p4-}"
+  exit $?
+fi
 [[ "$#" -le 1 && ( "$MODE" == "--preflight" || "$MODE" == "--execute" ) ]] ||
   fail "Use --preflight or --execute"
 WP_VERSION="${CB_TEST_WP_VERSION:-7.0}"
