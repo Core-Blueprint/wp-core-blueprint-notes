@@ -79,39 +79,75 @@ final class ImportFlow {
                     || !in_array($result['status'] ?? null, ['complete', 'partial', 'failed'], true)) {
                     return self::error('cb_notes_import_result_invalid');
                 }
-                // Base counts the catalog as a record. User-visible Notes
-                // counts must come only from actually processed note entries.
+                // Base results include the catalog as record 0. Verify that
+                // every reported successful item belongs to our exact bound
+                // plan BEFORE showing a count. After apply may have written
+                // anything, an unknown result is RECOVERY, never "complete".
+                $plan = ImportSession::target_plan();
+                $expected = is_array($plan) ? $plan['plans'] ?? null : null;
+                $items = $result['items'] ?? null;
+                $valid = is_array($expected) && array_is_list($expected)
+                    && is_array($items) && array_is_list($items)
+                    && is_int($result['record_count'] ?? null)
+                    && $result['record_count'] === count($expected) + 1;
                 $applied_notes = 0;
                 $skipped_notes = 0;
-                foreach ($result['items'] ?? [] as $item) {
-                    if (!is_array($item)
-                        || !is_string($item['reference'] ?? null)
-                        || preg_match('/^note:[1-9][0-9]*$/D', $item['reference']) !== 1) {
-                        continue;
-                    }
-                    if (($item['operation'] ?? null) === Foundation::OP_CREATE) {
-                        ++$applied_notes;
-                    } elseif (($item['operation'] ?? null) === Foundation::OP_SKIP) {
-                        ++$skipped_notes;
+                $base_applied = 0;
+                $base_skipped = 0;
+                if ($valid) {
+                    foreach ($items as $position => $item) {
+                        $expected_ref = $position === 0 ? 'catalog:personal'
+                            : ($expected[$position - 1]['source_reference'] ?? null);
+                        $expected_op = $position === 0 ? Foundation::OP_CREATE
+                            : ($expected[$position - 1]['operation'] === 'skip'
+                                ? Foundation::OP_SKIP : Foundation::OP_CREATE);
+                        if (!is_array($item) || ($item['index'] ?? null) !== $position
+                            || ($item['reference'] ?? null) !== $expected_ref
+                            || !in_array($item['operation'] ?? null,
+                                [Foundation::OP_CREATE, Foundation::OP_SKIP], true)
+                            || $item['operation'] !== $expected_op) {
+                            $valid = false;
+                            break;
+                        }
+                        if ($item['operation'] === Foundation::OP_CREATE) {
+                            ++$base_applied;
+                            if ($position > 0) {
+                                ++$applied_notes;
+                            }
+                        } else {
+                            ++$base_skipped;
+                            if ($position > 0) {
+                                ++$skipped_notes;
+                            }
+                        }
                     }
                 }
+                $valid = $valid && ($result['applied_count'] ?? null) === $base_applied
+                    && ($result['skipped_count'] ?? null) === $base_skipped
+                    && (
+                        ($result['status'] === 'complete' && count($items) === count($expected) + 1)
+                        || ($result['status'] !== 'complete' && is_int($result['failed_index'] ?? null)
+                            && $result['failed_index'] === count($items)
+                            && count($items) < count($expected) + 1)
+                    );
+                $error_code = is_array($result['error'] ?? null)
+                    && is_string($result['error']['code'] ?? null)
+                    ? $result['error']['code'] : '';
+                $review = !$valid || $result['status'] === 'partial'
+                    || in_array($error_code, [
+                        'cb_notes_import_create_uncertain',
+                        'cb_notes_import_timestamp_write_failed',
+                        'cb_notes_import_journal_needs_review',
+                        'cb_notes_import_journal_completion_failed',
+                        'cb_notes_import_journal_write_failed',
+                    ], true);
                 return [
-                    'status' => $result['status'],
-                    'applied_count' => $applied_notes,
-                    'skipped_count' => $skipped_notes,
+                    'status' => $valid ? $result['status'] : 'recovery',
+                    'applied_count' => $valid ? $applied_notes : 0,
+                    'skipped_count' => $valid ? $skipped_notes : 0,
                     'failed_index' => is_int($result['failed_index'] ?? null)
                         ? $result['failed_index'] : null,
-                    'needs_review' => ($result['status'] ?? null) !== 'complete'
-                        && (
-                            ($result['status'] ?? null) === 'partial'
-                            || in_array($result['error']['code'] ?? null, [
-                                'cb_notes_import_create_uncertain',
-                                'cb_notes_import_timestamp_write_failed',
-                                'cb_notes_import_journal_needs_review',
-                                'cb_notes_import_journal_completion_failed',
-                                'cb_notes_import_journal_write_failed',
-                            ], true)
-                        ),
+                    'needs_review' => $review,
                 ];
             }
         );

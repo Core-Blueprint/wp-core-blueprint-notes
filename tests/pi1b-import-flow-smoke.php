@@ -25,11 +25,14 @@ namespace CoreBlueprint\Core\DataExchange {
                 return new \WP_Error('stale', 'Target plan changed');
             }
             ++$GLOBALS['mutations'];
-            return ['status' => 'complete', 'applied_count' => 2, 'skipped_count' => 0,
-                'items' => [
-                    ['operation' => 'create', 'reference' => 'catalog:personal'],
-                    ['operation' => 'create', 'reference' => 'note:9'],
-                ]];
+            return ['status' => 'complete', 'record_count' => 2,
+                'applied_count' => 2, 'skipped_count' => 0,
+                'items' => ($GLOBALS['truncate_result'] ?? false)
+                    ? [['index'=>0,'operation'=>'create','reference'=>'catalog:personal']]
+                    : [
+                        ['index'=>0,'operation'=>'create','reference'=>'catalog:personal'],
+                        ['index'=>1,'operation'=>'create','reference'=>'note:9'],
+                    ]];
         }
     }
 }
@@ -45,7 +48,7 @@ namespace CB\Notes\Portability {
             return [
                 'create_count' => 1, 'skip_count' => 0, 'record_count' => 1,
                 'catalog' => ['notebook' => [['id'=>'ab']]], 'previous_catalog' => ['notebook' => []],
-                'plans' => [['warnings' => []]],
+                'plans' => [['source_reference' => 'note:9', 'operation' => 'create', 'warnings' => []]],
             ];
         }
     }
@@ -86,6 +89,13 @@ namespace {
     assert_flow(is_array($result) && $result['status'] === 'complete'
         && $result['applied_count'] === 1 && $result['skipped_count'] === 0
         && $GLOBALS['mutations'] === 1, 'only actually applied Notes counted, catalog excluded');
+    $GLOBALS['truncate_result'] = true;
+    $ambiguous = ImportFlow::apply_json($archive, $preview['file_sha256'],
+        $preview['base_fingerprint']);
+    assert_flow(is_array($ambiguous) && $ambiguous['status'] === 'recovery'
+        && $ambiguous['needs_review'] === true && $ambiguous['applied_count'] === 0,
+        'truncated Base success must never become false green after writes');
+    unset($GLOBALS['truncate_result']);
     $GLOBALS['actor'] = 0;
     assert_flow(ImportFlow::apply_json($archive, $preview['file_sha256'],
         $preview['base_fingerprint']) instanceof WP_Error && $GLOBALS['mutations'] === 1,
