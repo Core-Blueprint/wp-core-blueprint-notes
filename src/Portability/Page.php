@@ -7,19 +7,23 @@ use CB\Notes\Plugin;
 use CoreBlueprint\Core\UI\AdminTheme;
 
 /**
- * Notes owner-facing portability entrypoint. Export is read-only. JSON upload
- * only previews; no import apply action is registered in the current batch.
+ * Owner-only JSON/Markdown export and explicit two-request Base-backed import.
+ * Product candidate only; browser runtime/security acceptance is still HOLD.
  */
 final class Page {
     private const SLUG = 'cb-notes-portability';
     private const ACTION = 'cb_notes_portability_export';
     private const PREVIEW_NONCE = 'cb_notes_portability_preview';
+    private const CONFIRM_ACTION = 'cb_notes_portability_confirm';
+    private const CONFIRM_NONCE = 'cb_notes_portability_confirm_nonce';
+    private const RESULT_PREFIX = 'cb_notes_import_status_v1_';
     private static string $hook = '';
 
     public static function init(): void {
         add_action('admin_menu', [self::class, 'register_menu'], 15);
         add_action('admin_menu', [self::class, 'hide_menu_row'], 50);
         add_action('admin_post_' . self::ACTION, [self::class, 'download']);
+        add_action('admin_post_' . self::CONFIRM_ACTION, [self::class, 'confirm_import']);
     }
 
     public static function url(): string {
@@ -96,9 +100,8 @@ final class Page {
         exit;
     }
 
-    /** @return array|\WP_Error */
-    private static function preview_upload(): array|\WP_Error {
-        check_admin_referer(self::PREVIEW_NONCE);
+    /** @return string|\WP_Error */
+    private static function uploaded_json(): string|\WP_Error {
         $upload = $_FILES['notes_json'] ?? null;
         if (!is_array($upload) || !isset($upload['error'], $upload['size'], $upload['tmp_name'])
             || $upload['error'] !== UPLOAD_ERR_OK || !is_int($upload['size'])
@@ -106,17 +109,87 @@ final class Page {
             || !is_string($upload['tmp_name']) || !is_uploaded_file($upload['tmp_name'])) {
             return new \WP_Error('cb_notes_import_upload_invalid', 'The Notes import file is invalid.');
         }
-        $json = file_get_contents($upload['tmp_name'], false, null, 0, 10 * 1024 * 1024 + 1);
-        if (!is_string($json) || strlen($json) !== $upload['size']) {
+        $bytes = file_get_contents($upload['tmp_name'], false, null, 0, 10 * 1024 * 1024 + 1);
+        if (!is_string($bytes) || strlen($bytes) !== $upload['size']) {
             return new \WP_Error('cb_notes_import_upload_invalid', 'The Notes import file could not be read.');
         }
-        // Strict owner-scoped complete file preflight; no import mutation and
-        // no persistent copy of the untrusted archive.
-        return ImportSession::with_validated_json($json, static function (array $context) use ($json): array|\WP_Error {
-            $decoded = json_decode($json, true, 32, JSON_THROW_ON_ERROR);
-            $catalog = ImportSession::record($decoded['records'][0], $context);
-            return $catalog instanceof \WP_Error ? $catalog : $catalog['preview'];
-        });
+        return $bytes;
+    }
+
+    /** @return array|\WP_Error */
+    private static function preview_upload(): array|\WP_Error {
+        check_admin_referer(self::PREVIEW_NONCE);
+        $bytes = self::uploaded_json();
+        return $bytes instanceof \WP_Error ? $bytes : ImportFlow::preview_json($bytes);
+    }
+
+    /** A separate admin-post action ensures refresh can never repeat apply. */
+    public static function confirm_import(): void {
+        if (!self::owner()) {
+            wp_die(esc_html__('Access denied.', 'core-blueprint-notes'), '', ['response' => 403]);
+        }
+        check_admin_referer(self::CONFIRM_NONCE);
+        $ack = isset($_POST['cb_notes_confirm_create_only']) && is_string($_POST['cb_notes_confirm_create_only'])
+            ? wp_unslash($_POST['cb_notes_confirm_create_only']) : '';
+        $fingerprint = isset($_POST['cb_notes_base_fingerprint']) && is_string($_POST['cb_notes_base_fingerprint'])
+            ? wp_unslash($_POST['cb_notes_base_fingerprint']) : '';
+        $file_sha = isset($_POST['cb_notes_file_sha256']) && is_string($_POST['cb_notes_file_sha256'])
+            ? wp_unslash($_POST['cb_notes_file_sha256']) : '';
+        if ($ack !== '1' || preg_match('/^[a-f0-9]{64}$/D', $fingerprint) !== 1
+            || preg_match('/^[a-f0-9]{64}$/D', $file_sha) !== 1) {
+            wp_die(esc_html__('The import confirmation is invalid.', 'core-blueprint-notes'),
+                '', ['response' => 400]);
+        }
+        $bytes = self::uploaded_json();
+        $result = $bytes instanceof \WP_Error
+            ? $bytes : ImportFlow::apply_json($bytes, $file_sha, $fingerprint);
+        $state = [
+            'status' => 'failed',
+            'applied' => 0,
+            'skipped' => 0,
+        ];
+        if ($result instanceof \WP_Error) {
+            $code = $result->get_error_code();
+            $state['status'] = str_starts_with($code, 'cb_notes_import_journal_')
+                || in_array($code, ['cb_notes_import_create_uncertain', 'cb_notes_import_timestamp_write_failed'], true)
+                    ? 'recovery' : 'failed';
+        } elseif (is_array($result)) {
+            $state['status'] = !empty($result['needs_review']) ? 'recovery' : $result['status'];
+            $state['applied'] = (int)($result['applied_count'] ?? 0);
+            $state['skipped'] = (int)($result['skipped_count'] ?? 0);
+        }
+        try {
+            $token = bin2hex(random_bytes(16));
+        } catch (\Throwable $throwable) {
+            unset($throwable);
+            wp_die(esc_html__('Import status is unavailable. Check your Notes before trying again.', 'core-blueprint-notes'),
+                '', ['response' => 503]);
+        }
+        $key = self::RESULT_PREFIX . get_current_user_id() . '_' . $token;
+        if (!set_transient($key, $state, 2 * MINUTE_IN_SECONDS)) {
+            wp_die(esc_html__('Import status is unavailable. Check your Notes before trying again.', 'core-blueprint-notes'),
+                '', ['response' => 503]);
+        }
+        nocache_headers();
+        wp_safe_redirect(add_query_arg('cb_notes_import_result', $token, self::url()), 303);
+        exit;
+    }
+
+    /** @return array|null */
+    private static function consume_result(): ?array {
+        $token = isset($_GET['cb_notes_import_result']) && is_string($_GET['cb_notes_import_result'])
+            ? wp_unslash($_GET['cb_notes_import_result']) : '';
+        if (preg_match('/^[a-f0-9]{32}$/D', $token) !== 1) {
+            return null;
+        }
+        $key = self::RESULT_PREFIX . get_current_user_id() . '_' . $token;
+        $value = get_transient($key);
+        delete_transient($key);
+        if (!is_array($value) || !in_array($value['status'] ?? null,
+            ['complete', 'partial', 'failed', 'recovery'], true)) {
+            return null;
+        }
+        return $value;
     }
 
     public static function render(): void {
@@ -124,6 +197,7 @@ final class Page {
             wp_die(esc_html__('Access denied.', 'core-blueprint-notes'), '', ['response' => 403]);
         }
         $preview = null;
+        $result = self::consume_result();
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             $action = isset($_POST['cb_notes_portability_intent'])
                 && is_string($_POST['cb_notes_portability_intent'])
@@ -151,7 +225,7 @@ final class Page {
         echo '<button type="submit" class="button cb-core-button cb-core-button--secondary" name="format" value="markdown">'
             . esc_html__('Export Markdown ZIP', 'core-blueprint-notes') . '</button></form></section>';
         echo '<section class="cb-core-panel"><h2>' . esc_html__('Import preview', 'core-blueprint-notes') . '</h2>';
-        echo '<p>' . esc_html__('Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes.', 'core-blueprint-notes') . '</p>';
+        echo '<p>' . esc_html__('Import notes into your own Library. A changed export can create duplicates. Imports never restore sharing grants, attachments or revisions.', 'core-blueprint-notes') . '</p>';
         echo '<form method="post" enctype="multipart/form-data" action="' . esc_url(self::url()) . '">';
         wp_nonce_field(self::PREVIEW_NONCE);
         echo '<input type="hidden" name="cb_notes_portability_intent" value="preview">';
@@ -159,18 +233,51 @@ final class Page {
         echo '<input id="cb-notes-import-file" type="file" name="notes_json" accept=".json,application/json" required> ';
         echo '<button type="submit" class="button cb-core-button cb-core-button--primary">'
             . esc_html__('Preview import', 'core-blueprint-notes') . '</button></form>';
+        if ($result !== null) {
+            $success = $result['status'] === 'complete';
+            echo '<div class="notice ' . ($success ? 'notice-success' : 'notice-warning')
+                . '" role="status"><p>';
+            if ($success) {
+                echo esc_html(sprintf(
+                    /* translators: 1: imported Notes, 2: skipped Notes */
+                    __('Import complete: %1$d applied, %2$d skipped.', 'core-blueprint-notes'),
+                    (int)$result['applied'], (int)$result['skipped']
+                ));
+            } elseif ($result['status'] === 'recovery' || $result['status'] === 'partial') {
+                echo esc_html__('Import may be incomplete. Recovery review is required before retrying.', 'core-blueprint-notes');
+            } else {
+                echo esc_html__('Import could not be confirmed. No success is claimed. Review the archive before retrying.', 'core-blueprint-notes');
+            }
+            echo '</p></div>';
+        }
         if ($preview instanceof \WP_Error) {
             echo '<div class="notice notice-error" role="alert"><p>'
-                . esc_html__('The archive could not be validated. No notes were changed.', 'core-blueprint-notes')
+                . esc_html__('The archive could not be validated or has an import conflict. No notes were changed by preview.', 'core-blueprint-notes')
                 . '</p></div>';
         } elseif (is_array($preview)) {
             echo '<div class="notice notice-info" role="status"><p>'
                 . esc_html(sprintf(
                     /* translators: 1: number of new notes, 2: number of notes to skip */
                     __('Preview: %1$d new notes, %2$d already imported. No changes made.', 'core-blueprint-notes'),
-                    (int)$preview['create_count'],
-                    (int)$preview['skip_count']
+                    (int)$preview['create_count'], (int)$preview['skip_count']
                 )) . '</p></div>';
+            echo '<p>' . esc_html__('Review the destination and reselect the exact same JSON file below. Changed archives may duplicate previously imported notes. Imported Notes will be draft or private and unshared.', 'core-blueprint-notes') . '</p>';
+            echo '<form method="post" enctype="multipart/form-data" action="' . esc_url(admin_url('admin-post.php')) . '">';
+            echo '<input type="hidden" name="action" value="' . esc_attr(self::CONFIRM_ACTION) . '">';
+            echo '<input type="hidden" name="cb_notes_base_fingerprint" value="'
+                . esc_attr($preview['base_fingerprint']) . '">';
+            echo '<input type="hidden" name="cb_notes_file_sha256" value="'
+                . esc_attr($preview['file_sha256']) . '">';
+            wp_nonce_field(self::CONFIRM_NONCE);
+            echo '<label for="cb-notes-confirm-file">'
+                . esc_html__('Select the same Notes JSON file again', 'core-blueprint-notes')
+                . '</label> ';
+            echo '<input id="cb-notes-confirm-file" type="file" name="notes_json" accept=".json,application/json" required>';
+            echo '<p><label><input type="checkbox" name="cb_notes_confirm_create_only" value="1" required> '
+                . esc_html__('I confirm create-only import into my own Notes Library, including possible duplicates from changed exports.', 'core-blueprint-notes')
+                . '</label></p>';
+            echo '<button type="submit" class="button cb-core-button cb-core-button--primary">'
+                . esc_html__('Confirm import', 'core-blueprint-notes') . '</button></form>';
         }
         echo '</section></div>';
     }
