@@ -13,6 +13,8 @@ const infra = read('tools/check-test-infrastructure');
 const config = read('tests/wp-tests-config.php');
 const phpunit = read('tests/phpunit-notes.xml.dist');
 const suite = read('tests/integration/NotesRuntimePortabilityImportIntegrationTest.php');
+assert.ok(!suite.includes('self::assertWPError('),
+    'WordPress PHPUnit assertWPError is an instance assertion, including in callbacks');
 const provider = read('src/Portability/Provider.php');
 const page = read('src/Portability/Page.php');
 
