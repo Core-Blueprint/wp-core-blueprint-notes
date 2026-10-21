@@ -10,7 +10,7 @@ use CB\Notes\Plugin;
 use CoreBlueprint\Core\DataExchange\EntityInterface;
 use CoreBlueprint\Core\DataExchange\Foundation;
 
-/** Owner-only, read-only first slice of Notes Data Exchange schema v1. */
+/** Owner-scoped Data Exchange v1: export and ticket-gated create-only import. */
 final class NotesEntity implements EntityInterface {
     private const STATUSES = ['draft', 'private', 'pending', 'future', 'publish'];
     private const PAGE_SIZE = 100;
@@ -25,7 +25,7 @@ final class NotesEntity implements EntityInterface {
 
     public function supports_schema_version(int $schema_version): bool {
         // The entity understands schema v1, but Base must still require the
-        // independently accepted/advertised import capability.
+        // advertised import capability and a valid, request-local Notes ticket.
         return $schema_version === 1;
     }
 

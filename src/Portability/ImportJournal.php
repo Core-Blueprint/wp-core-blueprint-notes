@@ -10,8 +10,8 @@ use CB\Notes\Plugin;
  * result must NEVER be retried automatically: doing so could duplicate a
  * WordPress post created before a subsequent metadata/journal write failed.
  *
- * This class has no WordPress hooks and cannot be invoked by a web request
- * until the whole-document import service is independently accepted.
+ * This class registers no route; requests enter through the owner-only import
+ * workflow after whole-document attestation and confirmation.
  */
 final class ImportJournal {
     private const PREFIX = 'cb_notes_import_receipt_v1_';

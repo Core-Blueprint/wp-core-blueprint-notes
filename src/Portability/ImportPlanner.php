@@ -7,8 +7,8 @@ use CoreBlueprint\Core\DataExchange\Foundation;
 
 /**
  * Pure bridge from a verified Notes whole-document import session to Base's
- * public per-record plan format. There are NO writes here. Registration of
- * SUPPORT_IMPORT remains explicitly disabled until P2-B is runtime-approved.
+ * public per-record plan format. This remains read-only. The advertised
+ * SUPPORT_IMPORT capability is gated by an authorized ImportSession.
  */
 final class ImportPlanner {
     public static function plan_record(

@@ -12,10 +12,10 @@ use CoreBlueprint\Core\DataExchange\Engine;
 use CoreBlueprint\Core\DataExchange\Foundation;
 
 /**
- * P2-B real WordPress / MariaDB acceptance for the DORMANT Notes import path.
+ * Real WordPress / MariaDB acceptance of the session-gated Notes import path.
  *
- * Deliberately exercises private session-gated entity callbacks, never
- * supplies a verified private Base Engine ticket or a nonce-confirmed owner action.
+ * Exercises private entity callbacks and the Base fingerprint orchestration,
+ * but not the nonce-confirmed owner browser/HTTP action.
  * This is a two-OWNER test inside ONE disposable WP installation. A separate
  * source/destination WordPress-site round-trip remains required for Golden.
  */

@@ -1476,10 +1476,6 @@ msgid "Import preview"
 msgstr "Importvoorbeeld"
 
 #: src/Portability/Page.php
-msgid "Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes."
-msgstr "Importeren is nog niet ingeschakeld. Je kunt het hele archief controleren en het doelplan bekijken zonder notities te wijzigen."
-
-#: src/Portability/Page.php
 msgid "Select Notes JSON file"
 msgstr "Selecteer Notes JSON-bestand"
 
@@ -1488,11 +1484,57 @@ msgid "Preview import"
 msgstr "Import bekijken"
 
 #: src/Portability/Page.php
-msgid "The archive could not be validated. No notes were changed."
-msgstr "Het archief kon niet worden gevalideerd. Er zijn geen notities gewijzigd."
-
-#: src/Portability/Page.php
 #. translators: 1: new notes, 2: already imported notes
 #, php-format
 msgid "Preview: %1$d new notes, %2$d already imported. No changes made."
 msgstr "Voorbeeld: %1$d nieuwe notities, %2$d al geïmporteerd. Geen wijzigingen aangebracht."
+
+#: src/Portability/Page.php
+msgid "The import confirmation is invalid."
+msgstr "De importbevestiging is ongeldig."
+
+#: src/Portability/Page.php
+msgid "Import status is unavailable. Check your Notes before trying again."
+msgstr "De importstatus is niet beschikbaar. Controleer je notities voordat je het opnieuw probeert."
+
+#: src/Portability/Page.php
+msgid "Import notes into your own Library. A changed export can create duplicates. Imports never restore sharing grants, attachments or revisions."
+msgstr "Importeer notities in je eigen bibliotheek. Een gewijzigde export kan duplicaten veroorzaken. Imports herstellen nooit deelmachtigingen, bijlagen of revisies."
+
+#: src/Portability/Page.php
+#. translators: 1: imported Notes, 2: skipped Notes
+#, php-format
+msgid "Import complete: %1$d applied, %2$d skipped."
+msgstr "Import voltooid: %1$d toegepast, %2$d overgeslagen."
+
+#: src/Portability/Page.php
+msgid "Import may be incomplete. Recovery review is required before retrying."
+msgstr "De import is mogelijk onvolledig. Een herstelcontrole is vereist voordat je het opnieuw probeert."
+
+#: src/Portability/Page.php
+msgid "Import could not be confirmed. No success is claimed. Review the archive before retrying."
+msgstr "De import kon niet worden bevestigd. Er wordt geen succes gemeld. Controleer het archief voordat je het opnieuw probeert."
+
+#: src/Portability/Page.php
+msgid "An earlier import or site mapping requires administrator review. Do not retry or reset import data."
+msgstr "Een eerdere import of sitemapping vereist controle door een beheerder. Probeer het niet opnieuw en reset geen importgegevens."
+
+#: src/Portability/Page.php
+msgid "The archive could not be validated or has an import conflict. No notes were changed by preview."
+msgstr "Het archief kon niet worden gevalideerd of bevat een importconflict. Tijdens het bekijken van het voorbeeld zijn geen notities gewijzigd."
+
+#: src/Portability/Page.php
+msgid "Review the destination and reselect the exact same JSON file below. Changed archives may duplicate previously imported notes. Imported Notes will be draft or private and unshared."
+msgstr "Controleer de bestemming en selecteer hieronder exact hetzelfde JSON-bestand opnieuw. Gewijzigde archieven kunnen duplicaten maken van eerder geïmporteerde notities. Geïmporteerde notities krijgen de status concept of privé en worden niet gedeeld."
+
+#: src/Portability/Page.php
+msgid "Select the same Notes JSON file again"
+msgstr "Selecteer hetzelfde Notes JSON-bestand opnieuw"
+
+#: src/Portability/Page.php
+msgid "I confirm create-only import into my own Notes Library, including possible duplicates from changed exports."
+msgstr "Ik bevestig dat ik alleen nieuwe notities importeer in mijn eigen Notes-bibliotheek, inclusief mogelijke duplicaten uit gewijzigde exports."
+
+#: src/Portability/Page.php
+msgid "Confirm import"
+msgstr "Import bevestigen"

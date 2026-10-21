@@ -7,7 +7,7 @@ use CoreBlueprint\Core\DataExchange\EntityInterface;
 use CoreBlueprint\Core\DataExchange\Foundation;
 use CoreBlueprint\Core\Interoperability\Registry;
 
-/** Public Base Data Exchange registration; no HTTP endpoints or import mutations. */
+/** Discoverable Base descriptor; import still requires a private Notes session. */
 final class Provider {
     public static function register(): void {
         if (!interface_exists(EntityInterface::class) || !class_exists(Foundation::class)) {

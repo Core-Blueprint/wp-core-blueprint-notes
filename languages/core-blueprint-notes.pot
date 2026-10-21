@@ -1379,10 +1379,6 @@ msgid "Import preview"
 msgstr ""
 
 #: src/Portability/Page.php
-msgid "Importing is not yet enabled. You can check the complete archive and see its destination plan without changing notes."
-msgstr ""
-
-#: src/Portability/Page.php
 msgid "Select Notes JSON file"
 msgstr ""
 
@@ -1391,11 +1387,57 @@ msgid "Preview import"
 msgstr ""
 
 #: src/Portability/Page.php
-msgid "The archive could not be validated. No notes were changed."
-msgstr ""
-
-#: src/Portability/Page.php
 #. translators: 1: new notes, 2: already imported notes
 #, php-format
 msgid "Preview: %1$d new notes, %2$d already imported. No changes made."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "The import confirmation is invalid."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Import status is unavailable. Check your Notes before trying again."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Import notes into your own Library. A changed export can create duplicates. Imports never restore sharing grants, attachments or revisions."
+msgstr ""
+
+#: src/Portability/Page.php
+#. translators: 1: imported Notes, 2: skipped Notes
+#, php-format
+msgid "Import complete: %1$d applied, %2$d skipped."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Import may be incomplete. Recovery review is required before retrying."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Import could not be confirmed. No success is claimed. Review the archive before retrying."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "An earlier import or site mapping requires administrator review. Do not retry or reset import data."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "The archive could not be validated or has an import conflict. No notes were changed by preview."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Review the destination and reselect the exact same JSON file below. Changed archives may duplicate previously imported notes. Imported Notes will be draft or private and unshared."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Select the same Notes JSON file again"
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "I confirm create-only import into my own Notes Library, including possible duplicates from changed exports."
+msgstr ""
+
+#: src/Portability/Page.php
+msgid "Confirm import"
 msgstr ""

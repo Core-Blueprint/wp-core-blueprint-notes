@@ -7,7 +7,7 @@ use CB\Notes\Organization\Catalog;
 
 /**
  * P2-A: deterministic, read-only destination plan for a complete validated
- * archive. Deliberately does not expose EntityInterface import capability.
+ * archive. It grants no import authority; ImportSession controls that boundary.
  */
 final class ImportPreview {
     private const KINDS = ['notebook', 'category', 'tag'];

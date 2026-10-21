@@ -9,11 +9,11 @@ use CB\Notes\Plugin;
 use CoreBlueprint\Core\DataExchange\Foundation;
 
 /**
- * Inert P2-B import write adapter, deliberately NOT advertised by Provider.
+ * Owner-bound create-only import writer, reached only through an attested Notes session.
  * Fail-closed, create-only, validates each Base plan against its exact signed
  * whole-document ImportSession. A pending journal receipt prohibits retry.
  *
- * This is not RC1 accepted until real WordPress failure-injection tests pass.
+ * WordPress Level 2 is covered; independent P4 and browser acceptance remain open.
  */
 final class ImportApplier {
     public static function apply(array $plan, array $context): array|\WP_Error {
