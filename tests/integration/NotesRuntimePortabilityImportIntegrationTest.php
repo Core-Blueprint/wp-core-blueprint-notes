@@ -52,7 +52,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
             'post_type' => Plugin::TYPE,
             'post_author' => $source,
             'post_status' => 'private',
-            'post_title' => 'Migratie \u{00E9}n governance',
+            'post_title' => 'Migratie én governance',
             'post_content' => $blocks,
         ]);
         self::assertGreaterThan(0, $note_id);
@@ -139,7 +139,7 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertInstanceOf(WP_Post::class, $saved);
         self::assertSame($f['target'], (int) $saved->post_author);
         self::assertSame('private', $saved->post_status);
-        self::assertSame('Migratie \u{00E9}n governance', $saved->post_title);
+        self::assertSame('Migratie én governance', $saved->post_title);
         self::assertSame($f['blocks'], $saved->post_content);
         $catalog = Catalog::catalog($f['target']);
         self::assertSame('Notes migration', $catalog['notebook'][0]['name']);
