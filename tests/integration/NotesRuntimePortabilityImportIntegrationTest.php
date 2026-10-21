@@ -61,6 +61,18 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         self::assertNotFalse(update_post_meta($note_id, Catalog::TAGS, [$tag]));
         self::assertNotFalse(update_post_meta($note_id, Markers::FAVORITE, '1'));
         self::assertNotFalse(update_post_meta($note_id, Markers::PINNED, '1'));
+        // Two distinct historical dates: never accidentally PASS when
+        // WordPress's fresh insert time is treated as the source modified time.
+        global $wpdb;
+        $created = '2024-04-11 10:00:00';
+        $modified = '2024-04-12 13:14:15';
+        self::assertSame(1, $wpdb->update($wpdb->posts, [
+            'post_date' => $created,
+            'post_date_gmt' => $created,
+            'post_modified' => $modified,
+            'post_modified_gmt' => $modified,
+        ], ['ID' => $note_id], ['%s', '%s', '%s', '%s'], ['%d']));
+        clean_post_cache($note_id);
         $json = Engine::export_json('core-blueprint-notes', 'personal-notes');
         self::assertIsString($json, 'Real Base must export the complete Notes envelope.');
         $decoded = json_decode($json, true, 32, JSON_THROW_ON_ERROR);
