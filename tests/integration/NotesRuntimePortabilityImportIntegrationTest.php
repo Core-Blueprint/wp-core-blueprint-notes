@@ -454,6 +454,29 @@ final class NotesRuntimePortabilityImportIntegrationTest extends WP_UnitTestCase
         $this->assertWPError(\CB\Notes\Portability\ImportFlow::preview_json($f['json']));
     }
 
+    public function test_mapping_ids_are_unchanged_by_auth_salt_rotation(): void {
+        $f = $this->fixture();
+        wp_set_current_user($f['target']);
+        $before = ImportSession::with_validated_json($f['json'],
+            static fn(array $context): array|\WP_Error => ImportSession::target_plan());
+        self::assertIsArray($before);
+        $rotate = static function (string $salt, string $scheme): string {
+            return $scheme === 'auth' ? str_repeat('Z', 64) : $salt;
+        };
+        add_filter('salt', $rotate, 999, 2);
+        try {
+            $after = ImportSession::with_validated_json($f['json'],
+                static fn(array $context): array|\WP_Error => ImportSession::target_plan());
+            self::assertIsArray($after);
+            self::assertSame($before['source_id_map'], $after['source_id_map'],
+                'Salt rotation must not change destination owner catalog IDs.');
+            self::assertSame($before['fingerprint'], $after['fingerprint']);
+        } finally {
+            remove_filter('salt', $rotate, 999);
+        }
+        self::assertCount(0, $this->target_posts($f['target']));
+    }
+
     public function test_real_wordpress_insert_failure_leaves_reviewable_pending_intent(): void {
         $f = $this->fixture();
         wp_set_current_user($f['target']);

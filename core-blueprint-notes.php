@@ -71,11 +71,10 @@ function cb_notes_activate(): void {
     }
     \CB\Notes\Plugin::grant_roles();
     \CB\Notes\Plugin::register_content();
-    $mapping_ready = \CB\Notes\Portability\MappingSeed::provision();
-    if ($mapping_ready instanceof \WP_Error) {
-        deactivate_plugins(CB_NOTES_BASENAME);
-        wp_die(esc_html('Notes import mapping could not be safely provisioned.'), '', ['response' => 422]);
-    }
+    // Import provisioning is independent of basic Notes functionality.
+    // If an old/corrupt import state exists, keep Notes usable and make
+    // ONLY import fail closed until the site is reviewed.
+    \CB\Notes\Portability\MappingSeed::provision();
     \CB\Notes\Sharing\Controller::register();
     flush_rewrite_rules();
 }
