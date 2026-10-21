@@ -25,6 +25,17 @@
 - The runner logged `cleanup attempted; overall exitcode=1` with no explicit DROP failure. Pre-existing schema inventory was PASS before this run; subsequent fresh preflight is required to independently confirm absence of stranded P4 databases. Do not assume the failing process status alone proves cleanup.
 - Source/test gate on the exact new SHA and real WP-CLI argument probe remain **NOT RUN** by the operator. No P4 runtime PASS awarded. A fresh SQL-execute batch requires a new explicit operator GO.
 
+## Third installed-site execution (source SHA e088416e, 21 October 2026)
+
+- Read-only preflight + real WP-CLI argument probe PASS for WordPress 7.0 and 7.1.3.
+- WordPress 7.0 installed two independent real sites and registered Base and Notes. Two newly created Notes P4 schemas: `core_blueprint_notes_p4_1d4a877f0547_a_test` and `core_blueprint_notes_p4_1d4a877f0547_b_test`. Their cleanup was **attempted**; no DROP error was reported, but schema absence still requires an independent read-only preflight.
+- Genuine Site A owner JSON and Markdown ZIP export PASS; Site B target preparation PASS; actual owner-bound create-only import PASS; repeated independent WP-CLI import SKIP/journal PASS; destination owner-only JSON reexport PASS.
+- Final semantic comparison FAILED on `semantic content, statuses, Gutenberg, classifications, markers and UTC timestamps`. This is a real data-fidelity RED, not a CLI fixture problem; the test did not disclose which field(s) differ.
+- Source-backed diagnosis: `ImportApplier::write_note()` previously passed `created_gmt` on insertion but never restored `modified_gmt`. WordPress assigns a fresh modification time. This is a credible defect; no post-patch real WP confirmation yet.
+- Corrective code now restores both original UTC and local dates with an owner/post-type-constrained SQL update, verifies the cached/reloaded post timestamps, and only then completes the import journal. A failed update must remain pending and prohibit automatic retry.
+- Mocked fault-injection exercises denied database timestamp updates, no premature journal completion and no duplicate retry. Real WordPress PHPUnit timestamp fixture now uses distinct historical created/modified dates. P4 reporting will disclose **field names only** for any remaining mismatch, never note bodies or labels.
+- Source checks and WP 7.0/7.1.3 runtime on the amended SHA are **NOT RUN**. Do not award P4 Golden; public `SUPPORT_IMPORT` remains disabled. A new operator GO is required before creating fresh P4 schemas.
+
 ## Ownership and architecture
 
 P4 extends the existing Notes-owned `tools/check-integration` canonical Level 2 entrypoint. It does **not** create a second canonical runner or a second MariaDB service.
