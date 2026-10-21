@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Internal P4 helper called from the canonical Notes check-integration.
+# Preflight is read-only; execute owns exactly two NEW disposable schemas.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MODE="${1:---preflight}"
+fail() { printf 'Notes P4 BLOCKED: %s\n' "$*" >&2; exit 1; }
+[[ "$#" == 1 && ( "$MODE" == --preflight || "$MODE" == --execute ) ]] ||
+  fail "P4 expects only --preflight or --execute"
+WP_VERSION="${CB_TEST_WP_VERSION:-7.0}"
+case "$WP_VERSION" in 7.0|7.1.3) ;; *) fail "Unsupported WP version" ;; esac
+BASE="${CB_TEST_BASE_SOURCE:-$HOME/Downloads/wp-core-blueprint}"
+WORK="${CB_TEST_ROOT:-$HOME/Downloads/.core-blueprint-tests/core-blueprint-notes}"
+[[ "$WORK" == /* && "$WORK" == */core-blueprint-notes && ! -L "$WORK" &&
+   "$WORK" != *$'\n'* && "$WORK" != *$'\r'* ]] || fail "Unsafe Notes-only work root"
+[[ -f "$BASE/core-blueprint.php" && -f "$ROOT/core-blueprint-notes.php" &&
+   -f "$ROOT/tests/portability/p4-site.php" ]] || fail "Canonical Base/Notes missing"
+[[ "$(git -C "$ROOT" branch --show-current)" ==
+   feature/notes-rc1-portability-roundtrip-batch-20261019 ]] ||
+  fail "Unexpected Notes branch"
+[[ -z "$(git -C "$ROOT" status --porcelain)" &&
+   -z "$(git -C "$BASE" status --porcelain)" ]] || fail "Dirty Base or Notes source"
+for cmd in docker curl tar git php wp flock mktemp cp sha256sum cut; do
+  command -v "$cmd" >/dev/null || fail "Missing dependency: $cmd"
+done
+php -r 'exit(class_exists("ZipArchive") ? 0 : 1);' ||
+  fail "PHP ZIP support is required for Markdown P4"
+# Existing shared helper must already be running on localhost, never started
+# or recreated by this script; protected schemas stay untouched.
+bash "$ROOT/tools/check-test-infrastructure"
+if [[ "$MODE" == --preflight ]]; then
+  printf 'Notes P4 preflight: PASS (WP %s; no sites or DBs created)\n' "$WP_VERSION"
+  exit 0
+fi
+[[ "${CB_NOTES_P4_DB_MUTATION_APPROVED:-}" == notes-p4-two-new-schemas-v1 ]] ||
+  fail "Separate operator authorization for two disposable P4 schemas required"
+umask 077
+[[ ! -L "$WORK/.p4.lock" ]] || fail "Unsafe lock path"
+mkdir -p "$WORK"
+exec 9>"$WORK/.p4.lock"
+flock -x 9
+TOKEN="$(php -r 'echo bin2hex(random_bytes(6));')"
+[[ "$TOKEN" =~ ^[a-f0-9]{12}$ ]] || fail "Bad random token"
+DB_A="core_blueprint_notes_p4_${TOKEN}_a_test"
+DB_B="core_blueprint_notes_p4_${TOKEN}_b_test"
+[[ "$DB_A" =~ ^core_blueprint_notes_p4_[a-f0-9]{12}_a_test$ &&
+   "$DB_B" =~ ^core_blueprint_notes_p4_[a-f0-9]{12}_b_test$ ]] ||
+  fail "Unsafe SQL schema name"
+RUN="$(mktemp -d "$WORK/p4.XXXXXXXX")"
+[[ -d "$RUN" && ! -L "$RUN" && "$RUN" == "$WORK"/p4.* ]] ||
+  fail "Unsafe created work directory"
+A="$RUN/site-a"
+B="$RUN/site-b"
+OWN_A=0
+OWN_B=0
+cleanup() {
+  local result=$?
+  trap - EXIT
+  if [[ "$OWN_B" == 1 ]]; then
+    docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+      -e "DROP DATABASE \`$DB_B\`;" >/dev/null ||
+      { printf 'Notes P4 cleanup failed for owned B schema %s\n' "$DB_B" >&2; result=1; }
+  fi
+  if [[ "$OWN_A" == 1 ]]; then
+    docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+      -e "DROP DATABASE \`$DB_A\`;" >/dev/null ||
+      { printf 'Notes P4 cleanup failed for owned A schema %s\n' "$DB_A" >&2; result=1; }
+  fi
+  if [[ -d "$RUN" && ! -L "$RUN" && "$RUN" == "$WORK"/p4.* ]]; then
+    rm -rf -- "$RUN" || result=1
+  fi
+  printf 'Notes P4 cleanup completed with status %s\n' "$result"
+  exit "$result"
+}
+trap cleanup EXIT
+printf 'Notes P4 source=%s Base=%s WP=%s\n' \
+  "$(git -C "$ROOT" rev-parse HEAD)" "$(git -C "$BASE" rev-parse HEAD)" "$WP_VERSION"
+docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+  -e "CREATE DATABASE \`$DB_A\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+OWN_A=1
+docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot \
+  -e "CREATE DATABASE \`$DB_B\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+OWN_B=1
+
+mkdir -p "$A" "$B" "$RUN/wp-source"
+curl --fail --silent --show-error --location --max-time 120 \
+  "https://wordpress.org/wordpress-$WP_VERSION.tar.gz" |
+  tar -xz --strip-components=1 -C "$RUN/wp-source"
+[[ -f "$RUN/wp-source/wp-settings.php" ]] || fail "WordPress distribution incomplete"
+stage_site() {
+  local label="$1" site="$2" database="$3"
+  cp -a "$RUN/wp-source/." "$site/"
+  mkdir -p "$site/wp-content/plugins/core-blueprint" "$site/wp-content/plugins/core-blueprint-notes"
+  tar -C "$BASE" --exclude='./.git' --exclude='./vendor' --exclude='./tests' \
+    --exclude='./tools' --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$site/wp-content/plugins/core-blueprint" -xf -
+  tar -C "$ROOT" --exclude='./.git' --exclude='./tests' --exclude='./tools' \
+    --exclude='./dist' --exclude='./.github' -cf - . |
+    tar -C "$site/wp-content/plugins/core-blueprint-notes" -xf -
+  [[ "$(sha256sum "$ROOT/src/Portability/NotesEntity.php" | cut -d' ' -f1)" ==
+     "$(sha256sum "$site/wp-content/plugins/core-blueprint-notes/src/Portability/NotesEntity.php" | cut -d' ' -f1)" ]] ||
+    fail "Site $label Notes source mismatch"
+  wp --path="$site" config create --dbname="$database" --dbuser=root --dbpass=root \
+    --dbhost=127.0.0.1:3307 --skip-check --quiet
+  wp --path="$site" core install --url="http://notes-p4-$label.test" \
+    --title="Notes P4 $label" --admin_user="p4_admin_$label" \
+    --admin_password="$(php -r 'echo bin2hex(random_bytes(24));')" \
+    --admin_email="p4_admin_$label@example.invalid" --skip-email --quiet
+  wp --path="$site" plugin activate core-blueprint --quiet
+  wp --path="$site" plugin activate core-blueprint-notes --quiet
+  wp --path="$site" eval 'if (!post_type_exists("cb_note")) { throw new RuntimeException("Notes CPT missing"); }' --quiet
+  printf 'Notes P4 Site %s: installed WP, own DB, Base + Notes PASS\n' "$label"
+}
+stage_site a "$A" "$DB_A"
+stage_site b "$B" "$DB_B"
+ARCHIVE="$RUN/source.json"
+ZIP="$RUN/source-markdown.zip"
+TARGET="$RUN/target.json"
+CASE="$ROOT/tests/portability/p4-site.php"
+# Archives never reside in either WordPress document root.
+wp --path="$A" eval-file "$CASE" source "$ARCHIVE" "$ZIP"
+wp --path="$B" eval-file "$CASE" target-init
+wp --path="$B" eval-file "$CASE" import "$ARCHIVE"
+wp --path="$B" eval-file "$CASE" replay "$ARCHIVE"
+wp --path="$B" eval-file "$CASE" export-target "$TARGET"
+wp --path="$B" eval-file "$CASE" verify "$ARCHIVE" "$TARGET"
+printf 'Notes P4 independent Site A -> Site B round-trip: PASS (WP %s)\n' "$WP_VERSION"
