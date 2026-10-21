@@ -8,6 +8,16 @@ const canonical = read('tools/check-integration');
 const helper = read('tools/check-portability-p4');
 const site = read('tests/portability/p4-site.php');
 const provider = read('src/Portability/Provider.php');
+const cliProbe = read('tests/portability/p4-cli-args-probe.php');
+assert.ok(!site.includes('global $args;') &&
+    site.includes("isset($args) || !is_array($args)") &&
+    site.includes("$mode = (string)($args[0] ?? '');"),
+    'P4 must read WP-CLI eval-file local $args, not shadow them with global $args');
+assert.ok(cliProbe.includes("$args !== ['p4-argv-probe']") &&
+    helper.includes('wp eval-file "$ROOT/tests/portability/p4-cli-args-probe.php" p4-argv-probe --skip-wordpress') &&
+    helper.indexOf('p4-cli-args-probe.php') < helper.indexOf('CREATE DATABASE'),
+    'Read-only preflight must prove actual WP-CLI argument passing before SQL creation');
+
 assert.ok(!/\bdeclare\s*\(\s*strict_types\s*=/.test(site),
     'WP-CLI eval-file test fixtures cannot contain a strict_types declaration');
 assert.ok(helper.includes('cb-notes-p4-no-mail.php') &&

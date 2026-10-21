@@ -266,7 +266,11 @@ function cbp4_target_export(string $path): void {
     WP_CLI::success('P4 Site B: owner-only JSON reexport');
 }
 
-global $args;
+// WP-CLI eval-file supplies positional parameters in its local $args variable.
+// Declaring $args global here shadows those values and loses the phase.
+if (!isset($args) || !is_array($args)) {
+    throw new RuntimeException('Notes P4 requires WP-CLI eval-file positional arguments.');
+}
 $mode = (string)($args[0] ?? '');
 $first = (string)($args[1] ?? '');
 $second = (string)($args[2] ?? '');

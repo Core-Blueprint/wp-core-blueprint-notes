@@ -34,6 +34,9 @@ P4_EXISTING="$(docker exec -e MYSQL_PWD=root cb-base-test-db mariadb -uroot -N -
   fail "P4 read-only schema inventory failed"
 [[ -z "$P4_EXISTING" ]] ||
   fail "Existing P4 schemas require operator review (never auto-drop): $P4_EXISTING"
+# WP-CLI performs eval-file inside a method; verify the real positional
+# argument scope BEFORE allocating any disposable WordPress/SQL resources.
+wp eval-file "$ROOT/tests/portability/p4-cli-args-probe.php" p4-argv-probe --skip-wordpress
 if [[ "$MODE" == --preflight ]]; then
   printf 'Notes P4 preflight: PASS (WP %s; no sites or DBs created)\n' "$WP_VERSION"
   exit 0
