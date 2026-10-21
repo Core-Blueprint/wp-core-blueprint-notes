@@ -13,6 +13,7 @@ use CB\Notes\Library\Markers;
 use CB\Notes\Library\Bulk;
 use CB\Notes\Portability\Provider as PortabilityProvider;
 use CB\Notes\Portability\Page as PortabilityPage;
+use CB\Notes\Portability\MappingSeed;
 use CoreBlueprint\Core\UI\Assets;
 use CoreBlueprint\Core\Governance\Audit;
 use CoreBlueprint\Core\Governance\EventRegistry;
@@ -48,6 +49,7 @@ final class Plugin {
         Catalog::init();
         LibraryPage::init();
         PortabilityPage::init();
+        add_action('admin_init', [MappingSeed::class, 'provision_for_admin_upgrade'], 5);
         Markers::init();
         Bulk::init();
         add_filter('core_blueprint_module_status_definitions',[self::class,'status_definitions']);

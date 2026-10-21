@@ -48,9 +48,9 @@ final class ImportSession {
         }
         $owner = get_current_user_id();
         $target = Catalog::catalog($owner);
-        $secret = wp_salt('auth');
-        if (!is_string($secret) || strlen($secret) < 32) {
-            return self::error('cb_notes_import_session_unavailable');
+        $secret = MappingSeed::read();
+        if ($secret instanceof \WP_Error) {
+            return $secret;
         }
         // Deliberately accept no client-provided owner, source identity or
         // previously-completed receipts. The journal will supply verified

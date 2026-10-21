@@ -12,6 +12,9 @@ namespace CB\Notes\Organization {
     }
 }
 namespace CB\Notes\Portability {
+    final class MappingSeed {
+        public static function read(): string { return str_repeat('S', 32); }
+    }
     final class ImportJournal {
         public static function receipt(int $owner, string $digest, string $reference): array|\WP_Error {
             if (($GLOBALS['mock_receipt_state'] ?? 'new') === 'pending') {
